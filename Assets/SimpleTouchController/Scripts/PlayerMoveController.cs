@@ -58,7 +58,7 @@ public class PlayerMoveController : MonoBehaviour {
 
 			_rigidbody.MoveRotation(rot);
 
-			rot = Quaternion.Euler(headTrans.localEulerAngles.x - value.y * Time.deltaTime * speedProgressiveLook,
+			rot = Quaternion.Euler(headTrans.localEulerAngles.x - (value.y / 2) * Time.deltaTime * speedProgressiveLook,
 				0f,
 				0f);
 			headTrans.localRotation = rot;
