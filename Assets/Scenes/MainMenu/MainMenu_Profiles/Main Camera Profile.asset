@@ -1,5 +1,27 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-3008710233216002374
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b94fcd11afffcb142908bfcb1e261fba, type: 3}
+  m_Name: MotionBlur
+  m_EditorClassIdentifier: 
+  active: 1
+  enabled:
+    overrideState: 1
+    value: 1
+  shutterAngle:
+    overrideState: 1
+    value: 360
+  sampleCount:
+    overrideState: 1
+    value: 20
 --- !u!114 &-2266268069544707979
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -21,7 +43,7 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 0.734
+    value: 0.217
   size:
     overrideState: 1
     value: 1.36
@@ -87,7 +109,7 @@ MonoBehaviour:
     value: 0
   colorFilter:
     overrideState: 1
-    value: {r: 0.4056604, g: 0.4056604, b: 0.4056604, a: 1}
+    value: {r: 0.9528302, g: 0.9528302, b: 0.9528302, a: 1}
   hueShift:
     overrideState: 0
     value: 0
@@ -132,13 +154,13 @@ MonoBehaviour:
     value: 100
   lift:
     overrideState: 1
-    value: {x: 0.89564306, y: 0.8810066, z: 1, w: 0}
+    value: {x: 1, y: 0.86891645, z: 0.7788, w: 0}
   gamma:
     overrideState: 1
-    value: {x: 0.9825791, y: 1, z: 0.8665686, w: 0}
+    value: {x: 0.9496122, y: 1, z: 0.84649456, w: 0}
   gain:
     overrideState: 1
-    value: {x: 0.964255, y: 0.97628593, z: 1, w: 0}
+    value: {x: 0.9288036, y: 1, z: 0.9466028, w: 0}
   masterCurve:
     overrideState: 0
     value:
@@ -1354,3 +1376,4 @@ MonoBehaviour:
   settings:
   - {fileID: -2266268069544707979}
   - {fileID: -127947378372468936}
+  - {fileID: -3008710233216002374}
