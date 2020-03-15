@@ -3,7 +3,7 @@ using UnityEngine.Advertisements;
 
 public class RewardedAdsScript : MonoBehaviour, IUnityAdsListener
 {
-    ServerCoins serverCoins;
+    public ServerCoins serverCoins;
     string gameId = "3507995";
     string myPlacementId = "rewardedVideo";
     bool testMode = true;
@@ -25,10 +25,12 @@ public class RewardedAdsScript : MonoBehaviour, IUnityAdsListener
         // Define conditional logic for each ad completion status:
         if (showResult == ShowResult.Finished)
         {
-            serverCoins.coinAmount =+ 10;
+            Debug.Log("Finished AD");
+            serverCoins.AddCoin(20);
         }
         else if (showResult == ShowResult.Skipped)
         {
+            Debug.Log("Skipped AD");
         }
         else if (showResult == ShowResult.Failed)
         {

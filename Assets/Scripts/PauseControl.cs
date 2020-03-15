@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using Photon.Realtime;
+using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -27,7 +29,9 @@ public class PauseControl : MonoBehaviour
     }
     public void GoMainMenu() 
     {
-        SceneManager.LoadScene(0);
         gamePaused = false;
+        SceneManager.LoadScene(0);
+        PhotonNetwork.LeaveRoom();
+        PhotonNetwork.JoinLobby();
     }
 }
