@@ -302,18 +302,18 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 26210690}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.0901229, y: 1.0901229, z: 1.0901229}
   m_Children:
   - {fileID: 435510352}
-  m_Father: {fileID: 809790030}
-  m_RootOrder: 3
+  m_Father: {fileID: 489408059}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.0126953125, y: -0.0014648438}
-  m_SizeDelta: {x: -0.6999512, y: -1.1999512}
+  m_AnchoredPosition: {x: 0.013916016, y: -0.0015869141}
+  m_SizeDelta: {x: -245.41016, y: -123.55505}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &26210692
 MonoBehaviour:
@@ -1091,6 +1091,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!224 &489408059 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 2927519941086250569, guid: 09f76ea8a92d87045bb94f6861c0a61e,
+    type: 3}
+  m_PrefabInstance: {fileID: 2927519942066595214}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &503230101
 GameObject:
   m_ObjectHideFlags: 0
@@ -1852,7 +1858,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!224 &809790030
 RectTransform:
@@ -1868,7 +1874,6 @@ RectTransform:
   - {fileID: 413024884}
   - {fileID: 184509434}
   - {fileID: 1688612404}
-  - {fileID: 26210691}
   m_Father: {fileID: 1024402278}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5598,7 +5603,12 @@ PrefabInstance:
     - target: {fileID: 2927519941086250564, guid: 09f76ea8a92d87045bb94f6861c0a61e,
         type: 3}
       propertyPath: m_AdditionalShaderChannelsFlag
-      value: 25
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2927519941086250564, guid: 09f76ea8a92d87045bb94f6861c0a61e,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2927519941107176837, guid: 09f76ea8a92d87045bb94f6861c0a61e,
         type: 3}
