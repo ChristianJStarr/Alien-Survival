@@ -20,7 +20,7 @@ public class Topbar : MonoBehaviour
     {
         if (value)
         {
-            networkStatus.text = "CONNECTED TO " + PhotonNetwork.CurrentRoom;
+            networkStatus.text = "CONNECTED:" + PhotonNetwork.CurrentRoom.Name + " (" + PhotonNetwork.CurrentRoom.PlayerCount + "/" + PhotonNetwork.CurrentRoom.MaxPlayers + ")";
             networkStatus.color = new Color32(52, 255, 79, 255);
         }
         else

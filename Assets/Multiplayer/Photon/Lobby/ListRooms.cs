@@ -10,22 +10,60 @@ public class ListRooms : MonoBehaviourPunCallbacks
 
     public ServerSlideScript _roomListing;
     public TextMeshProUGUI _serverAmount;
+    public GameObject serverItem;
+
+    private ServerSlideScript[] _roomListings;
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList) 
     {
-        Debug.Log("Netwok - RoomList Update Called. Number of Rooms: " + roomList.Count);
         for (int i = 0; i < roomList.Count; i++)
         {
             RoomInfo info = roomList[i];
-            Debug.Log(info);
-            ServerSlideScript roomListing = Instantiate(_roomListing, _content);
-            if (roomListing != null)
+            if (!info.RemovedFromList)
             {
-                roomListing.SetRoomInfo(info);
-            }
-            
+                ServerSlideScript roomListing = Instantiate(_roomListing, _content);
+                if (roomListing != null)
+                {
+                    roomListing.SetRoomInfo(info);
+                }
+            }     
         }
-        _serverAmount.text = "SERVERS (" + roomList.Count + "/" + roomList.Count + ")";
-    }    
-
+        
+        UpdateLists(roomList);
+    }
+    public void UpdateLists(List<RoomInfo> roomList) 
+    {
+        _roomListings = serverItem.GetComponentsInChildren<ServerSlideScript>();
+        for (int i = 0; i < _roomListings.Length; i++)
+        {
+            for (int a = 0; a < roomList.Count; a++)
+            {
+                if (_roomListings[i].roomNameJoin == roomList[a].Name) 
+                {
+                    if (roomList[a].RemovedFromList) 
+                    {
+                        _roomListings[i].roomExists = false;
+                    }
+                    else 
+                    {
+                        _roomListings[i].roomExists = true;
+                    }
+                }
+            }
+        }
+        int servers = 0;
+        for (int i = 0; i < _roomListings.Length; i++)
+        {
+            if (_roomListings[i].roomExists == false) 
+            {
+                Destroy(_roomListings[i].gameObject);
+                _roomListings[i] = null;
+            }
+            else
+            {
+                servers++;
+            }
+        }
+        _serverAmount.text = "SERVERS (" + servers + "/" + servers + ")";
+    }
 }

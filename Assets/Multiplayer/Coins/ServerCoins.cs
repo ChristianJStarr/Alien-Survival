@@ -48,6 +48,17 @@ public class ServerCoins : MonoBehaviour
             return false;
         }
     }
+    public bool CanRemoveCoin(int value)
+    {
+        if (coinAmount >= value)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 
 

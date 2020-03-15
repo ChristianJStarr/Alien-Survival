@@ -24,7 +24,7 @@ public class CreateRoom : MonoBehaviour
     }
     public void CreateARoom() 
     {
-        if (nameBox.text.Length > 5 && serverCoins.RemoveCoin(50)) 
+        if (nameBox.text.Length > 5 && serverCoins.CanRemoveCoin(50)) 
         {
             photonLobby.CreateNewRoom(nameBox.text);
             nameBox.text = "";

@@ -15,13 +15,15 @@ public class ServerSlideScript : MonoBehaviourPunCallbacks
     private TextMeshProUGUI roomPlayers;
     ServerCoins serverCoins;
     public string roomNameJoin;
+    public bool roomExists;
 
     void Start() 
     {
+        roomExists = false;
         serverCoins = ServerCoins.Instance();
     }
 
-    public void SetRoomInfo(RoomInfo roomInfo) 
+    public void SetRoomInfo(RoomInfo roomInfo)
     {
         roomName.text = roomInfo.Name.Substring(0, roomInfo.Name.IndexOf("-")).Trim();
         roomMode.text = "Normal Mode V1.13";
@@ -30,11 +32,11 @@ public class ServerSlideScript : MonoBehaviourPunCallbacks
     }
     public void JoinThisRoom() 
     {
-        if (roomNameJoin != null && serverCoins.RemoveCoin(25)) 
+        if (roomNameJoin != null && serverCoins.CanRemoveCoin(25)) 
         {
             Debug.Log("Network - Joining Room: " + roomNameJoin);
             PhotonNetwork.JoinRoom(roomNameJoin);
         }
     }
-    
+   
 }

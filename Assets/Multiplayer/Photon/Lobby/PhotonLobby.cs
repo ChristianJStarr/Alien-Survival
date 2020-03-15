@@ -22,6 +22,7 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
     void Start()
     {
         IsConnectedText(false);
+        if(!PhotonNetwork.IsConnected)
         PhotonNetwork.ConnectUsingSettings();  
     }
     public override void OnConnectedToMaster()
@@ -77,6 +78,7 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
     public override void OnCreatedRoom()
     {
         base.OnCreatedRoom();
+        serverCoins.RemoveCoin(50);
         Debug.Log("Network - Created Room State: " + PhotonNetwork.NetworkClientState);
         PhotonNetwork.LeaveLobby();
         Debug.Log("Network - Leaving Lobby: " + PhotonNetwork.NetworkClientState);
@@ -93,8 +95,11 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
     }
     public override void OnJoinedRoom()
     {
+
         base.OnJoinedRoom();
         Debug.Log("Network - Joined Room");
+        serverCoins.RemoveCoin(25);
         SceneManager.LoadScene(1);
     }
+    
 }
