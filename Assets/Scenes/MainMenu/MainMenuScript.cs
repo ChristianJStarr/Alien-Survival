@@ -15,7 +15,9 @@ public class MainMenuScript : MonoBehaviour
     static Transform playTarget;
     public Vector3 playTargetCord;
     public Quaternion playTargetRot;
-    
+    public Vector3 profTargetCord;
+    public Quaternion profTargetRot;
+
     Vector3 resetTargetCord;
     Quaternion resetTargetRot;
     Vector3 camTargetposition;
@@ -56,15 +58,15 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         profileMenu.SetActive(true);
-        camTargetposition = playTargetCord;
-        camTargetrotation = playTargetRot;
+        camTargetposition = profTargetCord;
+        camTargetrotation = profTargetRot;
     }
     public void SettingsMenu() 
     {
         mainScreen.SetActive(false);
         settingsMenu.SetActive(true);
-        camTargetposition = playTargetCord;
-        camTargetrotation = playTargetRot;
+        camTargetposition = profTargetCord;
+        camTargetrotation = profTargetRot;
     }
     public void CloseMenu() 
     {
