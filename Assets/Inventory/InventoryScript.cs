@@ -11,6 +11,7 @@ public class InventoryScript : MonoBehaviour
     public GameObject inventoryUI;  // The entire UI
     public Transform itemsParent;   // The parent object of all the items
     public GameObject inventoryBkg;
+    public GameObject bounds;
     //public GameObject holdables;
     public FirstPersonController fps;
 
@@ -119,6 +120,7 @@ public class InventoryScript : MonoBehaviour
             //Cursor.visible = true;
         }
         inventoryBkg.SetActive(!inventoryBkg.activeSelf);
+        bounds.SetActive(!bounds.activeSelf);
         for (int i = 0; i < slots.Length; i++)
         {
             if (i > 8)

@@ -30,11 +30,11 @@ public class ServerCoins : MonoBehaviour
         coinAmount += value;
         coinText.text = coinAmount + " SP";
     }
-    public void NotEnoughCoin(bool value) 
+    public void ShowNotify(bool value) 
     {
         coinNotify.SetActive(value);
     }
-    public bool   RemoveCoin(int value) 
+    public bool RemoveCoin(int value) 
     {
         if (coinAmount >= value) 
         {
@@ -44,7 +44,6 @@ public class ServerCoins : MonoBehaviour
         }
         else
         {
-            NotEnoughCoin(true);
             return false;
         }
     }
@@ -56,6 +55,7 @@ public class ServerCoins : MonoBehaviour
         }
         else
         {
+            ShowNotify(true);
             return false;
         }
     }

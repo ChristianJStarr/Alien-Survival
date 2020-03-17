@@ -10,6 +10,7 @@ public class MainMenuScript : MonoBehaviour
     public GameObject profileMenu;
     public GameObject settingsMenu;
     public GameObject onlineMenu;
+    public GameObject createMenu;
     public Camera cam;
     static Transform camReset;
     static Transform playTarget;
@@ -54,6 +55,13 @@ public class MainMenuScript : MonoBehaviour
         camTargetposition = playTargetCord;
         camTargetrotation = playTargetRot;
     }
+    public void CreateMenu()
+    {
+        mainScreen.SetActive(false);
+        createMenu.SetActive(true);
+        camTargetposition = playTargetCord;
+        camTargetrotation = playTargetRot;
+    }
     public void ProfileMenu() 
     {
         mainScreen.SetActive(false);
@@ -77,6 +85,8 @@ public class MainMenuScript : MonoBehaviour
   
             settingsMenu.SetActive(false);
 
+            createMenu.SetActive(false);
+            
             mainScreen.SetActive(true);
 
         camTargetposition = resetTargetCord;

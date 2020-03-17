@@ -64,6 +64,10 @@ public class ListRooms : MonoBehaviourPunCallbacks
                 servers++;
             }
         }
-        _serverAmount.text = "SERVERS (" + servers + "/" + servers + ")";
+        if (_serverAmount.text != "") 
+        {
+            _serverAmount.text = "SEARCH...  (" + servers + "/" + servers + ")";
+        }
+        
     }
 }

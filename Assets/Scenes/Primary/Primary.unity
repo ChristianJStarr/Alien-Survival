@@ -756,8 +756,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.505, y: 0.2}
   m_AnchorMax: {x: 0.99, y: 0.9}
-  m_AnchoredPosition: {x: -314.58936, y: -41.359375}
-  m_SizeDelta: {x: 54.21206, y: -164.43994}
+  m_AnchoredPosition: {x: -515, y: -41.359375}
+  m_SizeDelta: {x: 331.9, y: -164.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &308424010
 MonoBehaviour:
@@ -5630,6 +5630,11 @@ PrefabInstance:
       propertyPath: m_Color.b
       value: 0.7075472
       objectReference: {fileID: 0}
+    - target: {fileID: 2927519941357513057, guid: 09f76ea8a92d87045bb94f6861c0a61e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2927519941357513086, guid: 09f76ea8a92d87045bb94f6861c0a61e,
         type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -5695,10 +5700,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2927519941437328041, guid: 09f76ea8a92d87045bb94f6861c0a61e,
+        type: 3}
+      propertyPath: bounds
+      value: 
+      objectReference: {fileID: 2927519942066595215}
     - target: {fileID: 2927519941437328043, guid: 09f76ea8a92d87045bb94f6861c0a61e,
         type: 3}
       propertyPath: m_Name
       value: InventoryUI
+      objectReference: {fileID: 0}
+    - target: {fileID: 2927519941535275371, guid: 09f76ea8a92d87045bb94f6861c0a61e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2927519942337979971, guid: 09f76ea8a92d87045bb94f6861c0a61e,
         type: 3}
@@ -5837,6 +5852,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 09f76ea8a92d87045bb94f6861c0a61e, type: 3}
+--- !u!1 &2927519942066595215 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2927519941535275371, guid: 09f76ea8a92d87045bb94f6861c0a61e,
+    type: 3}
+  m_PrefabInstance: {fileID: 2927519942066595214}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &3204688087854029211
 PrefabInstance:
   m_ObjectHideFlags: 0
