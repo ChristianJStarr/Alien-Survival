@@ -8,8 +8,9 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TurquoiseSmooth
-  m_Shader: {fileID: 45, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: _LIGHTMAPPING_DYNAMIC_LIGHTMAPS _LIGHTMAPPING_REALTIME _UVSEC_UV1
+  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+  m_ShaderKeywords: _EMISSION _LIGHTMAPPING_DYNAMIC_LIGHTMAPS _LIGHTMAPPING_REALTIME
+    _UVSEC_UV1
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -20,6 +21,18 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMapDetail:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cube:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Detail:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -40,7 +53,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: aeef8d0d4008dcd4eb547dcb8b92a9c8, type: 3}
+        m_Texture: {fileID: 2800000, guid: 590546bcbd472d94e874f6e0c76cc266, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -66,6 +79,7 @@ Material:
     m_Floats:
     - _AlphaTestRef: 0.5
     - _BumpScale: 1
+    - _ContrastMt: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -73,12 +87,25 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.1
     - _GlossyReflections: 1
+    - _IntensityMicrowave: 0.5
+    - _IntensityMt: 1
+    - _IntensityNm: 1
+    - _IntensityRef: 0.15
     - _Lightmapping: 1
+    - _MainDetailFlow: 1
+    - _MainDetailScale: 1
     - _Metallic: 0.1
+    - _MicrowaveScale: 1
     - _Mode: 0
+    - _NormalmapDetailScale: 0.5
+    - _NormalmapDetailSpeed: 0.5
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _ParallaxScale: 1
+    - _ReverseFlow: 1
+    - _Shininess: 0.15
     - _SmoothnessTextureChannel: 0
+    - _SoftFactor: 0.5
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
@@ -88,5 +115,6 @@ Material:
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColorUI: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColorWithMapUI: {r: 1, g: 1, b: 1, a: 1}
+    - _ReflectColor: {r: 0.28, g: 0.29, b: 0.25, a: 0.5}
     - _SpecColor: {r: 0.11764706, g: 0.11764706, b: 0.11764706, a: 1}
     - _SpecularColor: {r: 0.15686275, g: 0.15686275, b: 0.15686275, a: 1}
