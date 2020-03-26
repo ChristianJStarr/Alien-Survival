@@ -10,9 +10,12 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
 {
 
     public static PhotonLobby lobby;
+    public PlayerStats playerStats;
     public TextMeshProUGUI isConnectedText;
-    public ServerCoins serverCoins;
+    
+
     private string roomExact;
+    
 
     private void Awake() 
     {
@@ -21,17 +24,21 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        
         IsConnectedText(false);
         if(!PhotonNetwork.IsConnected)
         PhotonNetwork.ConnectUsingSettings();  
     }
+    
+
     public override void OnConnectedToMaster()
     {
         Debug.Log("Network - Connected to Master State: " + PhotonNetwork.NetworkClientState);
         base.OnConnectedToMaster();
-
+        PhotonNetwork.AutomaticallySyncScene = true;
         IsConnectedText(true);
         PhotonNetwork.JoinLobby(TypedLobby.Default);
+        PhotonNetwork.NickName = playerStats.playerName;
     }
     private void IsConnectedText(bool value) 
     {
@@ -78,7 +85,6 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
     public override void OnCreatedRoom()
     {
         base.OnCreatedRoom();
-        serverCoins.RemoveCoin(50);
         Debug.Log("Network - Created Room State: " + PhotonNetwork.NetworkClientState);
         PhotonNetwork.LeaveLobby();
         Debug.Log("Network - Leaving Lobby: " + PhotonNetwork.NetworkClientState);
@@ -93,13 +99,6 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
     {
         Debug.Log("Unable to join room State: " + PhotonNetwork.NetworkClientState);
     }
-    public override void OnJoinedRoom()
-    {
 
-        base.OnJoinedRoom();
-        Debug.Log("Network - Joined Room");
-        serverCoins.RemoveCoin(25);
-        SceneManager.LoadScene(1);
-    }
     
 }

@@ -9,7 +9,8 @@ public class CreateRoom : MonoBehaviour
     public Button button;
     public TextMeshProUGUI nameBox;
     public PhotonLobby photonLobby;
-    public ServerCoins serverCoins;
+    public PlayerLogin playerLogin;
+
 
     public void UpdateBox() 
     {
@@ -24,10 +25,8 @@ public class CreateRoom : MonoBehaviour
     }
     public void CreateARoom() 
     {
-        Debug.Log("Creating Room");
-        if (nameBox.text.Length > 5 && serverCoins.CanRemoveCoin(50)) 
+        if (nameBox.text.Length > 5 && playerLogin.CanRemoveCoin(50)) 
         {
-            Debug.Log("Photon creating room");
             photonLobby.CreateNewRoom(nameBox.text);
             nameBox.text = "";
         }

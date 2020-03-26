@@ -10,6 +10,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
     [RequireComponent(typeof (AudioSource))]
     public class FirstPersonController : MonoBehaviour
     {
+
+        [SerializeField] private GameObject cameraPivot;
         [SerializeField] private bool m_IsWalking;
         [SerializeField] private float m_WalkSpeed;
         [SerializeField] private float m_RunSpeed;
@@ -27,9 +29,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private AudioClip[] m_FootstepSounds;    // an array of footstep sounds that will be randomly selected from.
         [SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
         [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
+        [SerializeField] private Animator animator;
+
 
         private Camera m_Camera;
-        private bool m_Jump;
+        public bool m_Jump;
+        public bool m_Crouch;
         private float m_YRotation;
         private Vector2 m_Input;
         private Vector3 m_MoveDir = Vector3.zero;
@@ -40,11 +45,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_StepCycle;
         private float m_NextStep;
         private bool m_Jumping;
+        private bool m_Crouching;
         private AudioSource m_AudioSource;
+
 
         // Use this for initialization
         private void Start()
         {
+            animator = GetComponent<Animator>();
             m_CharacterController = GetComponent<CharacterController>();
             m_Camera = Camera.main;
             m_OriginalCameraPosition = m_Camera.transform.localPosition;
@@ -53,6 +61,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_StepCycle = 0f;
             m_NextStep = m_StepCycle/2f;
             m_Jumping = false;
+            m_Crouching = false;
+            m_Crouch = false;
             m_AudioSource = GetComponent<AudioSource>();
 			m_MouseLook.Init(transform , m_Camera.transform);
         }
@@ -61,11 +71,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // Update is called once per frame
         private void Update()
         {
+            UpdateAnimations();
             RotateView();
             // the jump state needs to read here to make sure it is not missed
             if (!m_Jump)
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
+            }
+            if (!m_Crouch) 
+            {
+                m_Crouch = CrossPlatformInputManager.GetButtonDown("Crouch");
             }
 
             if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
@@ -95,7 +110,48 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void FixedUpdate()
         {
             float speed;
+            float zSpeed;
+            float xSpeed;
+
+            float vertical = CrossPlatformInputManager.GetAxis("Vertical");
+            float horizontal = CrossPlatformInputManager.GetAxis("Horizontal");
+
             GetInput(out speed);
+            if (vertical != 0) 
+            {
+                xSpeed = 1;
+                if (vertical > 0) 
+                {
+                    vertical = (vertical * 1) + 1;
+                    speed = vertical * vertical * 2;
+                }
+                if(vertical < 0) 
+                {
+                    vertical = Mathf.Abs(vertical);
+                    vertical = (vertical * 1) + 1;
+                    speed = vertical * vertical * 1.5F;
+                }
+                animator.SetFloat("vertical", vertical);
+            }
+            else
+            {
+                xSpeed = 2;
+                animator.SetFloat("vertical", 0F);
+            }
+            if (horizontal != 0) 
+            {
+                zSpeed = (((Mathf.Abs(horizontal) * 1) + 1) * 2);
+                animator.SetFloat("horizontal", horizontal);
+            }
+            else
+            {
+                zSpeed = 2;
+                if(animator.GetFloat("horizontal") != 0F) 
+                {
+                    animator.SetFloat("horizontal", 0F);
+                }
+            }
+            
             // always move along the camera forward as it is the direction that it being aimed at
             Vector3 desiredMove = transform.forward*m_Input.y + transform.right*m_Input.x;
 
@@ -113,12 +169,20 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_MoveDir.y = -m_StickToGroundForce;
 
-                if (m_Jump)
+                if (m_Jump && !m_Crouch)
                 {
                     m_MoveDir.y = m_JumpSpeed;
                     PlayJumpSound();
                     m_Jump = false;
                     m_Jumping = true;
+                    animator.SetTrigger("doJump");
+                }
+                if (m_Crouch)
+                {
+                    m_Crouch = false;
+                    m_Crouching = !m_Crouching;
+                    animator.SetBool("Crouch", m_Crouching);
+                    SetCrouch();
                 }
             }
             else
@@ -133,6 +197,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_MouseLook.UpdateCursorLock();
         }
 
+
+        private void SetCrouch() 
+        {
+            Debug.Log("Set Crouch " + m_Crouching);
+        }
 
         private void PlayJumpSound()
         {
@@ -159,6 +228,47 @@ namespace UnityStandardAssets.Characters.FirstPerson
             PlayFootStepAudio();
         }
 
+        private void UpdateAnimations() 
+        {
+            //float horizontal = CrossPlatformInputManager.GetAxis("Horizontal");
+            //float vertical = CrossPlatformInputManager.GetAxis("Vertical");
+
+            //if (vertical > 0.2F)
+            //{
+            //    animator.SetBool("isWalking", true);
+            //}
+            //else
+            //{
+            //    animator.SetBool("isWalking", false);
+            //}
+            //if (vertical < -0.2F)
+            //{
+            //    animator.SetBool("isBacking", true);
+            //    animator.SetBool("isStrafingLeft", false);
+            //    animator.SetBool("isStrafingRight", false);
+            //}
+            //else
+            //{
+            //    animator.SetBool("isBacking", false);
+            //}
+            //if (horizontal > 0.2)
+            //{
+            //    animator.SetBool("isStrafingRight", true);
+            //}
+            //else
+            //{
+            //    animator.SetBool("isStrafingRight", false);
+            //}
+            //if (horizontal < -0.2)
+            //{
+            //    animator.SetBool("isStrafingLeft", true);
+            //}
+            //else
+            //{
+            //    animator.SetBool("isStrafingLeft", false);
+            //}
+
+        }
 
         private void PlayFootStepAudio()
         {
@@ -208,6 +318,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             float vertical = CrossPlatformInputManager.GetAxis("Vertical");
 
             bool waswalking = m_IsWalking;
+            
+            
 
 #if !MOBILE_INPUT
             // On standalone builds, walk/run speed is modified by a key press.
@@ -236,7 +348,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void RotateView()
         {
-            m_MouseLook.LookRotation (transform, m_Camera.transform);
+            m_MouseLook.LookRotation (transform, cameraPivot.transform);
         }
 
 

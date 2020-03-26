@@ -13,14 +13,17 @@ public class ServerSlideScript : MonoBehaviourPunCallbacks
     private TextMeshProUGUI roomMode;
     [SerializeField]
     private TextMeshProUGUI roomPlayers;
-    ServerCoins serverCoins;
+    PlayerLogin playerLogin;
+
+    public int roomCount;
     public string roomNameJoin;
     public bool roomExists;
 
     void Start() 
     {
+        roomCount = 0;
         roomExists = false;
-        serverCoins = ServerCoins.Instance();
+        playerLogin = PlayerLogin.Instance();
     }
 
     public void SetRoomInfo(RoomInfo roomInfo)
@@ -29,10 +32,11 @@ public class ServerSlideScript : MonoBehaviourPunCallbacks
         roomMode.text = "Normal Mode V1.13";
         roomPlayers.text = "(" + roomInfo.PlayerCount + "/" + roomInfo.MaxPlayers + ")";
         roomNameJoin = roomInfo.Name;
+        roomCount = roomInfo.PlayerCount;
     }
     public void JoinThisRoom() 
     {
-        if (roomNameJoin != null && serverCoins.CanRemoveCoin(25)) 
+        if (roomNameJoin != null && playerLogin.CanRemoveCoin(25)) 
         {
             Debug.Log("Network - Joining Room: " + roomNameJoin);
             PhotonNetwork.JoinRoom(roomNameJoin);

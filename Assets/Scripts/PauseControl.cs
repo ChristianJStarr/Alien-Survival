@@ -30,7 +30,7 @@ public class PauseControl : MonoBehaviour
     public void GoMainMenu() 
     {
         gamePaused = false;
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
         PhotonNetwork.LeaveRoom();
         PhotonNetwork.JoinLobby();
     }

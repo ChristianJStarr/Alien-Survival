@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4758f881bb3584eaf3830a3b7aaa17, type: 3}
+  m_Name: Item_2
+  m_EditorClassIdentifier: 
+  itemID: 2
+  name: Pistol
+  icon: {fileID: 21300000, guid: b6ebecd72fa8bdd4b843a024cbdbc58e, type: 3}
+  showInInventory: 1
+  itemStack: 1
+  maxItemStack: 1
+  dropableObject: {fileID: 4359420567436233761, guid: 9dbb2015ae6902f4699d6c50f84e327c,
+    type: 3}
+  isDragging: 0
+  currSlot: 44
+  sitSlot: 0
+  isHoldable: 1
+  special: 

@@ -58,7 +58,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
 			ApplyExtraTurnRotation();
 
-			// control and velocity handling is different when grounded and airborne:
+            // control and velocity handling is different when grounded and airborne:
 			if (m_IsGrounded)
 			{
 				HandleGroundedMovement(crouch, jump);
@@ -130,14 +130,14 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 			// calculate which leg is behind, so as to leave that leg trailing in the jump animation
 			// (This code is reliant on the specific run cycle offset in our animations,
 			// and assumes one leg passes the other at the normalized clip times of 0.0 and 0.5)
-			float runCycle =
-				Mathf.Repeat(
-					m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime + m_RunCycleLegOffset, 1);
-			float jumpLeg = (runCycle < k_Half ? 1 : -1) * m_ForwardAmount;
-			if (m_IsGrounded)
-			{
-				m_Animator.SetFloat("JumpLeg", jumpLeg);
-			}
+			//float runCycle =
+			//	Mathf.Repeat(
+			//		m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime + m_RunCycleLegOffset, 1);
+			//float jumpLeg = (runCycle < k_Half ? 1 : -1) * m_ForwardAmount;
+			//if (m_IsGrounded)
+			//{
+			//	m_Animator.SetFloat("JumpLeg", jumpLeg);
+			//}
 
 			// the anim speed multiplier allows the overall speed of walking/running to be tweaked in the inspector,
 			// which affects the movement speed because of the root motion.
