@@ -7,11 +7,11 @@
 
 <h3>Downloads</h3>
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.3.0 (recent)</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.5</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.0</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.8</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.2</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.0.0</a><br><br>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.5 (old)</a><br>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.0 (old)</a><br>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.8 (broken)</a><br>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.2 (broken)</a><br>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.0.0 (broken)</a><br><br>
 
  
 <h3>Login Menu</h3>
