@@ -16,13 +16,23 @@
 <a href="https://trello.com/b/OPZlirCX/alien-survival">Trello.com</a>
 
 <h1>Download</h1>
+
+<h3>Android</h3>
+
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.3.0 (recent)</a>
+
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.5 (old)</a>
+
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.0 (old)</a>
+
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.8 (broken)</a>
+
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.2 (broken)</a>
+
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.0.0 (broken)</a>
 
+<h3>IOS</h3
+  <a>Coming Soon</a>
 <h1>Screenshots</h1>
 <h3>Login Menu</h3>
  
