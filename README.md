@@ -2,8 +2,8 @@
   <h1 align="center">Alien Survival</h1>
   <h4 align="center">Welcome to the Alien Survival Github</h4>
   <p align="center">
-  <a href="">Contact</a>&nbsp;&nbsp;•&nbsp;&nbsp;
- <a href="">Suggest</a>&nbsp;&nbsp;•&nbsp;&nbsp;
+  <a href="email:christianjstarr@icloud.com">Contact</a>&nbsp;&nbsp;•&nbsp;&nbsp;
+ <a href="http://freesuggestionbox.com/pub/yajcxvb">Suggest</a>&nbsp;&nbsp;•&nbsp;&nbsp;
  <a href="">Support</a>
  </p>
 <br>
