@@ -12,11 +12,12 @@ public class PhotonRoom : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public static PhotonRoom room;
     private PhotonView PV;
 
+    public PlayerStats playerStats;
     private PlayerLogin playerLogin;
     public int multiplayerScene;
+    public bool isLeaving = false;
     public int currentScene;
-
-    public MainMenuScript mainMenuScript;
+    private bool canCreate = false;
     Slider loadSlider;
 
     void Awake()
@@ -56,18 +57,7 @@ public class PhotonRoom : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public override void OnJoinedRoom()
     {
         base.OnJoinedRoom();
-        Debug.Log("Network - Joined Room");
-        if (PhotonNetwork.IsMasterClient) 
-        {
-            Debug.Log("Removed 50 SP");
-            playerLogin.RemoveCoin(50);
-        }
-        else 
-        {
-            Debug.Log("Removed 25 SP");
-            playerLogin.RemoveCoin(25);
-        }
-
+        playerLogin.RemoveCoin(25);
         StartGame();
     }
     void StartGame() 
@@ -81,19 +71,12 @@ public class PhotonRoom : MonoBehaviourPunCallbacks, IInRoomCallbacks
         currentScene = scene.buildIndex;
         if (currentScene == multiplayerScene) 
         {
-            CreatePlayer();   
+            isLeaving = true;
         }
-        if (currentScene == 0) 
-        {
-            PhotonNetwork.Disconnect();
-            Destroy(this.gameObject);
-        }
-
+        
     }
-    private void CreatePlayer() 
+    public void LeaveGame() 
     {
-        Transform spawn = GameObject.Find("SpawnPoint").transform;
-        PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "NetworkPlayer"), spawn.position, Quaternion.identity, 0);
+        Destroy(gameObject);
     }
-
 }

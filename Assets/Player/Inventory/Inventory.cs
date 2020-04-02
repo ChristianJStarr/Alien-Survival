@@ -20,47 +20,77 @@ public class Inventory : MonoBehaviour
 
     public delegate void OnItemChanged();
     public OnItemChanged onItemChangedCallback;
-
-    public int space = 36;
-    public List<Item> items = new List<Item>();
+    public InventoryScript inventoryScript;
+    public int space = 33;
+    public List<Item> items;
+    public List<Item> armor;
     public Item[] allItems;
     public PlayerStats playerStats;
 
     void Start() 
     {
         allItems = Resources.LoadAll("Items", typeof(Item)).Cast<Item>().ToArray();
-        GetInventory();
     }
 
-    private void GetInventory() 
+    public void GetInventory() 
     {
         if(playerStats != null) 
         {
             string inv = playerStats.playerInventory;
             if (inv.Length > 2)
             {
-                string[] invData = inv.Split('-');
-                foreach (string invItem in invData)
+                if (inv.Contains('*')) 
                 {
-                    if (invItem == "") 
+                    string[] invSplit = inv.Split('*');
+                    foreach (string invItem in invSplit[0].Split('-'))
                     {
-                    
+                        if (invItem != "")
+                        {
+                            string[] itemData = invItem.Split('#');
+                            int itemID = Convert.ToInt32(itemData[0]);
+                            int curSlot = Convert.ToInt32(itemData[1]);
+                            int sitSlot = Convert.ToInt32(itemData[2]);
+                            int itemStack = Convert.ToInt32(itemData[3]);
+                            string special = itemData[4];
+                            CreateItem(itemID, curSlot, sitSlot, itemStack, special);
+                            //Debug.Log("Inventory - Added item #" + itemID);
+                        }
                     }
-                    else 
+                    foreach (string invItem in invSplit[1].Split('-'))
                     {
-                        Debug.Log(invItem);
-                        string[] itemData = invItem.Split('#');
-                        int itemID = Convert.ToInt32(itemData[0]);
-                        int curSlot = Convert.ToInt32(itemData[1]);
-                        int sitSlot = Convert.ToInt32(itemData[2]);
-                        int itemStack = Convert.ToInt32(itemData[3]);
-                        string special = itemData[4];
-                        CreateItem(itemID, curSlot, sitSlot, itemStack, special);
-                        Debug.Log("Inventory - Added item #" + itemID);
+                        if (invItem != "")
+                        {
+                            string[] itemData = invItem.Split('#');
+                            int itemID = Convert.ToInt32(itemData[0]);
+                            int curSlot = Convert.ToInt32(itemData[1]);
+                            int sitSlot = Convert.ToInt32(itemData[2]);
+                            int itemStack = Convert.ToInt32(itemData[3]);
+                            string special = itemData[4];
+                            CreateArmor(itemID, curSlot, sitSlot, itemStack, special);
+                            //Debug.Log("Inventory - Added item #" + itemID);
+                        }
+                    }
+                }
+                else 
+                {
+                    foreach (string invItem in inv.Split('-'))
+                    {
+                        if (invItem != "")
+                        {
+                            string[] itemData = invItem.Split('#');
+                            int itemID = Convert.ToInt32(itemData[0]);
+                            int curSlot = Convert.ToInt32(itemData[1]);
+                            int sitSlot = Convert.ToInt32(itemData[2]);
+                            int itemStack = Convert.ToInt32(itemData[3]);
+                            string special = itemData[4];
+                            CreateItem(itemID, curSlot, sitSlot, itemStack, special);
+                            //Debug.Log("Inventory - Added item #" + itemID);
+                        }
                     }
                 }
             }
         }
+        inventoryScript.UpdateUI();
     }
 
     private void SetInventory() 
@@ -78,11 +108,20 @@ public class Inventory : MonoBehaviour
                 string data = "-" + itemID + "#" + curSlot + "#" + sitSlot + "#" + itemStack + "#" + special;
                 dataString += data;
             }
-            playerStats.playerInventory = dataString;
-            Debug.Log("Inventory - Set Data");
-        }
-            
 
+            dataString += "*";
+            foreach (Item item in armor)
+            {
+                int itemID = item.itemID;
+                int curSlot = item.currSlot;
+                int sitSlot = item.sitSlot;
+                int itemStack = item.itemStack;
+                string special = item.special;
+                string data = "-" + itemID + "#" + curSlot + "#" + sitSlot + "#" + itemStack + "#" + special;
+                dataString += data;
+            }
+            playerStats.playerInventory = dataString;
+        }
     }
 
 
@@ -99,83 +138,158 @@ public class Inventory : MonoBehaviour
         }
         return newItem;
     }
-    private void CreateItem(int itemID, int curSlot, int sitSlot, int itemStack, string special) 
+    public void CreateItem(int itemID, int curSlot, int sitSlot, int itemStack, string special) 
+    {
+        if (!FindItem(itemID))
+            return;
+
+        Item newItem = Instantiate(FindItem(itemID));
+        newItem.currSlot = curSlot;
+        newItem.sitSlot = sitSlot;
+        newItem.itemStack = itemStack;
+        newItem.special = special;
+        items.Add(newItem);
+    }
+    public bool AddNewItem(int itemID, int curSlot, int sitSlot, int itemStack, string special)
     {
         Item newItem = Instantiate(FindItem(itemID));
         newItem.currSlot = curSlot;
         newItem.sitSlot = sitSlot;
         newItem.itemStack = itemStack;
         newItem.special = special;
-        Add(newItem);
+        
+        return Add(newItem);
+    }
+
+    private void CreateArmor(int itemID, int curSlot, int sitSlot, int itemStack, string special)
+    {
+        Item newItem = Instantiate(FindItem(itemID));
+        newItem.currSlot = curSlot;
+        newItem.sitSlot = sitSlot;
+        newItem.itemStack = itemStack;
+        newItem.special = special;
+        armor.Add(newItem);
     }
 
     public bool Add(Item item)
     {
-
         bool isPlaced = false;
         if (item.showInInventory)
         {
-            if (items.Count == 0) 
+            if (items.Count == 0)
             {
-                item.itemStack = 1;
                 items.Add(item);
                 isPlaced = true;
             }
             else if (item.maxItemStack > 1)
             {
-                for (int i = 0; i < items.Count; i++)
+                foreach (Item stored in items)
                 {
-                    if (isPlaced == false)
+                    if (!isPlaced)
                     {
-                        Item otem = items[i];
-                        if (otem.name == item.name && otem.maxItemStack > otem.itemStack)
+                        if (stored.name == item.name)
                         {
-
-                            otem.itemStack = otem.itemStack + 1;
-                            isPlaced = true;
-                        }
-                        else if (i == items.Count && items.Count < space)
-                        {
-                            items.Add(item);
-                            isPlaced = true;
+                            int stack = stored.maxItemStack - stored.itemStack;
+                            if (stack != 0)
+                            {
+                                if (item.itemStack <= stack)
+                                {
+                                    stored.itemStack += item.itemStack;
+                                    isPlaced = true;
+                                    break;
+                                }
+                                else if (item.itemStack > stack && items.Count < space)
+                                {
+                                    stored.itemStack += stack;
+                                    item.itemStack -= stack;
+                                    item.currSlot = 44;
+                                    items.Add(item);
+                                    isPlaced = true;
+                                    break;
+                                }
+                            }
+                            else if (items.Count < space)
+                            {
+                                item.currSlot = 44;
+                                items.Add(item);
+                                isPlaced = true;
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            else 
-            {
-                if (items.Count < space)
+                if (!isPlaced && items.Count < space)
                 {
+                    item.currSlot = 44;
                     items.Add(item);
                     isPlaced = true;
                 }
-                else 
-                {
-                    isPlaced = false;
-                }
-                
             }
-            
-            if (onItemChangedCallback != null) {
+            else if (items.Count < space)
+            {
+                item.currSlot = 44;
+                items.Add(item);
+                isPlaced = true;
+            }
+            else
+            {
+                isPlaced = false;
+            }
+            if (onItemChangedCallback != null)
+            {
                 onItemChangedCallback.Invoke();
             }
-    
+            if (isPlaced) 
+            {
+                inventoryScript.GetAvailableCraft();
+                SetInventory();
+                inventoryScript.UpdateUI();
+            }
         }
+        return isPlaced;
+    }
 
-        if (isPlaced) 
+
+    public bool AddSingle (Item item)
+    {
+        bool isPlaced = false;
+        if (item.showInInventory)
+        {
+            if (items.Count < space)
+            {
+                items.Add(item);
+                isPlaced = true;
+            }
+            else
+            {
+                isPlaced = false;
+            }
+            if (onItemChangedCallback != null)
+            {
+                onItemChangedCallback.Invoke();
+            }
+        }
+        if (isPlaced)
         {
             SetInventory();
+            inventoryScript.GetAvailableCraft();
+            inventoryScript.UpdateUI();
         }
-
         return isPlaced;
-        
     }
 
     public void Remove(Item item)
     {
-        items.Remove(item);
+        if (items.Contains(item)) 
+        {
+            items.Remove(item);
+        }
+        if (armor.Contains(item)) 
+        {
+            armor.Remove(item);
+        }
+        inventoryScript.GetAvailableCraft();
         SetInventory();
-
         if (onItemChangedCallback != null)
             onItemChangedCallback.Invoke();
     }

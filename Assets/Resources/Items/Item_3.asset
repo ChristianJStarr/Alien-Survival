@@ -13,14 +13,16 @@ MonoBehaviour:
   m_Name: Item_3
   m_EditorClassIdentifier: 
   itemID: 3
-  name: Stone
-  icon: {fileID: 21300000, guid: 0fed683f6082b2743a98eb0b6b6fd78f, type: 3}
+  name: Iron
+  icon: {fileID: 21300000, guid: 753327bba1e842142879682991486a28, type: 3}
   showInInventory: 1
   itemStack: 1
-  maxItemStack: 64
+  maxItemStack: 500
   dropableObject: {fileID: 0}
   isDragging: 0
   currSlot: 44
   sitSlot: 0
   isHoldable: 0
+  isArmor: 0
+  armorType: 0
   special: 

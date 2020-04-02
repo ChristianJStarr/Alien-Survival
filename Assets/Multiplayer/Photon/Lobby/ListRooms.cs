@@ -13,9 +13,18 @@ public class ListRooms : MonoBehaviourPunCallbacks
     public TextMeshProUGUI _serverAmount;
     public GameObject serverItem;
     public Button refreshButton;
-
+    public ServerSlideScript[] slideList;
     private int amountOfRefresh = 0;
 
+    void Start() 
+    {
+        slideList = serverItem.GetComponentsInChildren<ServerSlideScript>();
+        for (int i = 0; i < slideList.Length; i++)
+        {
+            slideList[i].roomNameJoin = "Community Server  #" + (i + 1);
+            slideList[i].UpdateEmpty();
+        }
+    }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList) 
     {
@@ -23,82 +32,51 @@ public class ListRooms : MonoBehaviourPunCallbacks
         UpdateLists(roomList);
     }
 
-    public void UpdateLists(List<RoomInfo> roomList)
+    public ServerSlideScript GetSlide(string roomName) 
     {
-        List<RoomInfo> _addQ = new List<RoomInfo>();
-        List<RoomInfo> _dontQ = new List<RoomInfo>();
-        List<ServerSlideScript> _slideList = new List<ServerSlideScript>(serverItem.GetComponentsInChildren<ServerSlideScript>(true));
-        Debug.Log(roomList.Count + "    " + _slideList.Count);
-        foreach (RoomInfo info in roomList) 
+        ServerSlideScript slide = null;
+        foreach (ServerSlideScript stored in slideList)
         {
-            if (_slideList.Count == 0) 
+            if (stored.roomNameJoin == roomName) 
             {
-                if (!info.RemovedFromList) 
-                {
-                    _addQ.Add(info);
-                }
-            }
-            else 
-            {
-                foreach (ServerSlideScript slide in _slideList)
-                {
-                    if (!info.RemovedFromList)
-                    {
-                        if (slide.roomNameJoin == info.Name)
-                        {
-                            _dontQ.Add(info);
-
-                            if (slide.roomCount == info.PlayerCount)
-                            {
-                                Debug.Log(info.Name + " slide exists. has proper count, does not need to be removed");
-                            }
-                            else if (slide.roomCount != info.PlayerCount)
-                            {
-                                Debug.Log(info.Name + " slide exists. does not have proper count.");
-                                slide.SetRoomInfo(info);
-                            }
-                        }
-                        else
-                        {
-                            if (!_addQ.Contains(info))
-                            {
-                                _addQ.Add(info);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (slide.roomNameJoin == info.Name)
-                        {
-                            Debug.Log("Destroying room slide " + slide.roomNameJoin);
-                            Destroy(slide.gameObject);
-                        }
-                    }
-                }
-            }
-        }   
-        if (_dontQ != null) 
-        {
-            foreach (RoomInfo room in _dontQ)
-            {
-                if (_addQ.Contains(room))
-                {
-                    _addQ.Remove(room);
-                }
+                slide = stored;
+                break;
             }
         }
-        if (_addQ != null) 
-        {
-            foreach (RoomInfo que in _addQ)
-            {
-                ServerSlideScript roomListing = Instantiate(_roomListing, _content);
-                if (roomListing != null)
-                {
-                    roomListing.SetRoomInfo(que);
-                }
-            }
-        }    
+        return slide;
     }
+
+    public void UpdateSlide(RoomInfo info) 
+    {
+        foreach (ServerSlideScript slide in slideList)
+        {
+            if(slide.roomNameJoin == info.Name) 
+            {
+                slide.UpdateRoomInfo(info);
+                break;
+            }
+        }
+    }
+
+    public void UpdateLists(List<RoomInfo> roomList)
+    {
+        foreach (ServerSlideScript slide in slideList)
+        {
+            slide.UpdateEmpty();
+        }
+        foreach (RoomInfo info in roomList)
+        {
+            if (info.RemovedFromList)
+            {
+                GetSlide(info.Name).UpdateEmpty();
+            }
+            else
+            {
+                UpdateSlide(info);
+            }
+        }
+    }
+
     public void RefreshRoomList()
     {
         if (amountOfRefresh < 1)

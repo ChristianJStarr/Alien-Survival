@@ -13,15 +13,16 @@ MonoBehaviour:
   m_Name: Item_2
   m_EditorClassIdentifier: 
   itemID: 2
-  name: Pistol
-  icon: {fileID: 21300000, guid: b6ebecd72fa8bdd4b843a024cbdbc58e, type: 3}
+  name: Stone
+  icon: {fileID: 21300000, guid: c011344e500646141820e825f24998c2, type: 3}
   showInInventory: 1
   itemStack: 1
-  maxItemStack: 1
-  dropableObject: {fileID: 4359420567436233761, guid: 9dbb2015ae6902f4699d6c50f84e327c,
-    type: 3}
+  maxItemStack: 500
+  dropableObject: {fileID: 0}
   isDragging: 0
   currSlot: 44
   sitSlot: 0
-  isHoldable: 1
+  isHoldable: 0
+  isArmor: 0
+  armorType: 0
   special: 

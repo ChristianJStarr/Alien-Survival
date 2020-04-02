@@ -45,7 +45,7 @@ public class HeadLookController : MonoBehaviour {
     private float YSensitivity;
     private Quaternion targetRot;
     private float rotationX;
-
+    private bool lookEnabled = false;
     void Start () {
          targetRot = lookRot.transform.rotation;
         YSensitivity = 3.0f;
@@ -81,146 +81,165 @@ public class HeadLookController : MonoBehaviour {
 			}
 		}
 	}
+
+    public void EnableHead() 
+    {
+        lookEnabled = true;
+    }
+
     private void Update()
     {
-        //rotationX += CrossPlatformInputManager.GetAxis("Mouse Y") * YSensitivity;
-        //rotationX = Mathf.Clamp(rotationX, -90f, 90f);
-        //lookRot.transform.localEulerAngles = new Vector3(-rotationX,0,0);
-        target = lookPoint.transform.position;
+  
+        if (lookEnabled) 
+        {
+            target = lookPoint.transform.position;
+        }
+        
     }
     
     void LateUpdate () {
-		if (Time.deltaTime == 0)
-			return;
+        if (lookEnabled) 
+        {
+            if (Time.deltaTime == 0)
+                return;
 
-        // Remember initial directions of joints that should not be affected
-        Vector3[] jointDirections = new Vector3[nonAffectedJoints.Length];
-		for (int i=0; i<nonAffectedJoints.Length; i++) {
-			foreach (Transform child in nonAffectedJoints[i].joint) {
-				jointDirections[i] = child.position - nonAffectedJoints[i].joint.position;
-				break;
-			}
-		}
-		
-		// Handle each segment
-		foreach (BendingSegment segment in segments) {
-			Transform t = segment.lastTransform;
-			if (overrideAnimation) {
-				for (int i=segment.chainLength-1; i>=0; i--) {
-					t.localRotation = segment.origRotations[i];
-					t = t.parent;
-				}
-			}
-			
-			Quaternion parentRot = segment.firstTransform.parent.rotation;
-			Quaternion parentRotInv = Quaternion.Inverse(parentRot);
-			
-			// Desired look direction in world space
-			Vector3 lookDirWorld = (target - segment.lastTransform.position).normalized;
-			
-			// Desired look directions in neck parent space
-			Vector3 lookDirGoal = (parentRotInv * lookDirWorld);
-			
-			// Get the horizontal and vertical rotation angle to look at the target
-			float hAngle = AngleAroundAxis(
-				segment.referenceLookDir, lookDirGoal, segment.referenceUpDir
-			);
-			
-			Vector3 rightOfTarget = Vector3.Cross(segment.referenceUpDir, lookDirGoal);
-			
-			Vector3 lookDirGoalinHPlane =
-				lookDirGoal - Vector3.Project(lookDirGoal, segment.referenceUpDir);
-			
-			float vAngle = AngleAroundAxis(
-				lookDirGoalinHPlane, lookDirGoal, rightOfTarget
-			);
-			
-			// Handle threshold angle difference, bending multiplier,
-			// and max angle difference here
-			float hAngleThr = Mathf.Max(
-				0, Mathf.Abs(hAngle) - segment.thresholdAngleDifference
-			) * Mathf.Sign(hAngle);
-			
-			float vAngleThr = Mathf.Max(
-				0, Mathf.Abs(vAngle) - segment.thresholdAngleDifference
-			) * Mathf.Sign(vAngle);
-			
-			hAngle = Mathf.Max(
-				Mathf.Abs(hAngleThr) * Mathf.Abs(segment.bendingMultiplier),
-				Mathf.Abs(hAngle) - segment.maxAngleDifference
-			) * Mathf.Sign(hAngle) * Mathf.Sign(segment.bendingMultiplier);
-			
-			vAngle = Mathf.Max(
-				Mathf.Abs(vAngleThr) * Mathf.Abs(segment.bendingMultiplier),
-				Mathf.Abs(vAngle) - segment.maxAngleDifference
-			) * Mathf.Sign(vAngle) * Mathf.Sign(segment.bendingMultiplier);
-			
-			// Handle max bending angle here
-			hAngle = Mathf.Clamp(hAngle, -segment.maxBendingAngle, segment.maxBendingAngle);
-			vAngle = Mathf.Clamp(vAngle, -segment.maxBendingAngle, segment.maxBendingAngle);
-			
-			Vector3 referenceRightDir =
-				Vector3.Cross(segment.referenceUpDir, segment.referenceLookDir);
-			
-			// Lerp angles
-			segment.angleH = Mathf.Lerp(
-				segment.angleH, hAngle, Time.deltaTime * segment.responsiveness
-			);
-			segment.angleV = Mathf.Lerp(
-				segment.angleV, vAngle, Time.deltaTime * segment.responsiveness
-			);
-			
-			// Get direction
-			lookDirGoal = Quaternion.AngleAxis(segment.angleH, segment.referenceUpDir)
-				* Quaternion.AngleAxis(segment.angleV, referenceRightDir)
-				* segment.referenceLookDir;
-			
-			// Make look and up perpendicular
-			Vector3 upDirGoal = segment.referenceUpDir;
-			Vector3.OrthoNormalize(ref lookDirGoal, ref upDirGoal);
-			
-			// Interpolated look and up directions in neck parent space
-			Vector3 lookDir = lookDirGoal;
-			segment.dirUp = Vector3.Slerp(segment.dirUp, upDirGoal, Time.deltaTime*5);
-			Vector3.OrthoNormalize(ref lookDir, ref segment.dirUp);
-			
-			// Look rotation in world space
-			Quaternion lookRot = (
-				(parentRot * Quaternion.LookRotation(lookDir, segment.dirUp))
-				* Quaternion.Inverse(
-					parentRot * Quaternion.LookRotation(
-						segment.referenceLookDir, segment.referenceUpDir
-					)
-				)
-			);
-			
-			// Distribute rotation over all joints in segment
-			Quaternion dividedRotation =
-				Quaternion.Slerp(Quaternion.identity, lookRot, effect / segment.chainLength);
-			t = segment.lastTransform;
-			for (int i=0; i<segment.chainLength; i++) {
-				t.rotation = dividedRotation * t.rotation;
-				t = t.parent;
-			}
-		}
-		
-		// Handle non affected joints
-		for (int i=0; i<nonAffectedJoints.Length; i++) {
-			Vector3 newJointDirection = Vector3.zero;
-			
-			foreach (Transform child in nonAffectedJoints[i].joint) {
-				newJointDirection = child.position - nonAffectedJoints[i].joint.position;
-				break;
-			}
-			
-			Vector3 combinedJointDirection = Vector3.Slerp(
-				jointDirections[i], newJointDirection, nonAffectedJoints[i].effect
-			);
-			
-			nonAffectedJoints[i].joint.rotation = Quaternion.FromToRotation(
-				newJointDirection, combinedJointDirection
-			) * nonAffectedJoints[i].joint.rotation;
-		}
+            // Remember initial directions of joints that should not be affected
+            Vector3[] jointDirections = new Vector3[nonAffectedJoints.Length];
+            for (int i = 0; i < nonAffectedJoints.Length; i++)
+            {
+                foreach (Transform child in nonAffectedJoints[i].joint)
+                {
+                    jointDirections[i] = child.position - nonAffectedJoints[i].joint.position;
+                    break;
+                }
+            }
+
+            // Handle each segment
+            foreach (BendingSegment segment in segments)
+            {
+                Transform t = segment.lastTransform;
+                if (overrideAnimation)
+                {
+                    for (int i = segment.chainLength - 1; i >= 0; i--)
+                    {
+                        t.localRotation = segment.origRotations[i];
+                        t = t.parent;
+                    }
+                }
+
+                Quaternion parentRot = segment.firstTransform.parent.rotation;
+                Quaternion parentRotInv = Quaternion.Inverse(parentRot);
+
+                // Desired look direction in world space
+                Vector3 lookDirWorld = (target - segment.lastTransform.position).normalized;
+
+                // Desired look directions in neck parent space
+                Vector3 lookDirGoal = (parentRotInv * lookDirWorld);
+
+                // Get the horizontal and vertical rotation angle to look at the target
+                float hAngle = AngleAroundAxis(
+                    segment.referenceLookDir, lookDirGoal, segment.referenceUpDir
+                );
+
+                Vector3 rightOfTarget = Vector3.Cross(segment.referenceUpDir, lookDirGoal);
+
+                Vector3 lookDirGoalinHPlane =
+                    lookDirGoal - Vector3.Project(lookDirGoal, segment.referenceUpDir);
+
+                float vAngle = AngleAroundAxis(
+                    lookDirGoalinHPlane, lookDirGoal, rightOfTarget
+                );
+
+                // Handle threshold angle difference, bending multiplier,
+                // and max angle difference here
+                float hAngleThr = Mathf.Max(
+                    0, Mathf.Abs(hAngle) - segment.thresholdAngleDifference
+                ) * Mathf.Sign(hAngle);
+
+                float vAngleThr = Mathf.Max(
+                    0, Mathf.Abs(vAngle) - segment.thresholdAngleDifference
+                ) * Mathf.Sign(vAngle);
+
+                hAngle = Mathf.Max(
+                    Mathf.Abs(hAngleThr) * Mathf.Abs(segment.bendingMultiplier),
+                    Mathf.Abs(hAngle) - segment.maxAngleDifference
+                ) * Mathf.Sign(hAngle) * Mathf.Sign(segment.bendingMultiplier);
+
+                vAngle = Mathf.Max(
+                    Mathf.Abs(vAngleThr) * Mathf.Abs(segment.bendingMultiplier),
+                    Mathf.Abs(vAngle) - segment.maxAngleDifference
+                ) * Mathf.Sign(vAngle) * Mathf.Sign(segment.bendingMultiplier);
+
+                // Handle max bending angle here
+                hAngle = Mathf.Clamp(hAngle, -segment.maxBendingAngle, segment.maxBendingAngle);
+                vAngle = Mathf.Clamp(vAngle, -segment.maxBendingAngle, segment.maxBendingAngle);
+
+                Vector3 referenceRightDir =
+                    Vector3.Cross(segment.referenceUpDir, segment.referenceLookDir);
+
+                // Lerp angles
+                segment.angleH = Mathf.Lerp(
+                    segment.angleH, hAngle, Time.deltaTime * segment.responsiveness
+                );
+                segment.angleV = Mathf.Lerp(
+                    segment.angleV, vAngle, Time.deltaTime * segment.responsiveness
+                );
+
+                // Get direction
+                lookDirGoal = Quaternion.AngleAxis(segment.angleH, segment.referenceUpDir)
+                    * Quaternion.AngleAxis(segment.angleV, referenceRightDir)
+                    * segment.referenceLookDir;
+
+                // Make look and up perpendicular
+                Vector3 upDirGoal = segment.referenceUpDir;
+                Vector3.OrthoNormalize(ref lookDirGoal, ref upDirGoal);
+
+                // Interpolated look and up directions in neck parent space
+                Vector3 lookDir = lookDirGoal;
+                segment.dirUp = Vector3.Slerp(segment.dirUp, upDirGoal, Time.deltaTime * 5);
+                Vector3.OrthoNormalize(ref lookDir, ref segment.dirUp);
+
+                // Look rotation in world space
+                Quaternion lookRot = (
+                    (parentRot * Quaternion.LookRotation(lookDir, segment.dirUp))
+                    * Quaternion.Inverse(
+                        parentRot * Quaternion.LookRotation(
+                            segment.referenceLookDir, segment.referenceUpDir
+                        )
+                    )
+                );
+
+                // Distribute rotation over all joints in segment
+                Quaternion dividedRotation =
+                    Quaternion.Slerp(Quaternion.identity, lookRot, effect / segment.chainLength);
+                t = segment.lastTransform;
+                for (int i = 0; i < segment.chainLength; i++)
+                {
+                    t.rotation = dividedRotation * t.rotation;
+                    t = t.parent;
+                }
+            }
+
+            // Handle non affected joints
+            for (int i = 0; i < nonAffectedJoints.Length; i++)
+            {
+                Vector3 newJointDirection = Vector3.zero;
+
+                foreach (Transform child in nonAffectedJoints[i].joint)
+                {
+                    newJointDirection = child.position - nonAffectedJoints[i].joint.position;
+                    break;
+                }
+
+                Vector3 combinedJointDirection = Vector3.Slerp(
+                    jointDirections[i], newJointDirection, nonAffectedJoints[i].effect
+                );
+
+                nonAffectedJoints[i].joint.rotation = Quaternion.FromToRotation(
+                    newJointDirection, combinedJointDirection
+                ) * nonAffectedJoints[i].joint.rotation;
+            }
+        }
 	}
 	
 	// The angle between dirA and dirB around axis

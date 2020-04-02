@@ -11,14 +11,24 @@ public class PlayerControllerMulti : MonoBehaviour
     public PhotonView PV;
     public GameObject playerCamera;
     public bool isMine = false;
+    public HeadLookController headLook;
 
     void Start() 
     {
-        if (!PV.IsMine) 
+        if(PV != null) 
         {
-            isMine = false;
-            Destroy(fps);
-            Destroy(playerCamera);
+            if (!PV.IsMine)
+            {
+                isMine = false;
+                Destroy(fps);
+                Destroy(playerCamera);
+            }
+            else
+            {
+                isMine = true;
+                FindObjectOfType<Compass>().SetPlayer(this.gameObject);
+                FindObjectOfType<InventoryScript>().SetPlayer(fps);
+            }
         }
         else 
         {
@@ -27,4 +37,5 @@ public class PlayerControllerMulti : MonoBehaviour
             FindObjectOfType<InventoryScript>().SetPlayer(fps);
         }
     }
+  
 }

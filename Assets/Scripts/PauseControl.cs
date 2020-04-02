@@ -9,8 +9,10 @@ public class PauseControl : MonoBehaviour
 {
     public bool gamePaused;
     public GameObject pauseMenu;
+    private PhotonRoom photonRoom;
     void Start()
     {
+        photonRoom = FindObjectOfType<PhotonRoom>();
         if (pauseMenu.activeSelf == true) { pauseMenu.SetActive(false); }
         gamePaused = false;
     }
@@ -30,6 +32,7 @@ public class PauseControl : MonoBehaviour
     public void GoMainMenu() 
     {
         gamePaused = false;
+        photonRoom.LeaveGame();
         SceneManager.LoadScene(1);
         PhotonNetwork.LeaveRoom();
         PhotonNetwork.JoinLobby();

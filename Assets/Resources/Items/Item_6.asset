@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4758f881bb3584eaf3830a3b7aaa17, type: 3}
+  m_Name: Item_6
+  m_EditorClassIdentifier: 
+  dropableObject: {fileID: 0}
+  icon: {fileID: 21300000, guid: 153d2525eea23d14595d1379e5724324, type: 3}
+  itemStack: 1
+  maxItemStack: 500
+  itemID: 6
+  currSlot: 44
+  sitSlot: 0
+  armorType: 0
+  special: 
+  name: Wood Plank
+  description: This is the description for this item
+  showInInventory: 1
+  isCraftable: 1
+  isHoldable: 0
+  isArmor: 0
+  isDragging: 0
+  recipe:
+  - 1-1

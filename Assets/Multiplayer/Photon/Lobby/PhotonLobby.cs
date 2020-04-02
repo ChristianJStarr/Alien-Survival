@@ -24,7 +24,6 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        
         IsConnectedText(false);
         if(!PhotonNetwork.IsConnected)
         PhotonNetwork.ConnectUsingSettings();  
@@ -33,7 +32,7 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Network - Connected to Master State: " + PhotonNetwork.NetworkClientState);
+        //Debug.Log("Network - Connected to Master State: " + PhotonNetwork.NetworkClientState);
         base.OnConnectedToMaster();
         PhotonNetwork.AutomaticallySyncScene = true;
         IsConnectedText(true);
@@ -57,27 +56,18 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
     
     public override void OnJoinedLobby()
     {
-        Debug.Log("Network - Joined Lobby State: " + PhotonNetwork.NetworkClientState);
+        //Debug.Log("Network - Joined Lobby State: " + PhotonNetwork.NetworkClientState);
         base.OnJoinedLobby();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.Log("Network - Disconnected State: " + PhotonNetwork.NetworkClientState);
+        //Debug.Log("Network - Disconnected State: " + PhotonNetwork.NetworkClientState);
         base.OnDisconnected(cause);
 
         IsConnectedText(false);
     }
 
-
-    public void CreateNewRoom(string roomName) 
-    {
-        string name = roomName + "-" + Random.Range(1000, 10000);
-        RoomOptions roomOps = new RoomOptions() { IsVisible = true, IsOpen = true, MaxPlayers = 10 };
-        PhotonNetwork.CreateRoom(name, roomOps);
-        Debug.Log("Network - Creating New Room State: " + PhotonNetwork.NetworkClientState);
-        roomExact = name;
-    }
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
         Debug.Log("Network - Failed Creating New Room State: " + PhotonNetwork.NetworkClientState);
@@ -85,20 +75,18 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
     public override void OnCreatedRoom()
     {
         base.OnCreatedRoom();
-        Debug.Log("Network - Created Room State: " + PhotonNetwork.NetworkClientState);
+        //Debug.Log("Network - Created Room State: " + PhotonNetwork.NetworkClientState);
         PhotonNetwork.LeaveLobby();
-        Debug.Log("Network - Leaving Lobby: " + PhotonNetwork.NetworkClientState);
+       // Debug.Log("Network - Leaving Lobby: " + PhotonNetwork.NetworkClientState);
     }
     public override void OnLeftLobby()
     {
         base.OnLeftLobby();
-        Debug.Log("Network - Left Lobby: " + PhotonNetwork.NetworkClientState);
+        //Debug.Log("Network - Left Lobby: " + PhotonNetwork.NetworkClientState);
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
         Debug.Log("Unable to join room State: " + PhotonNetwork.NetworkClientState);
-    }
-
-    
+    } 
 }

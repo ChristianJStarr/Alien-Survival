@@ -31,7 +31,7 @@ public class PlayerLogin : MonoBehaviour
 
     public void SetPlayerStats() 
     {
-        Debug.Log("NETWORK - Setting Stats");
+        //Debug.Log("NETWORK - Setting Stats");
         WWWForm form = new WWWForm();
         form.AddField("all", 2);
         form.AddField("username", PlayerPrefs.GetString("username"));
@@ -39,9 +39,6 @@ public class PlayerLogin : MonoBehaviour
         form.AddField("coins", playerStats.playerCoins);
         form.AddField("hours", playerStats.playerHours.ToString());
         form.AddField("exp", playerStats.playerExp);
-        form.AddField("health", playerStats.playerHealth);
-        form.AddField("water", playerStats.playerWater);
-        form.AddField("food", playerStats.playerFood);
         UnityWebRequest w = UnityWebRequest.Post("https://outurer.com/stats.php", form);
         StartCoroutine(SetStatsWait(w));
 
@@ -49,10 +46,9 @@ public class PlayerLogin : MonoBehaviour
     private IEnumerator SetStatsWait(UnityWebRequest _w)
     {
         yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
-            Debug.Log("Network - Set Stats Success");
+            //Debug.Log("Network - Set Stats Success");
         }
     }
     public void AddCoin(int value) 
@@ -64,6 +60,7 @@ public class PlayerLogin : MonoBehaviour
         if (playerStats.playerCoins >= value) 
         {
             playerStats.playerCoins -= value;
+            SetPlayerStats();
             return true;
         }
         else
@@ -82,5 +79,9 @@ public class PlayerLogin : MonoBehaviour
             coinNotify.SetActive(true);
             return false;
         }
+    }
+    public void CloseNotify() 
+    {
+        coinNotify.SetActive(false);
     }
 }

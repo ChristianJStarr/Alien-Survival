@@ -18,7 +18,7 @@ public class MainMenuScript : MonoBehaviour
     public GameObject onlineMenu;
     public GameObject createMenu;
     public Slider loadSlider;
-
+    public PhotonRoom photonRoom;
     public Camera cam;
     static Transform camReset;
 
@@ -39,8 +39,7 @@ public class MainMenuScript : MonoBehaviour
         resetTargetRot = camReset.localRotation;
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
-
-        
+        photonRoom = FindObjectOfType<PhotonRoom>();
     }
     void Update()
     {
@@ -102,7 +101,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetrotation = resetTargetRot;
     }
 
-    public void LoadGame(int scene) 
+    public void LoadGame() 
     {
         mainScreen.SetActive(false);
         onlineMenu.SetActive(false);
@@ -110,13 +109,49 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         createMenu.SetActive(false);
         loadScreen.SetActive(true);
-        StartCoroutine(LoadRoutine(scene));
+        StartCoroutine(LoadRoutine());
     }
-    private IEnumerator LoadRoutine(int scene)
+    private IEnumerator LoadRoutine()
     {
         int loadProgress = 0;
         int lastLoadProgress = 0;
-        AsyncOperation op = SceneManager.LoadSceneAsync(scene);
+        for (loadProgress = 0; loadProgress < 500; loadProgress++)
+        {
+            lastLoadProgress = loadProgress;
+            loadProgress++;
+            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; loadSlider.value = loadProgress / 5; }
+            yield return null;
+        }
+
+        loadProgress = 100;
+        loadSlider.value = loadProgress;
+    }
+
+    public void LogOut() 
+    {
+        PlayerPrefs.DeleteKey("username");
+        PlayerPrefs.DeleteKey("password");
+        PlayerPrefs.DeleteKey("guest-a");
+        PlayerPrefs.DeleteKey("authKey");
+        PlayerPrefs.DeleteKey("userId");
+        PlayerPrefs.DeleteKey("guest-b");
+        PlayerPrefs.DeleteKey("coins");
+        PlayerPrefs.DeleteKey("exp");
+        PlayerPrefs.DeleteKey("hours");
+        mainScreen.SetActive(false);
+        onlineMenu.SetActive(false);
+        profileMenu.SetActive(false);
+        settingsMenu.SetActive(false);
+        createMenu.SetActive(false);
+        loadScreen.SetActive(true);
+        photonRoom.LeaveGame();
+        StartCoroutine(LogOutRoutine());
+    }
+    private IEnumerator LogOutRoutine()
+    {
+        int loadProgress = 0;
+        int lastLoadProgress = 0;
+        AsyncOperation op = SceneManager.LoadSceneAsync(0);
         op.allowSceneActivation = false;
         while (!op.isDone)
         {
@@ -134,17 +169,5 @@ public class MainMenuScript : MonoBehaviour
         }
         loadProgress = 100;
         loadSlider.value = loadProgress;
-    }
-    public void JoinServer()
-    {
-        LoadGame(2);
-    }
-    public void LogOut() 
-    {
-        PlayerPrefs.DeleteKey("username");
-        PlayerPrefs.DeleteKey("password");
-        PlayerPrefs.DeleteKey("guest-a");
-        PlayerPrefs.DeleteKey("guest-b");
-        LoadGame(0);
     }
 }

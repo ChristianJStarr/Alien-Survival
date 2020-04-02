@@ -23,12 +23,5 @@ public class CreateRoom : MonoBehaviour
             button.interactable = false;
         }
     }
-    public void CreateARoom() 
-    {
-        if (nameBox.text.Length > 5 && playerLogin.CanRemoveCoin(50)) 
-        {
-            photonLobby.CreateNewRoom(nameBox.text);
-            nameBox.text = "";
-        }
-    }
+   
 }

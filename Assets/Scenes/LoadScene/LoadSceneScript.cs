@@ -16,9 +16,9 @@ public class LoadSceneScript : MonoBehaviour
     public TextMeshProUGUI usernameText, passwordText, regUsernameText, regPassText, loginNotify, signupNotify;
     public Button loginButton, signupButton;
     public PlayerStats playerStats;
-    private int loadProgress, lastLoadProgress = 0;
+    private int userId, loadProgress, lastLoadProgress = 0;
     private bool canSignup, canLogin, canGetStats;
-    private string username, password, regUsername, regPass;
+    private string username, password, regUsername, regPass, authKey;
 
     private readonly string loginUrl = "https://outurer.com/login.php";
     private readonly string statsUrl = "https://outurer.com/stats.php";
@@ -128,25 +128,18 @@ public class LoadSceneScript : MonoBehaviour
     private IEnumerator GetStatsWait(UnityWebRequest _w, AsyncOperation op)
     {
         yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
-            Debug.Log("Network - Get Stats Success");
+            //SUCCESS
             string[] floatData = _w.downloadHandler.text.Split(',');
             string exp = floatData[1];
             string coins = floatData[2];
             string hours = floatData[3];
-            string health = floatData[4];
-            string water = floatData[5];
-            string food = floatData[6];
-            string recent = floatData[7];
+            string recent = floatData[4];
             if (exp == "") { exp = "0"; }
             if (coins == "") { coins = "50"; }
             if (hours == "") { hours = "0.01"; }
-            if (health == "") { health = "100"; }
-            if (water == "") { water = "100"; }
-            if (food == "") { food = "100"; }
-            SaveData(exp,coins,hours,health,water,food,recent);
+            SaveData(exp,coins,hours,recent);
             op.allowSceneActivation = true;
         }
         else 
@@ -155,7 +148,7 @@ public class LoadSceneScript : MonoBehaviour
         }
     }
 
-    private void SaveData(string exp, string coins, string hours, string health, string water, string food, string recent) 
+    private void SaveData(string exp, string coins, string hours, string recent) 
     {
         if (PlayerPrefs.HasKey("recent") && recent != "") 
         {
@@ -170,33 +163,20 @@ public class LoadSceneScript : MonoBehaviour
                 playerStats.playerExp = Convert.ToInt32(exp);
                 playerStats.playerCoins = Convert.ToInt32(coins);
                 playerStats.playerHours = float.Parse(hours);
-                playerStats.playerHealth = Convert.ToInt32(health);
-                playerStats.playerWater = Convert.ToInt32(water);
-                playerStats.playerFood = Convert.ToInt32(food);
-
             }
             else
             {
                 Debug.Log("Using Local Data " + localDate.ToString());
-
                 playerStats.playerExp = PlayerPrefs.GetInt("exp");
                 playerStats.playerCoins = PlayerPrefs.GetInt("coins");
                 playerStats.playerHours = PlayerPrefs.GetFloat("hours");
-                playerStats.playerHealth = PlayerPrefs.GetInt("health");
-                playerStats.playerWater = PlayerPrefs.GetInt("water");
-                playerStats.playerFood = PlayerPrefs.GetInt("food");
             }
-
-
         }
         else 
         {
             playerStats.playerExp = Convert.ToInt32(exp);
             playerStats.playerCoins = Convert.ToInt32(coins);
             playerStats.playerHours = float.Parse(hours);
-            playerStats.playerHealth = Convert.ToInt32(health);
-            playerStats.playerWater = Convert.ToInt32(water);
-            playerStats.playerFood = Convert.ToInt32(food);
         }
     }
 
@@ -273,9 +253,11 @@ public class LoadSceneScript : MonoBehaviour
         }
         else
         {
+            authKey = RandomUserCode(15);
             WWWForm form = new WWWForm();
             form.AddField("username", regUsername);
             form.AddField("password", regPass);
+            form.AddField("authKey", authKey);
             form.AddField("action", "signup");
             UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
             StartCoroutine(Register(w));
@@ -284,11 +266,14 @@ public class LoadSceneScript : MonoBehaviour
 
     private IEnumerator LogIn(UnityWebRequest _w, bool guest)
     {
-        Debug.Log(_w.downloadHandler.text);
         yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
-        if (_w.downloadHandler.text == "Correct")
+        if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
+            string[] data = _w.downloadHandler.text.Split(',');
+            authKey = data[1];
+            userId = Convert.ToInt32(data[2]);
+            PlayerPrefs.SetString("authKey", authKey);
+            PlayerPrefs.SetInt("userId", userId);
             if (!guest) 
             {
                 PlayerPrefs.SetString("username", username);
@@ -311,11 +296,14 @@ public class LoadSceneScript : MonoBehaviour
     private IEnumerator Register(UnityWebRequest _w)
     {
         yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
-        if (_w.downloadHandler.text == "Registered")
+        if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
+            string[] data = _w.downloadHandler.text.Split(',');
+            userId = Convert.ToInt32(data[1]);
             PlayerPrefs.SetString("username", regUsername);
             PlayerPrefs.SetString("password", regPass);
+            PlayerPrefs.SetString("authKey", authKey);
+            PlayerPrefs.SetInt("userId", userId);
 
             LoadGame();
         }
@@ -335,29 +323,28 @@ public class LoadSceneScript : MonoBehaviour
             form.AddField("username", username);
             form.AddField("password", password);
             form.AddField("action", "login");
-            UnityWebRequest w = UnityWebRequest.Post("https://outurer.com/login.php", form);
+            UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
             StartCoroutine(LogIn(w,true));
         }
         else 
         {
             regUsername = "Guest-" + RandomUserCode(8);
             regPass = RandomUserCode(15);
+            authKey = RandomUserCode(15);
 
             PlayerPrefs.SetString("guest-a", regUsername);
             PlayerPrefs.SetString("guest-b", regPass);
+            PlayerPrefs.SetString("authKey", authKey);
 
+            
             WWWForm form = new WWWForm();
             form.AddField("username", regUsername);
             form.AddField("password", regPass);
+            form.AddField("authKey", authKey);
             form.AddField("action", "signup");
-            UnityWebRequest w = UnityWebRequest.Post("https://outurer.com/login.php", form);
+            UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
             StartCoroutine(Register(w));
         }        
-    }
-    public void DoGuestLogin(string guestA, string guestB) 
-    {
-    
-    
     }
     public string RandomUserCode(int value)
     {

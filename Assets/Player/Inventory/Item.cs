@@ -1,36 +1,30 @@
 ﻿using UnityEngine;
 
-/* The base item class. All items should derive from this. */
 
 [CreateAssetMenu(fileName = "New Item", menuName = "Inventory/Item")]
+
 public class Item : ScriptableObject
 {
-    public int itemID = 0;
-    new public string name = "New Item";    // Name of the item
-    public Sprite icon = null;              // Item icon
-    public bool showInInventory = true;
+    public string dropObject = "object-2";
+    public Sprite icon = null;
+    
     public int itemStack = 1;
     public int maxItemStack = 64;
-    public GameObject dropableObject;
-    public bool isDragging = false;
+    public int itemID = 0;
     public int currSlot;
     public int sitSlot;
+    public int armorType = 0;
+    public int craftAmount = 0;
+
+    public string special = "";
+    new public string name = "New Item";
+    public string description = "This is the description for this item";
+
+    public bool showInInventory = true;
+    public bool isCraftable = false;
     public bool isHoldable = false;
-    public string special;
+    public bool isArmor = false;
+    public bool isDragging = false;
 
-    // Called when the item is pressed in the inventory
-    public virtual void Use()
-    {
-        // Use the item
-        // Something may happen
-    }
-    
-
-    // Call this method to remove the item from inventory
-    public void RemoveFromInventory()
-    {
-        Inventory.instance.Remove(this);
-    }
-
-    //         100,100, 2#2#2#2#-2#2#2#=
+    public string[] recipe;
 }

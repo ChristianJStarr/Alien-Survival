@@ -13,34 +13,55 @@ public class ServerSlideScript : MonoBehaviourPunCallbacks
     private TextMeshProUGUI roomMode;
     [SerializeField]
     private TextMeshProUGUI roomPlayers;
+    [SerializeField]
+    private TextMeshProUGUI roomPing;
     PlayerLogin playerLogin;
-
-    public int roomCount;
+    public GameObject roomNotify;
     public string roomNameJoin;
-    public bool roomExists;
+    public MainMenuScript mainMenu;
 
     void Start() 
     {
-        roomCount = 0;
-        roomExists = false;
+        int ping = 100;
+        if (PhotonNetwork.GetPing() != 0)
+        {
+            ping = PhotonNetwork.GetPing();
+        }
         playerLogin = PlayerLogin.Instance();
-    }
-
-    public void SetRoomInfo(RoomInfo roomInfo)
-    {
-        roomName.text = roomInfo.Name.Substring(0, roomInfo.Name.IndexOf("-")).Trim();
+        mainMenu = FindObjectOfType<MainMenuScript>();
         roomMode.text = "Normal Mode V1.13";
-        roomPlayers.text = "(" + roomInfo.PlayerCount + "/" + roomInfo.MaxPlayers + ")";
-        roomNameJoin = roomInfo.Name;
-        roomCount = roomInfo.PlayerCount;
+        roomPing.text = Random.Range(ping - 3, ping + 3) + "ms";
+        roomPlayers.text = "(0/20)";
+    }
+    public void UpdateRoomInfo(RoomInfo roomInfo) 
+    {
+        int ping = 100;
+        if (PhotonNetwork.GetPing() != 0)
+        {
+            ping = PhotonNetwork.GetPing();
+        }
+        roomPing.text = Random.Range(ping - 3, ping + 3) + "ms";
+        roomPlayers.text = "(" + roomInfo.PlayerCount + "/20)";
+    }
+    public void UpdateEmpty() 
+    {
+        int ping = 100;
+        if(PhotonNetwork.GetPing() != 0) 
+        {
+            ping = PhotonNetwork.GetPing();
+        }
+        roomName.text = roomNameJoin;
+        roomPing.text = Random.Range(ping - 3, ping + 3) + "ms";
+        roomPlayers.text = "(0/20)";
     }
     public void JoinThisRoom() 
-    {
+    {   
         if (roomNameJoin != null && playerLogin.CanRemoveCoin(25)) 
         {
-            Debug.Log("Network - Joining Room: " + roomNameJoin);
-            PhotonNetwork.JoinRoom(roomNameJoin);
+            mainMenu.LoadGame();
+            RoomOptions roomOps = new RoomOptions() { IsVisible = true, IsOpen = true, MaxPlayers = 20 };
+            //Debug.Log("Network - Joining Room: " + roomNameJoin);
+            PhotonNetwork.JoinOrCreateRoom(roomNameJoin, roomOps, TypedLobby.Default);
         }
     }
-   
 }
