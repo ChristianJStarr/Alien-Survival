@@ -3,7 +3,7 @@
 <h4>Welcome to the Alien Survival Git.</h4>
 <br><br>
 <h3>Downloads</h3>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.3.0</a><br>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.3.0 (recent)</a><br>
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.5</a><br>
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.0</a><br>
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.8</a><br>
