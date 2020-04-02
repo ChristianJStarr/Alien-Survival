@@ -1,10 +1,4 @@
 # Alien Survival
-<br><br>
-  <img>
-  <h3>Android Apk Version 1.0</h3>
-  
-<br>
-<h1>Alien Survival</h1>
 <br>
 <h4>Welcome to the Alien Survival Git.</h4>
 <br><br>
