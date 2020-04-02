@@ -22,6 +22,7 @@
 ![alt text](https://outurer.com/image2.png "Image 2")
 <br>
 <h3>GamePlay</h3>
-![alt text](https://outurer.com/image3.png "Image 3")
-![alt text](https://outurer.com/image4.png "Image 3")
-![alt text](https://outurer.com/image5.png "Image 3")
+<br>
+![alt text](https://outurer.com/image3.png "Image 3")<br>
+![alt text](https://outurer.com/image4.png "Image 3")<br>
+![alt text](https://outurer.com/image5.png "Image 3")<br>
