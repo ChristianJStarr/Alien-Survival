@@ -2,22 +2,26 @@
   <h1 align="center">Alien Survival</h1>
   <h4 align="center">Welcome to the Alien Survival Github</h4>
   <p align="center">
- <a >Contact</a> • 
- <a href="">Suggest</a> • 
+  <a href="">Contact</a>&nbsp;&nbsp;•&nbsp;&nbsp;
+ <a href="">Suggest</a>&nbsp;&nbsp;•&nbsp;&nbsp;
  <a href="">Support</a>
  </p>
 <br>
 <h1>Information</h1>
-<h3>ToDo List</h3>
-<a href="https://trello.com/b/OPZlirCX/alien-survival">Trello | Alien Survival
 
-<h3>Downloads</h3>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.3.0 (recent)</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.5 (old)</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.0 (old)</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.8 (broken)</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.2 (broken)</a><br>
-<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.0.0 (broken)</a><br><br>
+<h3>Concept</h3>
+<p>&nbsp;&nbsp;Play as an alien and face a never ending stream of humans attacking your home planet. Scavenge the land for essential resources and supplies to survive the night. All humans will be computer AI. They're semi-hostile in the daylight while restocking supplies and rebuilding their bases. Once the sun sets human AI hositility increases and they start to hunt for all living aliens.</p>
+
+<h3>Current ToDo List</h3>
+<a href="https://trello.com/b/OPZlirCX/alien-survival">Trello.com</a>
+
+<h1>Download</h1>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.3.0 (recent)</a>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.5 (old)</a>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.2.0 (old)</a>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.8 (broken)</a>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.2 (broken)</a>
+<a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.0.0 (broken)</a>
 
 <h1>Screenshots</h1>
 <h3>Login Menu</h3>
