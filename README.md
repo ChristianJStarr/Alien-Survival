@@ -8,23 +8,25 @@
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.2</a><br>
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.0.0</a><br><br>
 
-
+ 
 <h3>Login Menu</h3>
-
+ 
 ![](ReadMeImg/Img1.png?raw=true "")
-
-<h3>Join Server Menu</h3>
-
-![](ReadMeImg/Img3.png?raw=true "")
-
-<h3>Inventory</h3>
-
-![](ReadMeImg/Img4.png?raw=true "")
-
-<h3>Wake Up</h3>
-
-![](ReadMeImg/Img5.png?raw=true "")
-
-<h3>Login Menu</h3>
-
+ 
+<h3>Main Menu</h3>
+ 
 ![](ReadMeImg/Img2.png?raw=true "")
+ 
+<h3>Join Server Menu</h3>
+ 
+![](ReadMeImg/Img3.png?raw=true "")
+ 
+<h3>Inventory</h3>
+ 
+![](ReadMeImg/Img4.png?raw=true "")
+ 
+<h3>Wake Up</h3>
+ 
+![](ReadMeImg/Img5.png?raw=true "")
+ 
+
