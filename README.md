@@ -1,7 +1,13 @@
-<h1>Alien Survival</h1>
-<h4>Welcome to the Alien Survival Git.</h4>
 
-
+  <h1 align="center">Alien Survival</h1>
+  <h4 align="center">Welcome to the Alien Survival Github</h4>
+  <p align="center">
+ <a >Contact</a> • 
+ <a href="">Suggest</a> • 
+ <a href="">Support</a>
+ </p>
+<br>
+<h1>Information</h1>
 <h3>ToDo List</h3>
 <a href="https://trello.com/b/OPZlirCX/alien-survival">Trello | Alien Survival
 
@@ -13,7 +19,7 @@
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.1.2 (broken)</a><br>
 <a href="http://outurer.com/AlienSurvival.apk" download>AlienSurvival.apk V1.0.0 (broken)</a><br><br>
 
- 
+<h1>Screenshots</h1>
 <h3>Login Menu</h3>
  
 ![screenshot](http://outurer.com/image1-min.png "")
