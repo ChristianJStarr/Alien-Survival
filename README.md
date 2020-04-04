@@ -2,9 +2,9 @@
   <h1 align="center">Alien Survival</h1>
   <h4 align="center">Welcome to the Alien Survival Github</h4>
   <p align="center">
-  <a href="mailto:christianjstarr@icloud.com">Contact</a>&nbsp;&nbsp;•&nbsp;&nbsp;
- <a href="http://freesuggestionbox.com/pub/yajcxvb">Suggest</a>&nbsp;&nbsp;•&nbsp;&nbsp;
- <a href="">Support</a>
+  <a href="https://aliensurvival.com">Website</a>&nbsp;&nbsp;•&nbsp;&nbsp;
+ <a href="https://devblog.aliensurvival.com">Devblog</a>&nbsp;&nbsp;•&nbsp;&nbsp;
+ <a href="https://aliensurvival.com/contact">Contact</a>
  </p>
 <br>
 <h1>Information</h1>
