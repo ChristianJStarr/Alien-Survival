@@ -36,22 +36,22 @@
 <h1>Screenshots</h1>
 <h3>Login Menu</h3>
  
-![screenshot](http://outurer.com/image1-min.png "")
- <a href="http://outurer.com/image1.png">View Full Resolution</a>
+![screenshot](http://aliensurvival.com/Github/image1-min.png "")
+ <a href="http://aliensurvival.com/Github/image1.png">View Full Resolution</a>
 <h3>Main Menu</h3>
  
-![screenshot](http://outurer.com/image2-min.png "")
- <a href="http://outurer.com/image2.png">View Full Resolution</a>
+![screenshot](http://aliensurvival.com/Github/image2-min.png "")
+ <a href="http://aliensurvival.com/Github/image2.png">View Full Resolution</a>
 <h3>Join Server Menu</h3>
  
-![screenshot](http://outurer.com/image3-min.png "")
- <a href="http://outurer.com/image3.png">View Full Resolution</a>
+![screenshot](http://aliensurvival.com/Github/image3-min.png "")
+ <a href="http://aliensurvival.com/Github/image3.png">View Full Resolution</a>
 <h3>Inventory</h3>
  
-![screenshot](http://outurer.com/image4-min.png "")
- <a href="http://outurer.com/image4.png">View Full Resolution</a>
+![screenshot](hhttp://aliensurvival.com/Github/image4-min.png "")
+ <a href="http://aliensurvival.com/Github/image4.png">View Full Resolution</a>
 <h3>Wake Up</h3>
  
-![screenshot](http://outurer.com/image5-min.png "")
- <a href="http://outurer.com/image5.png">View Full Resolution</a>
+![screenshot](http://aliensurvival.com/Github/image5-min.png "")
+ <a href="http://aliensurvival.com/Github/image5.png">View Full Resolution</a>
 
