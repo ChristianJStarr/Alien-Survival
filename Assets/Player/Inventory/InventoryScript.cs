@@ -11,6 +11,7 @@ public class InventoryScript : MonoBehaviour
 {
 
     public GameObject inventoryUI, inventoryBkg, playerMenu, toolTipMenu, craftMenu, bounds, bounds2, bounds3;
+    public ControlControl controls;
     public Transform itemsParent, armorSlots;
     public Slider splitSlider;
     public TextMeshProUGUI splitText;
@@ -55,9 +56,11 @@ public class InventoryScript : MonoBehaviour
         {
             invOpen = false;
             toolTipMenu.SetActive(false);
+            controls.Show();
         }
         else
         {
+            controls.Hide();
             invOpen = true;
         }
         inventoryBkg.SetActive(invOpen);

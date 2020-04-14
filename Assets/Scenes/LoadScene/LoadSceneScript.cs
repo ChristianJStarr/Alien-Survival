@@ -1,30 +1,26 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Networking;
 using System;
-using System.Text;
 using System.Globalization;
 
 public class LoadSceneScript : MonoBehaviour
 {
     public GameObject mainScreen, loginScreen, signupScreen, loadScreen;
     public Slider loadSlider;
-    public TextMeshProUGUI usernameText, passwordText, regUsernameText, regPassText, loginNotify, signupNotify;
+    public TextMeshProUGUI loginNotify, signupNotify;
+    public TMP_InputField usernameText, passwordText, regUsernameText, regPassText;
     public Button loginButton, signupButton;
     public PlayerStats playerStats;
     private int userId, loadProgress, lastLoadProgress = 0;
     private bool canSignup, canLogin, canGetStats;
     private string username, password, regUsername, regPass, authKey;
 
-    private readonly string loginUrl = "https://outurer.com/login.php";
-    private readonly string statsUrl = "https://outurer.com/stats.php";
-
-
-
+    private readonly string loginUrl = "https://www.game.aliensurvival.com/login.php";
+    private readonly string statsUrl = "https://www.game.aliensurvival.com/stats.php";
 
     void Start() 
     {
@@ -35,8 +31,9 @@ public class LoadSceneScript : MonoBehaviour
         }
         else 
         {
-            mainScreen.SetActive(true);       
+            mainScreen.SetActive(true);      
         }
+        usernameText.asteriskChar = passwordText.asteriskChar = regUsernameText.asteriskChar = regPassText.asteriskChar = '•';
     }
 
     private void RememberMe() 
@@ -53,6 +50,7 @@ public class LoadSceneScript : MonoBehaviour
     private IEnumerator RememberMeWait(UnityWebRequest _w)
     {
         yield return _w.SendWebRequest();
+        Debug.Log(_w.downloadHandler.text);
         if (_w.downloadHandler.text == "Correct")
         {
             LoadGame();
@@ -128,6 +126,7 @@ public class LoadSceneScript : MonoBehaviour
     private IEnumerator GetStatsWait(UnityWebRequest _w, AsyncOperation op)
     {
         yield return _w.SendWebRequest();
+        Debug.Log(_w.downloadHandler.text);
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
             //SUCCESS
@@ -150,19 +149,28 @@ public class LoadSceneScript : MonoBehaviour
 
     private void SaveData(string exp, string coins, string hours, string recent) 
     {
+        float hour;
+        if (float.Parse(hours) == 0)
+        {
+            hour = 0.00F;
+        }
+        else
+        {
+            hour = float.Parse(hours);
+        }
         if (PlayerPrefs.HasKey("recent") && recent != "") 
         {
             CultureInfo global = new CultureInfo("de-DE");
             DateTime cloudDate = DateTime.Parse(recent);
             DateTime localDate = DateTime.Parse(PlayerPrefs.GetString("recent"));
             int result = DateTime.Compare(cloudDate, localDate);
-
+            
             if (result < 0)
             {
                 Debug.Log("Using Cloud Data " + cloudDate.ToString());
                 playerStats.playerExp = Convert.ToInt32(exp);
                 playerStats.playerCoins = Convert.ToInt32(coins);
-                playerStats.playerHours = float.Parse(hours);
+                playerStats.playerHours = hour;
             }
             else
             {
@@ -176,7 +184,7 @@ public class LoadSceneScript : MonoBehaviour
         {
             playerStats.playerExp = Convert.ToInt32(exp);
             playerStats.playerCoins = Convert.ToInt32(coins);
-            playerStats.playerHours = float.Parse(hours);
+            playerStats.playerHours = hour;
         }
     }
 
@@ -203,6 +211,7 @@ public class LoadSceneScript : MonoBehaviour
             signupButton.interactable = false;
             canSignup = false;
         }
+        Debug.Log(passwordText.text);
     }
 
     public static string ToMd5(string str)
@@ -213,32 +222,80 @@ public class LoadSceneScript : MonoBehaviour
         return System.BitConverter.ToString(sha.ComputeHash(bytes));
     }
 
-    public void DoLogin()
+    public void DoLogIn() 
     {
-        if (!canLogin)
-            return;
-
-        loginNotify.text = "ENTER DETAILS TO LOG IN";
-        username = usernameText.text.ToString();
-        password = ToMd5(passwordText.text);
-
-        if (username == "" || password == "")
-        {
-            loginNotify.text = "COMPLETE ALL FIELDS";
-        }
-        else
-        {
-
-            WWWForm form = new WWWForm();
-            form.AddField("username", username);
-            form.AddField("password", password);
-            form.AddField("action", "login");
-
-            UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
-            StartCoroutine(LogIn(w,false));
-        }
+        StartCoroutine(LogIn());
     }
 
+    private IEnumerator LogIn()
+    {
+        if (canLogin)
+        {
+            loginNotify.text = "ENTER DETAILS TO LOG IN";
+            username = usernameText.text.ToString();
+            password = ToMd5(passwordText.text);
+            Debug.Log(username + " " + password);
+
+            if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(password))
+            {
+                loginNotify.text = "COMPLETE ALL FIELDS";
+            }
+            else
+            {
+                WWWForm form = new WWWForm();
+                form.AddField("username", username);
+                form.AddField("password", password);
+                form.AddField("action", "login");
+
+                UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
+                yield return w.SendWebRequest();
+                Debug.Log(w.downloadHandler.text);
+                if (w.downloadHandler.text.StartsWith("TRUE"))
+                {
+                    string[] data = w.downloadHandler.text.Split(',');
+                    authKey = data[1];
+                    userId = Convert.ToInt32(data[2]);
+                    PlayerPrefs.SetString("authKey", authKey);
+                    PlayerPrefs.SetInt("userId", userId);
+                    PlayerPrefs.SetString("username", username);
+                    PlayerPrefs.SetString("password", password);
+                    PlayerPrefs.Save();
+                    LoadGame();
+                }
+                if (w.downloadHandler.text == "Wrong")
+                {
+                    loginNotify.text = "INCORRECT USERNAME/PASSWORD";
+                }
+                if (w.downloadHandler.text == "No User")
+                {
+                    loginNotify.text = "INCORRECT USERNAME/PASSWORD";
+                }
+            }
+        }   
+    }
+    private IEnumerator GuestLogIn(UnityWebRequest _w)
+    {
+        yield return _w.SendWebRequest();
+        Debug.Log(_w.downloadHandler.text);
+        if (_w.downloadHandler.text.StartsWith("TRUE"))
+        {
+            string[] data = _w.downloadHandler.text.Split(',');
+            authKey = data[1];
+            userId = Convert.ToInt32(data[2]);
+            PlayerPrefs.SetString("authKey", authKey);
+            PlayerPrefs.SetInt("userId", userId);
+            PlayerPrefs.Save();
+            LoadGame();
+        }
+        if (_w.downloadHandler.text == "Wrong")
+        {
+            PlayerPrefs.DeleteKey("guest-a"); PlayerPrefs.DeleteKey("guest-b"); DoGuest(); 
+        }
+        if (_w.downloadHandler.text == "No User")
+        {
+            PlayerPrefs.DeleteKey("guest-a"); PlayerPrefs.DeleteKey("guest-b"); DoGuest();
+        }
+    }
     public void DoSignUp()
     {
         if (!canSignup) { return; }
@@ -264,38 +321,12 @@ public class LoadSceneScript : MonoBehaviour
         }
     }
 
-    private IEnumerator LogIn(UnityWebRequest _w, bool guest)
-    {
-        yield return _w.SendWebRequest();
-        if (_w.downloadHandler.text.StartsWith("TRUE"))
-        {
-            string[] data = _w.downloadHandler.text.Split(',');
-            authKey = data[1];
-            userId = Convert.ToInt32(data[2]);
-            PlayerPrefs.SetString("authKey", authKey);
-            PlayerPrefs.SetInt("userId", userId);
-            if (!guest) 
-            {
-                PlayerPrefs.SetString("username", username);
-                PlayerPrefs.SetString("password", password);
-            }
-            LoadGame();
-        }
-        if (_w.downloadHandler.text == "Wrong")
-        { 
-            if (guest) { PlayerPrefs.DeleteKey("guest-a"); PlayerPrefs.DeleteKey("guest-b"); DoGuest(); }
-            else { loginNotify.text = "INCORRECT USERNAME/PASSWORD"; }
-        }
-        if (_w.downloadHandler.text == "No User")
-        {
-            if (guest) { PlayerPrefs.DeleteKey("guest-a"); PlayerPrefs.DeleteKey("guest-b"); DoGuest(); }
-            else { loginNotify.text = "INCORRECT USERNAME/PASSWORD"; }
-        }
-    }
+    
 
     private IEnumerator Register(UnityWebRequest _w)
     {
         yield return _w.SendWebRequest();
+        Debug.Log(_w.downloadHandler.text);
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
             string[] data = _w.downloadHandler.text.Split(',');
@@ -311,6 +342,9 @@ public class LoadSceneScript : MonoBehaviour
         {
             signupNotify.text = "USERNAME TAKEN";
         }
+        Debug.Log(_w.downloadHandler.text);
+        Debug.Log(_w.downloadHandler.text);
+        Debug.Log(_w.downloadHandler.text);
     }
 
     public void DoGuest()
@@ -324,7 +358,7 @@ public class LoadSceneScript : MonoBehaviour
             form.AddField("password", password);
             form.AddField("action", "login");
             UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
-            StartCoroutine(LogIn(w,true));
+            StartCoroutine(GuestLogIn(w));
         }
         else 
         {

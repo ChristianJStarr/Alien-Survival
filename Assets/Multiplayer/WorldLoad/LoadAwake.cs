@@ -8,6 +8,7 @@ using TMPro;
 public class LoadAwake : MonoBehaviour
 {
     public GameObject loadScreen;
+    public ControlControl controls;
     public TextMeshProUGUI loadScreenText, loadScreenText2;
     public float FadeRate = 0.2F;
     public float FadeRate2 = 3F;
@@ -25,6 +26,7 @@ public class LoadAwake : MonoBehaviour
         targetAlpha = 1.0f;
         text1Target = 1.0f;
         text2Target = 0.0f;
+        controls.Hide();
     }
     void Update()
     {
@@ -98,6 +100,7 @@ public class LoadAwake : MonoBehaviour
         }
         animator.SetTrigger("Wake");
         animator.GetComponent<HeadLookController>().EnableHead();
+        controls.Show();
     }
     public void FadeOut()
     {

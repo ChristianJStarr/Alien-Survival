@@ -20,6 +20,9 @@ public class Reticle : MonoBehaviour
     }
     void FixedUpdate()
     {
+        if (Camera.main == null)
+            return;
+
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0F));
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, 15, layerMask))

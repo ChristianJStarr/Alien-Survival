@@ -14,10 +14,11 @@ public class AutoSave : MonoBehaviour
     private Animation anim;
     private TextMeshProUGUI text;
     public PlayerStats playerStats;
+    private bool isSaving;
     private bool isMaster;
-    int saveRound;
     int roomNumber;
     FirstPersonController player;
+    
 
     void Start() 
     {
@@ -27,10 +28,8 @@ public class AutoSave : MonoBehaviour
         text = saveTile.GetComponentInChildren<TextMeshProUGUI>();
         string[] roomNameData = PhotonNetwork.CurrentRoom.Name.Split('#');
         roomNumber = Convert.ToInt32(roomNameData[1]);
-        saveRound = 0;
         RunAutoSave();
     }
-
     IEnumerator AutoSaveLoop() 
     {
         yield return new WaitForSeconds(30);
@@ -76,16 +75,17 @@ public class AutoSave : MonoBehaviour
         form.AddField("food", playerStats.playerFood);
         form.AddField("inventory", playerStats.playerInventory);
         form.AddField("location", player.transform.position.ToString());
-        UnityWebRequest w = UnityWebRequest.Post("https://outurer.com/roomuser.php", form);
+        UnityWebRequest w = UnityWebRequest.Post("https://www.game.aliensurvival.com/roomuser.php", form);
         StartCoroutine(SetStatsWait(w));
         
     }
     private IEnumerator SetStatsWait(UnityWebRequest _w)
     {
+        isSaving = true;
         yield return _w.SendWebRequest();
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
-            //SUCCESS
+            isSaving = false;
         }
         else 
         {
@@ -97,16 +97,17 @@ public class AutoSave : MonoBehaviour
             form.AddField("json", objectLoader.AllObjectsToJson());
             form.AddField("server", roomNumber);
             form.AddField("all", 2);
-            UnityWebRequest w = UnityWebRequest.Post("https://outurer.com/roomworld.php", form);
+            UnityWebRequest w = UnityWebRequest.Post("https://www.game.aliensurvival.com/roomworld.php", form);
             StartCoroutine(SetWorldWait(w));
         }
     }
     private IEnumerator SetWorldWait(UnityWebRequest _w)
     {
+        isSaving = true;
         yield return _w.SendWebRequest();
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
-            //SUCCESS
+            isSaving = false;
         }
         else
         {
@@ -119,6 +120,13 @@ public class AutoSave : MonoBehaviour
         PlayerPrefs.SetInt("coins", playerStats.playerCoins);
         PlayerPrefs.SetFloat("hours", playerStats.playerHours);
         PlayerPrefs.SetInt("exp", playerStats.playerExp);
+        PlayerPrefs.Save();
     }
-
+    public void Save() 
+    {
+        if (!isSaving) 
+        {
+            CloudPlayerStats();
+        }  
+    }
 }

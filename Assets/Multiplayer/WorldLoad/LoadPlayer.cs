@@ -13,6 +13,7 @@ public class LoadPlayer : MonoBehaviour
     public PlayerStats playerStats;
     private ObjectLoader objectLoader;
     public LoadAwake loadAwake;
+    private readonly string url = "https://www.game.aliensurvival.com";
 
 
     void Start() 
@@ -41,7 +42,7 @@ public class LoadPlayer : MonoBehaviour
         form.AddField("userId", PlayerPrefs.GetInt("userId"));
         form.AddField("authKey", PlayerPrefs.GetString("authKey"));
         form.AddField("server", id);
-        UnityWebRequest w = UnityWebRequest.Post("https://outurer.com/roomuser.php", form);
+        UnityWebRequest w = UnityWebRequest.Post(url + "/roomuser.php", form);
         StartCoroutine(PlayerDataWait(w));
     }
     private IEnumerator PlayerDataWait(UnityWebRequest _w)
@@ -107,7 +108,7 @@ public class LoadPlayer : MonoBehaviour
         WWWForm form = new WWWForm();
         form.AddField("all", 1);
         form.AddField("server", id);
-        UnityWebRequest w = UnityWebRequest.Post("https://outurer.com/roomworld.php", form);
+        UnityWebRequest w = UnityWebRequest.Post(url + "/roomworld.php", form);
         StartCoroutine(WorldDataWait(w));
     }
     private IEnumerator WorldDataWait(UnityWebRequest _w)

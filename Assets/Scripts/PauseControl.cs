@@ -10,6 +10,8 @@ public class PauseControl : MonoBehaviour
     public bool gamePaused;
     public GameObject pauseMenu;
     private PhotonRoom photonRoom;
+    public AutoSave autoSave;
+    public ControlControl controls;
     void Start()
     {
         photonRoom = FindObjectOfType<PhotonRoom>();
@@ -18,15 +20,18 @@ public class PauseControl : MonoBehaviour
     }
     public void PauseGame() 
     {
-        if (gamePaused == false) 
+        if (!gamePaused) 
         {
+            controls.Hide();
             pauseMenu.SetActive(true);
             gamePaused = true;
+            autoSave.Save();
         }
         else 
         {
             pauseMenu.SetActive(false);
             gamePaused = false;
+            controls.Show();
         }
     }
     public void GoMainMenu() 
