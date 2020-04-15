@@ -55,13 +55,22 @@ public class ServerSlideScript : MonoBehaviourPunCallbacks
         roomPlayers.text = "(0/20)";
     }
     public void JoinThisRoom() 
-    {   
+    {
+        ClickSound();
         if (roomNameJoin != null && playerLogin.CanRemoveCoin(25)) 
         {
             mainMenu.LoadGame();
             RoomOptions roomOps = new RoomOptions() { IsVisible = true, IsOpen = true, MaxPlayers = 20 };
             //Debug.Log("Network - Joining Room: " + roomNameJoin);
             PhotonNetwork.JoinOrCreateRoom(roomNameJoin, roomOps, TypedLobby.Default);
+        }
+    }
+    private void ClickSound() 
+    {
+        MusicManager sounds = FindObjectOfType<MusicManager>();
+        if (sounds != null)
+        {
+            sounds.ButtonClick();
         }
     }
 }

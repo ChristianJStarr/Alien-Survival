@@ -109,6 +109,8 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         createMenu.SetActive(false);
         loadScreen.SetActive(true);
+        camTargetposition = resetTargetCord;
+        camTargetrotation = resetTargetRot;
         StartCoroutine(LoadRoutine());
     }
     private IEnumerator LoadRoutine()

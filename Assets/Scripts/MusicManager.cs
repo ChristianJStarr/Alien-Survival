@@ -6,6 +6,7 @@ public class MusicManager : MonoBehaviour
 {
     public AudioSource musicAudio;
     public AudioSource ambientAudio;
+    public AudioSource uiAudio;
     public Settings settings;
     public AudioClip gameClip;
     public AudioClip menuClip;
@@ -31,6 +32,7 @@ public class MusicManager : MonoBehaviour
         ambientAudio.volume = settings.ambientVolume;
         musicInc = settings.musicVolume / 20;
         ambientInc = settings.ambientVolume / 20;
+        uiAudio.volume = settings.uiVolume;
     }
     public void OnLevelWasLoaded(int level)
     {
@@ -54,6 +56,11 @@ public class MusicManager : MonoBehaviour
             ambientAudio.clip = null;
         }
 
+    }
+
+    public void ButtonClick() 
+    {
+        uiAudio.Play();
     }
 
     private IEnumerator FadeAmbient(AudioClip audioClip, AudioClip audioClip2)
