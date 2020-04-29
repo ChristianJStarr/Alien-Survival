@@ -12,7 +12,7 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: Starr
+  companyName: StarrSoftwareCo
   productName: Alien Survival
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
@@ -42,11 +42,7 @@ PlayerSettings:
   m_SplashScreenLogos:
   - logo: {fileID: 10404, guid: 0000000000000000e000000000000000, type: 0}
     duration: 2
-  - logo: {fileID: 21300000, guid: 43b25b912ecbc464e9fcb7a8d3430fdd, type: 3}
-    duration: 2
-  - logo: {fileID: 21300000, guid: 902882b3bc41d9d4fb9730dac2d7bea3, type: 3}
-    duration: 2
-  - logo: {fileID: 21300000, guid: 0200d1135ae0b2e4b8452462616a35c8, type: 3}
+  - logo: {fileID: 21300000, guid: ca852a11e344d574fa00e8cbd27fd96d, type: 3}
     duration: 2
   m_VirtualRealitySplashScreen: {fileID: 0}
   m_HolographicTrackingLossScreen: {fileID: 0}
