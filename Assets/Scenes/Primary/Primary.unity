@@ -6835,8 +6835,8 @@ MonoBehaviour:
   controlStyle: 2
   horizontalAxisName: Mouse X
   verticalAxisName: Mouse Y
-  Xsensitivity: 0.5
-  Ysensitivity: 0.5
+  Xsensitivity: 1
+  Ysensitivity: 1
 --- !u!114 &308424011
 MonoBehaviour:
   m_ObjectHideFlags: 0
