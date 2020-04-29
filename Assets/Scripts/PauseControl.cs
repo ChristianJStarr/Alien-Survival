@@ -51,8 +51,16 @@ public class PauseControl : MonoBehaviour
     //Settings button function. Called from buttons inside of pause menu and settings menu.
     public void ButtonSettings() 
     {
-        pauseButtons.SetActive(false);
-        settingsMenu.SetActive(true);
+        if (settingsMenu.activeSelf) //Is the settings menu open?
+        {
+            pauseButtons.SetActive(true);
+            settingsMenu.SetActive(false);
+        }
+        else 
+        {
+            pauseButtons.SetActive(false);
+            settingsMenu.SetActive(true);
+        }
     }
 
 

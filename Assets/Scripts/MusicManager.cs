@@ -41,7 +41,7 @@ public class MusicManager : MonoBehaviour
             GameObject tmp = new GameObject("Temp Listener");
             tmp.AddComponent<AudioListener>();
             Destroy(tmp, 10);
-            StartCoroutine(FadeAmbient(ambientClip, gameClip));
+            StartCoroutine(FadeSound(ambientClip, null));
         }
         if(level == 1 && musicAudio.clip != menuClip) 
         {
@@ -63,7 +63,7 @@ public class MusicManager : MonoBehaviour
         uiAudio.Play();
     }
 
-    private IEnumerator FadeAmbient(AudioClip audioClip, AudioClip audioClip2)
+    private IEnumerator FadeSound(AudioClip audioClip, AudioClip audioClip2)
     {
         yield return new WaitForSeconds(0.2F);
         bool restart = false;
@@ -100,42 +100,45 @@ public class MusicManager : MonoBehaviour
                 ambientAudio.volume = volume;
             }
         }
-
-        if (musicAudio.clip != audioClip2)
+        if (audioClip2 != null) 
         {
-            if (musicAudio.volume >= musicInc)
+            if (musicAudio.clip != audioClip2)
             {
-                musicAudio.volume -= musicInc;
-                restart = true;
+                if (musicAudio.volume >= musicInc)
+                {
+                    musicAudio.volume -= musicInc;
+                    restart = true;
+                }
+                else if (musicAudio.volume < musicInc && musicAudio.volume != 0)
+                {
+                    musicAudio.volume = 0;
+                    restart = true;
+                }
+                else if (musicAudio.volume == 0)
+                {
+                    musicAudio.clip = audioClip2;
+                    musicAudio.Play();
+                    restart = true;
+                }
             }
-            else if (musicAudio.volume < musicInc && musicAudio.volume != 0)
+            else
             {
-                musicAudio.volume = 0;
-                restart = true;
-            }
-            else if (musicAudio.volume == 0)
-            {
-                musicAudio.clip = audioClip2;
-                musicAudio.Play();
-                restart = true;
+                float volume = settings.musicVolume;
+                if (musicAudio.volume < volume)
+                {
+                    musicAudio.volume += musicInc;
+                    restart = true;
+                }
+                else if (musicAudio.volume >= volume)
+                {
+                    musicAudio.volume = volume;
+                }
             }
         }
-        else
-        {
-            float volume = settings.musicVolume;
-            if (musicAudio.volume < volume)
-            {
-                musicAudio.volume += musicInc;
-                restart = true;
-            }
-            else if (musicAudio.volume >= volume)
-            {
-                musicAudio.volume = volume;
-            }
-        }
+        
         if (restart) 
         {
-            StartCoroutine(FadeAmbient(audioClip, audioClip2));
+            StartCoroutine(FadeSound(audioClip, audioClip2));
         }
     }
 }
