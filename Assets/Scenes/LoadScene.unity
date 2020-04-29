@@ -1018,7 +1018,7 @@ GameObject:
   - component: {fileID: 307019015}
   - component: {fileID: 307019014}
   m_Layer: 5
-  m_Name: RawImage
+  m_Name: LogoImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1671,7 +1671,7 @@ GameObject:
   - component: {fileID: 582325805}
   - component: {fileID: 582325804}
   m_Layer: 5
-  m_Name: Main
+  m_Name: MainMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3099,7 +3099,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &781766671
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3137,7 +3137,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: VERSION 1.4.55a
+  m_text: VERSION 1.0.0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -3207,7 +3207,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 781766672}
-    characterCount: 15
+    characterCount: 13
     spriteCount: 0
     spaceCount: 1
     wordCount: 4
@@ -4420,7 +4420,7 @@ GameObject:
   - component: {fileID: 993642194}
   - component: {fileID: 993642193}
   m_Layer: 5
-  m_Name: RawImage
+  m_Name: BackgroundImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7971,7 +7971,7 @@ GameObject:
   - component: {fileID: 1899415923}
   - component: {fileID: 1899415925}
   m_Layer: 5
-  m_Name: Load
+  m_Name: LoadMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
