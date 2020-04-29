@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b94fcd11afffcb142908bfcb1e261fba, type: 3}
   m_Name: MotionBlur
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   enabled:
     overrideState: 1
     value: 1
@@ -170,10 +170,10 @@ MonoBehaviour:
     value: 100
   lift:
     overrideState: 1
-    value: {x: 0.7200359, y: 0.7931708, z: 1, w: -0.043620504}
+    value: {x: 0.67166984, y: 0.6887377, z: 1, w: -0.043620504}
   gamma:
     overrideState: 1
-    value: {x: 0.97205305, y: 1, z: 0.99999964, w: 0.087240994}
+    value: {x: 0.6981014, y: 0.74444884, z: 1, w: 0.087240994}
   gain:
     overrideState: 1
     value: {x: 1, y: 1, z: 1, w: 0}
