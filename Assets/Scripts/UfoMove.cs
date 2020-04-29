@@ -15,7 +15,7 @@ public class UfoMove : MonoBehaviour
     {
         ufo = GetComponent<Transform>();
         reset = ufo.position;
-        target = new Vector3(reset.x - 200, reset.y, reset.z);
+        target = new Vector3(reset.x - 500, reset.y, reset.z);
         StartCoroutine(WaitForUFO());
     }
 
