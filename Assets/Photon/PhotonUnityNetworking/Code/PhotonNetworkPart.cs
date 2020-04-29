@@ -171,13 +171,18 @@ namespace Photon.Pun
         /// </remarks>
         public static bool UseRpcMonoBehaviourCache;
         
-
-        public static bool RunRpcCoroutines = true;
-
-
         private static readonly Dictionary<Type, List<MethodInfo>> monoRPCMethodsCache = new Dictionary<Type, List<MethodInfo>>();
 
         private static readonly Dictionary<string, int> rpcShortcuts;  // lookup "table" for the index (shortcut) of an RPC name
+        
+        /// <summary>
+        /// If an RPC method is implemented as coroutine, it gets started, unless this value is false.
+        /// </summary>
+        /// <remarks>
+        /// As starting coroutines causes a little memnory garbage, you may want to disable this option but it is
+        /// also good enough to not return IEnumerable from methods with the attribite PunRPC.
+        /// </remarks>
+        public static bool RunRpcCoroutines = true;
 
 
         // for asynchronous network synched loading.
@@ -291,7 +296,7 @@ namespace Photon.Pun
         }
 
         // PHOTONVIEW/RPC related
-
+#pragma warning disable 0414
         private static readonly Type typePunRPC = typeof(PunRPC);
         private static readonly Type typePhotonMessageInfo = typeof(PhotonMessageInfo);
         private static readonly object keyByteZero = (byte)0;
@@ -305,6 +310,7 @@ namespace Photon.Pun
         private static readonly object keyByteEight = (byte)8;
         private static readonly object[] emptyObjectArray = new object[0];
         private static readonly Type[] emptyTypeArray = new Type[0];
+#pragma warning restore 0414
 
         /// <summary>
         /// Executes a received RPC event
@@ -862,24 +868,25 @@ namespace Photon.Pun
         {
             PhotonView result = null;
             photonViewList.TryGetValue(viewID, out result);
+            
+            /// Removed aggressive find that likely had no real use case, and was expensive.
+            //if (result == null)
+            //{
+            //    PhotonView[] views = GameObject.FindObjectsOfType(typeof(PhotonView)) as PhotonView[];
 
-            if (result == null)
-            {
-                PhotonView[] views = GameObject.FindObjectsOfType(typeof(PhotonView)) as PhotonView[];
-
-                for (int i = 0; i < views.Length; i++)
-                {
-                    PhotonView view = views[i];
-                    if (view.ViewID == viewID)
-                    {
-                        if (view.didAwake)
-                        {
-                            Debug.LogWarning("Had to lookup view that wasn't in photonViewList: " + view);
-                        }
-                        return view;
-                    }
-                }
-            }
+            //    for (int i = 0; i < views.Length; i++)
+            //    {
+            //        PhotonView view = views[i];
+            //        if (view.ViewID == viewID)
+            //        {
+            //            if (view.didAwake)
+            //            {
+            //                Debug.LogWarning("Had to lookup view that wasn't in photonViewList: " + view);
+            //            }
+            //            return view;
+            //        }
+            //    }
+            //}
 
             return result;
         }
@@ -1368,12 +1375,12 @@ namespace Photon.Pun
 
 
         /// <summary>
-        /// Defines how many OnPhotonSerialize()-calls might get summarized in one message.
+        /// Defines how many updated produced by OnPhotonSerialize() are batched into one message.
         /// </summary>
         /// <remarks>
-        /// A low number increases overhead, a high number might mean fragmentation.
+        /// A low number increases overhead, a high number might lead to fragmented messages.
         /// </remarks>
-        public static int ObjectsInOneUpdate = 10;
+        public static int ObjectsInOneUpdate = 20;
 
 
         private static readonly PhotonStream serializeStreamOut = new PhotonStream(true, null);
@@ -1404,7 +1411,7 @@ namespace Photon.Pun
     {
         public readonly RaiseEventBatch Batch;
         public List<object> ObjectUpdates;
-        private int defaultSize = 20;
+        private int defaultSize = PhotonNetwork.ObjectsInOneUpdate;
         private int offset;
 
 
@@ -2161,7 +2168,7 @@ namespace Photon.Pun
                     int requestedFromOwnerId = requestValues[1];
 
 
-                    PhotonView requestedView = PhotonView.Find(requestedViewId);
+                    PhotonView requestedView = GetPhotonView(requestedViewId);
                     if (requestedView == null)
                     {
                         Debug.LogWarning("Can't find PhotonView of incoming OwnershipRequest. ViewId not found: " + requestedViewId);
@@ -2230,7 +2237,7 @@ namespace Photon.Pun
                     }
 
 
-                    PhotonView requestedView = PhotonView.Find(requestedViewId);
+                    PhotonView requestedView = GetPhotonView(requestedViewId);
                     if (requestedView != null)
                     {
                         int currentPvOwnerId = requestedView.OwnerActorNr;
@@ -2286,6 +2293,28 @@ namespace Photon.Pun
 
             _cachedRegionHandler = regionHandler;
             //PhotonNetwork.BestRegionSummaryInPreferences = regionHandler.SummaryToCache; // can not be called here, as it's not in the main thread
+
+            
+            // the dev region overrides the best region selection in "development" builds (unless it was set but is empty).
+            
+            #if UNITY_EDITOR
+            if (!PhotonServerSettings.DevRegionSetOnce)
+            {
+                // if no dev region was defined before or if the dev region is unavailable, set a new dev region
+                PhotonServerSettings.DevRegionSetOnce = true;
+                PhotonServerSettings.DevRegion = _cachedRegionHandler.BestRegion.Code;
+            }
+            #endif
+
+            #if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (!string.IsNullOrEmpty(PhotonServerSettings.DevRegion) && ConnectMethod == ConnectMethod.ConnectToBest)
+            {
+                Debug.LogWarning("PUN is in development mode (development build). As the 'dev region' is not empty (" + PhotonServerSettings.DevRegion + ") it overrides the found best region. See PhotonServerSettings.");
+                PhotonNetwork.NetworkingClient.ConnectToRegionMaster(PhotonServerSettings.DevRegion);
+                return;
+            }
+            #endif
+
             if (NetworkClientState == ClientState.ConnectedToNameServer)
             {
                 PhotonNetwork.NetworkingClient.ConnectToRegionMaster(regionHandler.BestRegion.Code);
