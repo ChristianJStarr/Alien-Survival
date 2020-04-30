@@ -8,8 +8,8 @@ using UnityEngine.UI;
 public class SettingsMenu : MonoBehaviour
 {
     public Settings settings;
-    public Slider ui, menu, ambient, effects;
-    public ToggleGroup texture, shadow, reflection, render;
+    public Slider ui, menu, ambient, effects, xSense, ySense, terrainDis, objectDis;
+    public ToggleGroup textureQ, shadowQ, reflectionQ, objectQ;
 
 
     void Start() 
@@ -23,10 +23,16 @@ public class SettingsMenu : MonoBehaviour
         ambient.value = settings.ambientVolume;
         effects.value = settings.effectsVolume;
 
-        SetToggle(texture, settings.textureQuality);
-        SetToggle(shadow, settings.shadowQuality);
-        SetToggle(reflection, settings.reflectionQuality);
-        SetToggle(render, settings.renderQuality);
+        SetToggle(textureQ, settings.textureQuality);
+        SetToggle(shadowQ, settings.shadowQuality);
+        SetToggle(reflectionQ, settings.reflectionQuality);
+        SetToggle(objectQ, settings.objectQuality);
+
+        xSense.value = settings.xSensitivity;
+        ySense.value = settings.ySensitivity;
+
+        terrainDis.value = settings.terrainDistance;
+        objectDis.value = settings.objectDistance;
     }
 
     private void SetToggle(ToggleGroup group, int value) 
@@ -49,11 +55,17 @@ public class SettingsMenu : MonoBehaviour
         settings.musicVolume = menu.value;
         settings.ambientVolume = ambient.value;
         settings.effectsVolume = effects.value;
-        
-        settings.textureQuality = Convert.ToInt32(texture.ActiveToggles().FirstOrDefault().name);
-        settings.shadowQuality = Convert.ToInt32(shadow.ActiveToggles().FirstOrDefault().name);
-        settings.reflectionQuality = Convert.ToInt32(reflection.ActiveToggles().FirstOrDefault().name);
-        settings.renderQuality = Convert.ToInt32(render.ActiveToggles().FirstOrDefault().name);
+
+        settings.textureQuality = Convert.ToInt32(textureQ.ActiveToggles().FirstOrDefault().name);
+        settings.shadowQuality = Convert.ToInt32(shadowQ.ActiveToggles().FirstOrDefault().name);
+        settings.reflectionQuality = Convert.ToInt32(reflectionQ.ActiveToggles().FirstOrDefault().name);
+        settings.objectQuality = Convert.ToInt32(objectQ.ActiveToggles().FirstOrDefault().name);
+
+        settings.xSensitivity = xSense.value;
+        settings.ySensitivity = ySense.value;
+
+        settings.terrainDistance = terrainDis.value;
+        settings.objectDistance = objectDis.value;
 
         FindObjectOfType<MusicManager>().Change();
     }
