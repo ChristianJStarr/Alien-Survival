@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -49,6 +47,17 @@ public class SettingsMenu : MonoBehaviour
         }
     }
 
+
+    //Called from Terrain Distance Slider in settings. Keeps Object Max Distance >= Terrain Distance
+    public void TerrainDistance() 
+    {
+        objectDis.maxValue = terrainDis.value;
+        if(objectDis.value > terrainDis.value) 
+        {
+            objectDis.value = terrainDis.value;
+        }
+    }
+
     public void ApplySettings() 
     {
         settings.uiVolume = ui.value;
@@ -70,7 +79,7 @@ public class SettingsMenu : MonoBehaviour
         MusicManager music = FindObjectOfType<MusicManager>();
         TouchPad touch = FindObjectOfType<TouchPad>();
         if(music != null) 
-        {
+         {
             music.Change();
         }
         if(touch != null) 

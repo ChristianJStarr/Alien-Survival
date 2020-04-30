@@ -20,10 +20,10 @@ public class Settings : ScriptableObject
     public int objectQuality = 3;
 
     //Sensitivity
-    public float xSensitivity = 1;
-    public float ySensitivity = 1;
+    public float xSensitivity = .5F;
+    public float ySensitivity = .5F;
 
     //Distance
-    public float terrainDistance = 1;
-    public float objectDistance = 1;
+    public float terrainDistance = 500;
+    public float objectDistance = 400;
 }
