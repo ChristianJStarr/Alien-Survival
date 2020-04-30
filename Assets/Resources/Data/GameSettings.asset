@@ -19,4 +19,8 @@ MonoBehaviour:
   textureQuality: 2
   shadowQuality: 2
   reflectionQuality: 2
-  renderQuality: 2
+  objectQuality: 3
+  xSensitivity: 1
+  ySensitivity: 1
+  terrainDistance: 1
+  objectDistance: 1

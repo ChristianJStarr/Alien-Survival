@@ -67,6 +67,15 @@ public class SettingsMenu : MonoBehaviour
         settings.terrainDistance = terrainDis.value;
         settings.objectDistance = objectDis.value;
 
-        FindObjectOfType<MusicManager>().Change();
+        MusicManager music = FindObjectOfType<MusicManager>();
+        TouchPad touch = FindObjectOfType<TouchPad>();
+        if(music != null) 
+        {
+            music.Change();
+        }
+        if(touch != null) 
+        {
+            touch.Change();
+        }
     }
 }

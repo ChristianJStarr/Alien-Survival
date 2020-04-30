@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a671d0c8fcdb42439d5f53fdb61098e, type: 3}
   m_Name: PlayerStats
   m_EditorClassIdentifier: 
-  playerName: "ChristianStarr\u200B"
-  playerHealth: 99
-  playerExp: 19243
-  playerWater: 96
-  playerFood: 95
-  playerCoins: 1000
-  playerHours: 62.25
-  playerInventory: -15#0#0#10#-14#19#19#20#
+  playerName: Guest-FRWBMUOT
+  playerHealth: 20
+  playerExp: 0
+  playerWater: 100
+  playerFood: 100
+  playerCoins: 50
+  playerHours: 0
+  playerInventory: 
+  location: {x: 765.2, y: 18.2, z: 1076.6}

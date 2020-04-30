@@ -1,10 +1,9 @@
-using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityStandardAssets.CrossPlatformInput;
 
-namespace UnityStandardAssets.CrossPlatformInput
-{
+
 	[RequireComponent(typeof(Image))]
 	public class TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 	{
@@ -24,7 +23,7 @@ namespace UnityStandardAssets.CrossPlatformInput
 			Swipe, // swipe to touch touch no maintained center
 		}
 
-
+        public Settings settings;
 		public AxisOption axesToUse = AxisOption.Both; // The options for the axes that the still will use
 		public ControlStyle controlStyle = ControlStyle.Absolute; // control style to use
 		public string horizontalAxisName = "Horizontal"; // The name given to the horizontal axis for the cross platform input
@@ -62,6 +61,12 @@ namespace UnityStandardAssets.CrossPlatformInput
             m_Image = GetComponent<Image>();
             m_Center = m_Image.transform.position;
 #endif
+        }
+        
+        public void Change() 
+        {
+            Xsensitivity = settings.xSensitivity;
+            Ysensitivity = settings.ySensitivity;
         }
 
 		void CreateVirtualAxes()
@@ -144,13 +149,12 @@ namespace UnityStandardAssets.CrossPlatformInput
 			UpdateVirtualAxes(Vector3.zero);
 		}
 
-		void OnDisable()
-		{
-			if (CrossPlatformInputManager.AxisExists(horizontalAxisName))
-				CrossPlatformInputManager.UnRegisterVirtualAxis(horizontalAxisName);
+    void OnDisable()
+    {
+        if (CrossPlatformInputManager.AxisExists(horizontalAxisName))
+            CrossPlatformInputManager.UnRegisterVirtualAxis(horizontalAxisName);
 
-			if (CrossPlatformInputManager.AxisExists(verticalAxisName))
-				CrossPlatformInputManager.UnRegisterVirtualAxis(verticalAxisName);
-		}
-	}
+        if (CrossPlatformInputManager.AxisExists(verticalAxisName))
+            CrossPlatformInputManager.UnRegisterVirtualAxis(verticalAxisName);
+    }
 }
