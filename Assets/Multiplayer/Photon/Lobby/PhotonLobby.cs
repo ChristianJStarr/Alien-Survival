@@ -25,7 +25,7 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
         if(!PhotonNetwork.IsConnected)
         PhotonNetwork.ConnectUsingSettings();  
     }
-    
+
     public override void OnConnectedToMaster()
     {
         //Debug.Log("Network - Connected to Master State: " + PhotonNetwork.NetworkClientState);
