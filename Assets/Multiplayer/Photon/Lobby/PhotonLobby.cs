@@ -25,15 +25,6 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
         if(!PhotonNetwork.IsConnected)
         PhotonNetwork.ConnectUsingSettings();  
     }
-    
-    void Update() 
-    {
-        if (Input.GetKeyDown(KeyCode.A)) 
-        {
-            Debug.Log("Screenshot");
-            ScreenCapture.CaptureScreenshot("Screenshot.png", 4);
-        }
-    }
 
     public override void OnConnectedToMaster()
     {

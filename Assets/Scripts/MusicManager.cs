@@ -41,7 +41,7 @@ public class MusicManager : MonoBehaviour
             GameObject tmp = new GameObject("Temp Listener");
             tmp.AddComponent<AudioListener>();
             Destroy(tmp, 10);
-            StartCoroutine(FadeSound(ambientClip, null));
+            StartCoroutine(FadeSound(ambientClip, gameClip));
         }
         if(level == 1 && musicAudio.clip != menuClip) 
         {
@@ -100,8 +100,6 @@ public class MusicManager : MonoBehaviour
                 ambientAudio.volume = volume;
             }
         }
-        if (audioClip2 != null) 
-        {
             if (musicAudio.clip != audioClip2)
             {
                 if (musicAudio.volume >= musicInc)
@@ -134,7 +132,6 @@ public class MusicManager : MonoBehaviour
                     musicAudio.volume = volume;
                 }
             }
-        }
         
         if (restart) 
         {
