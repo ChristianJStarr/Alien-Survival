@@ -1,10 +1,7 @@
 ﻿using Photon.Realtime;
 using Photon.Pun;
 using TMPro;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class PhotonLobby : MonoBehaviourPunCallbacks
 {
@@ -29,7 +26,6 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
         PhotonNetwork.ConnectUsingSettings();  
     }
     
-
     public override void OnConnectedToMaster()
     {
         //Debug.Log("Network - Connected to Master State: " + PhotonNetwork.NetworkClientState);
