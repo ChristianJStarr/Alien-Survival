@@ -14,10 +14,7 @@ public class Settings : ScriptableObject
     public float effectsVolume = 1;
 
     //Graphics
-    public int textureQuality = 3;
-    public int shadowQuality = 3;
-    public int reflectionQuality = 3;
-    public int objectQuality = 3;
+    public int quality = 3;
 
     //Sensitivity
     public float xSensitivity = .5F;
