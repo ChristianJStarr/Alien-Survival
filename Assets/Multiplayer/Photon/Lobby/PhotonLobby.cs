@@ -26,6 +26,15 @@ public class PhotonLobby : MonoBehaviourPunCallbacks
         PhotonNetwork.ConnectUsingSettings();  
     }
 
+    void Update() 
+    {
+        if (Input.GetKeyDown(KeyCode.A)) 
+        {
+            Debug.Log("ScreenShot at 4x res.");
+            ScreenCapture.CaptureScreenshot("screenshot.png",4);
+        }
+    }
+
     public override void OnConnectedToMaster()
     {
         //Debug.Log("Network - Connected to Master State: " + PhotonNetwork.NetworkClientState);
