@@ -6,11 +6,12 @@ using UnityStandardAssets.CrossPlatformInput;
 public class CameraMatchY : MonoBehaviour
 {
     public Transform target;
-    public Transform leftTarget;
-    public Transform rightTarget;
+    public Transform camTarget;
+    public Transform firstTarget;
+    public Transform thirdTarget;
     public float cameraHeight;
     public int speed;
-    public bool leftShoulder = false;
+    public bool firstPerson = false;
 
     void Start() 
     {
@@ -20,31 +21,36 @@ public class CameraMatchY : MonoBehaviour
     {
         if (CrossPlatformInputManager.GetButtonDown("SwitchCamera")) 
         {
-            leftShoulder = !leftShoulder;   
+            firstPerson = !firstPerson;   
         }
     }
     void LateUpdate()
     {
-        if (rightTarget != null) 
+        if (thirdTarget != null) 
         {
             float step = speed * Time.deltaTime;
-
             Vector3 targetPos = transform.position;
-            targetPos.y = target.position.y;
-            if (leftShoulder)
+            Vector3 shoulderPos = camTarget.position;
+            shoulderPos.y = target.position.y;
+            if (firstPerson)
             {
-                targetPos.x = leftTarget.position.x;
-                targetPos.z = leftTarget.position.z;
+                targetPos.z = firstTarget.position.z;
+                targetPos.x = firstTarget.position.x;
+                targetPos.y = firstTarget.position.y;
             }
-            if (!leftShoulder)
+            if (!firstPerson)
             {
-                targetPos.x = rightTarget.position.x;
-                targetPos.z = rightTarget.position.z;
+                targetPos.z = thirdTarget.position.z;
+                targetPos.x = thirdTarget.position.x;
+                targetPos.x = firstTarget.position.x;
             }
-
             if (transform.position != targetPos)
             {
                 transform.position = Vector3.MoveTowards(transform.position, targetPos, step);
+            }
+            if (camTarget.position != shoulderPos)
+            {
+                camTarget.transform.position = Vector3.MoveTowards(camTarget.position, shoulderPos, step);
             }
         }    
     }

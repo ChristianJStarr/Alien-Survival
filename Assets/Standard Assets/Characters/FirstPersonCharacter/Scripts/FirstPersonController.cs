@@ -71,7 +71,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         // Update is called once per frame
         private void Update()
         {
-            UpdateAnimations();
             RotateView();
             // the jump state needs to read here to make sure it is not missed
             if (!m_Jump)
@@ -201,6 +200,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void SetCrouch() 
         {
             Debug.Log("Set Crouch " + m_Crouching);
+
+            //Set height of collider.
         }
 
         private void PlayJumpSound()
@@ -228,47 +229,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             PlayFootStepAudio();
         }
 
-        private void UpdateAnimations() 
-        {
-            //float horizontal = CrossPlatformInputManager.GetAxis("Horizontal");
-            //float vertical = CrossPlatformInputManager.GetAxis("Vertical");
-
-            //if (vertical > 0.2F)
-            //{
-            //    animator.SetBool("isWalking", true);
-            //}
-            //else
-            //{
-            //    animator.SetBool("isWalking", false);
-            //}
-            //if (vertical < -0.2F)
-            //{
-            //    animator.SetBool("isBacking", true);
-            //    animator.SetBool("isStrafingLeft", false);
-            //    animator.SetBool("isStrafingRight", false);
-            //}
-            //else
-            //{
-            //    animator.SetBool("isBacking", false);
-            //}
-            //if (horizontal > 0.2)
-            //{
-            //    animator.SetBool("isStrafingRight", true);
-            //}
-            //else
-            //{
-            //    animator.SetBool("isStrafingRight", false);
-            //}
-            //if (horizontal < -0.2)
-            //{
-            //    animator.SetBool("isStrafingLeft", true);
-            //}
-            //else
-            //{
-            //    animator.SetBool("isStrafingLeft", false);
-            //}
-
-        }
 
         private void PlayFootStepAudio()
         {

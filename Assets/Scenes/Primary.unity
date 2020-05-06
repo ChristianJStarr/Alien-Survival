@@ -702,7 +702,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.00012207031, y: -0.20379639}
+  m_AnchoredPosition: {x: 0, y: -0.20373535}
   m_SizeDelta: {x: -244.7107, y: -122.72888}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &26210692
@@ -19654,7 +19654,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.03491211, y: -0.33477783}
+  m_AnchoredPosition: {x: -0.03491211, y: -0.3347168}
   m_SizeDelta: {x: -795.24, y: -398.00873}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &697741192
@@ -19678,10 +19678,7 @@ MonoBehaviour:
   ySense: {fileID: 998752849}
   terrainDis: {fileID: 962534954}
   objectDis: {fileID: 1545953492}
-  textureQ: {fileID: 1190021730}
-  shadowQ: {fileID: 1177093689}
-  reflectionQ: {fileID: 873298760}
-  objectQ: {fileID: 1088074278}
+  quality: {fileID: 0}
 --- !u!1 &703097693
 GameObject:
   m_ObjectHideFlags: 0
@@ -28170,7 +28167,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.010070801, y: 0}
+  m_AnchoredPosition: {x: -0.010009766, y: 0}
   m_SizeDelta: {x: 0.0199, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1055287008
@@ -50495,7 +50492,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1976109164
 RectTransform:
   m_ObjectHideFlags: 0

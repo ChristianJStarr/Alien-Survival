@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using UnityStandardAssets.CrossPlatformInput;
 using UnityStandardAssets.Characters.FirstPerson;
 
 [System.Serializable]

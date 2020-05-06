@@ -2,91 +2,73 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro;
 using UnityEngine.Networking;
 using System;
 using System.Globalization;
+using TMPro;
 
 public class LoadSceneScript : MonoBehaviour
 {
-    public GameObject mainScreen, loginScreen, signupScreen, loadScreen;
-    public Slider loadSlider;
-    public TextMeshProUGUI loginNotify, signupNotify;
-    public TMP_InputField usernameText, passwordText, regUsernameText, regPassText;
-    public Button loginButton, signupButton;
+    public GameObject mainScreen, loginScreen, signupScreen, loadScreen; //Each screen layer.
+    public Slider loadSlider; //Slider for load screen.
+    public TextMeshProUGUI loginNotify, signupNotify; //Notify text field for login and signup screen.
+    public TMP_InputField usernameText, passwordText, regUsernameText, regPassText; //Input fields for login and signup.
+    public Button loginButton, signupButton; //Login and signup screen buttons.
     public PlayerStats playerStats;
     private int userId, loadProgress, lastLoadProgress = 0;
     private bool canSignup, canLogin, canGetStats;
     private string username, password, regUsername, regPass, authKey;
 
-    private readonly string loginUrl = "https://www.game.aliensurvival.com/login.php";
-    private readonly string statsUrl = "https://www.game.aliensurvival.com/stats.php";
+    private readonly string loginUrl = "https://www.game.aliensurvival.com/login.php"; //Url for login.
+    private readonly string statsUrl = "https://www.game.aliensurvival.com/stats.php"; //Url for signup.
 
     void Start() 
     {
         canGetStats = true;
+        //Check if user has logged in before and has username/pass stored.
         if(PlayerPrefs.GetString("username").Length > 0) 
         {
-            RememberMe();
+            StartCoroutine(LoginRememberMe());//Login with stored credentials.
         }
         else 
         {
-            mainScreen.SetActive(true);      
+            mainScreen.SetActive(true);//Show main menu screen.
         }
+        //Change asterisk to dot in input field.
         usernameText.asteriskChar = passwordText.asteriskChar = regUsernameText.asteriskChar = regPassText.asteriskChar = '•';
     }
 
-    private void RememberMe() 
-    {
-        string remName = PlayerPrefs.GetString("username");
-        string remPass = PlayerPrefs.GetString("password");
-        WWWForm form = new WWWForm();
-        form.AddField("username", remName);
-        form.AddField("password", remPass);
-        form.AddField("action", "login");
-        UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
-        StartCoroutine(RememberMeWait(w));
-    }
-    private IEnumerator RememberMeWait(UnityWebRequest _w)
-    {
-        yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
-        if (_w.downloadHandler.text == "Correct")
-        {
-            LoadGame();
-        }
-        else 
-        {
-            mainScreen.SetActive(true);
-        }
-    }
-
-    public void Login() 
+    //Show login menu.
+    public void Login()
     {
         mainScreen.SetActive(false);
         loginScreen.SetActive(true);
     }
-    public void Signup() 
+    //Show signup menu.
+    public void Signup()
     {
         mainScreen.SetActive(false);
         signupScreen.SetActive(true);
     }
-    public void Close() 
+    //Show main menu.
+    public void Close()
     {
         loadScreen.SetActive(false);
         loginScreen.SetActive(false);
         signupScreen.SetActive(false);
         mainScreen.SetActive(true);
     }
-    public void LoadGame() 
+    //Load MainMenu scene.
+    public void LoadGame()
     {
         mainScreen.SetActive(false);
         loginScreen.SetActive(false);
         signupScreen.SetActive(false);
         loadScreen.SetActive(true);
-        StartCoroutine(LoadRoutine());
+        StartCoroutine(LoadRoutine());//Start loading the MainMenu scene.
     }
-
+    
+    //Load routine for loading MainMenu scene.
     private IEnumerator LoadRoutine()
     {
         AsyncOperation op = SceneManager.LoadSceneAsync(1);
@@ -99,54 +81,66 @@ public class LoadSceneScript : MonoBehaviour
             }
             else
             {
-                loadProgress = 100;
-                GetPlayerStats(op);
+                loadProgress = 75;
+                StartCoroutine(GetPlayerStats(op));//Pass over AsyncOp and get player stats. Last 25% of load progress.
             }
             if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; loadSlider.value = loadProgress; }
             yield return null;
         }
-        loadProgress = 100;
-        loadSlider.value = loadProgress;
-    }
-    public void GetPlayerStats(AsyncOperation op)
-    {
-        if (canGetStats) 
-        {
-            canGetStats = false;
-            playerStats.playerName = PlayerPrefs.GetString("username");
-            WWWForm form = new WWWForm();
-            form.AddField("all", 1);
-            form.AddField("username", PlayerPrefs.GetString("username"));
-            form.AddField("password", PlayerPrefs.GetString("password"));
-            UnityWebRequest w = UnityWebRequest.Post(statsUrl, form);
-            StartCoroutine(GetStatsWait(w, op));
-        } 
+        loadSlider.value = loadProgress = 75;
     }
 
-    private IEnumerator GetStatsWait(UnityWebRequest _w, AsyncOperation op)
+    //Login with stored PlayerPrefs.
+    private IEnumerator LoginRememberMe()
     {
-        yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
-        if (_w.downloadHandler.text.StartsWith("TRUE"))
+        string remName = PlayerPrefs.GetString("username");
+        string remPass = PlayerPrefs.GetString("password");
+        UnityWebRequest w = MakeLoginRequest(remName, remPass);
+        yield return w.SendWebRequest();
+        if (w.downloadHandler.text == "Correct")
         {
-            //SUCCESS
-            string[] floatData = _w.downloadHandler.text.Split(',');
-            string exp = floatData[1];
-            string coins = floatData[2];
-            string hours = floatData[3];
-            string recent = floatData[4];
-            if (exp == "") { exp = "0"; }
-            if (coins == "") { coins = "50"; }
-            if (hours == "") { hours = "0.01"; }
-            SaveData(exp,coins,hours,recent);
-            op.allowSceneActivation = true;
+            LoadGame();//Load MainMenu scene.
         }
         else 
         {
-            Close();
+            mainScreen.SetActive(true);
         }
     }
 
+    //Get the player stats from statsUrl.
+    private IEnumerator GetPlayerStats(AsyncOperation op)
+    {
+        if (canGetStats)
+        {
+            canGetStats = false;
+            string remName = PlayerPrefs.GetString("username");
+            string remPass = PlayerPrefs.GetString("password");
+            playerStats.playerName = remName;
+            UnityWebRequest w = MakeStatsRequest(remName, remPass, 1);
+            yield return w.SendWebRequest();
+            if (w.downloadHandler.text.StartsWith("TRUE"))
+            {
+                loadSlider.value = 100;
+                string[] floatData = w.downloadHandler.text.Split(',');
+                string exp = floatData[1];
+                string coins = floatData[2];
+                string hours = floatData[3];
+                string recent = floatData[4];
+                if (exp == "") { exp = "0"; }
+                if (coins == "") { coins = "50"; }
+                if (hours == "") { hours = "0.01"; }
+                SaveData(exp, coins, hours, recent);
+                op.allowSceneActivation = true;
+            }
+            else
+            {
+                canGetStats = true;
+                Close();
+            }
+        }
+    }
+
+    //Compare cloud data with local data. Pick newest data source.
     private void SaveData(string exp, string coins, string hours, string recent) 
     {
         float hour;
@@ -188,7 +182,7 @@ public class LoadSceneScript : MonoBehaviour
         }
     }
 
-
+    //Text change called from all input fields.
     public void TextChange() 
     {
         if (usernameText.text.Length > 5 && passwordText.text.Length > 5)
@@ -211,9 +205,9 @@ public class LoadSceneScript : MonoBehaviour
             signupButton.interactable = false;
             canSignup = false;
         }
-        Debug.Log(passwordText.text);
     }
 
+    //Convert password to Md5
     public static string ToMd5(string str)
     {
         System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
@@ -234,22 +228,14 @@ public class LoadSceneScript : MonoBehaviour
             loginNotify.text = "ENTER DETAILS TO LOG IN";
             username = usernameText.text.ToString();
             password = ToMd5(passwordText.text);
-            Debug.Log(username + " " + password);
-
             if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(password))
             {
                 loginNotify.text = "COMPLETE ALL FIELDS";
             }
             else
             {
-                WWWForm form = new WWWForm();
-                form.AddField("username", username);
-                form.AddField("password", password);
-                form.AddField("action", "login");
-
-                UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
+                UnityWebRequest w = MakeLoginRequest(username, password);
                 yield return w.SendWebRequest();
-                Debug.Log(w.downloadHandler.text);
                 if (w.downloadHandler.text.StartsWith("TRUE"))
                 {
                     string[] data = w.downloadHandler.text.Split(',');
@@ -276,7 +262,6 @@ public class LoadSceneScript : MonoBehaviour
     private IEnumerator GuestLogIn(UnityWebRequest _w)
     {
         yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
             string[] data = _w.downloadHandler.text.Split(',');
@@ -310,14 +295,7 @@ public class LoadSceneScript : MonoBehaviour
         }
         else
         {
-            authKey = RandomUserCode(15);
-            WWWForm form = new WWWForm();
-            form.AddField("username", regUsername);
-            form.AddField("password", regPass);
-            form.AddField("authKey", authKey);
-            form.AddField("action", "signup");
-            UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
-            StartCoroutine(Register(w));
+            StartCoroutine(Register(MakeSignupRequest(regUsername, regPass, RandomUserCode(15))));
         }
     }
 
@@ -326,7 +304,6 @@ public class LoadSceneScript : MonoBehaviour
     private IEnumerator Register(UnityWebRequest _w)
     {
         yield return _w.SendWebRequest();
-        Debug.Log(_w.downloadHandler.text);
         if (_w.downloadHandler.text.StartsWith("TRUE"))
         {
             string[] data = _w.downloadHandler.text.Split(',');
@@ -335,55 +312,76 @@ public class LoadSceneScript : MonoBehaviour
             PlayerPrefs.SetString("password", regPass);
             PlayerPrefs.SetString("authKey", authKey);
             PlayerPrefs.SetInt("userId", userId);
-
+            PlayerPrefs.Save();
             LoadGame();
         }
         if (_w.downloadHandler.text == "Taken")
         {
             signupNotify.text = "USERNAME TAKEN";
         }
-        Debug.Log(_w.downloadHandler.text);
-        Debug.Log(_w.downloadHandler.text);
-        Debug.Log(_w.downloadHandler.text);
     }
 
+    //Create guest credentials and login.
     public void DoGuest()
     {
         if (PlayerPrefs.HasKey("guest-a") && PlayerPrefs.HasKey("guest-b")) 
         {
             username = PlayerPrefs.GetString("guest-a");
             password = PlayerPrefs.GetString("guest-b");
-            WWWForm form = new WWWForm();
-            form.AddField("username", username);
-            form.AddField("password", password);
-            form.AddField("action", "login");
-            UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
-            StartCoroutine(GuestLogIn(w));
+            StartCoroutine(GuestLogIn(MakeLoginRequest(username, password)));
         }
         else 
         {
             regUsername = "Guest-" + RandomUserCode(8);
             regPass = RandomUserCode(15);
             authKey = RandomUserCode(15);
-
             PlayerPrefs.SetString("guest-a", regUsername);
             PlayerPrefs.SetString("guest-b", regPass);
             PlayerPrefs.SetString("authKey", authKey);
-
-            
-            WWWForm form = new WWWForm();
-            form.AddField("username", regUsername);
-            form.AddField("password", regPass);
-            form.AddField("authKey", authKey);
-            form.AddField("action", "signup");
-            UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
-            StartCoroutine(Register(w));
+            PlayerPrefs.Save();
+            StartCoroutine(Register(MakeSignupRequest(regUsername, regPass, authKey)));
         }        
     }
-    public string RandomUserCode(int value)
+    
+    //Make request for login.
+    private UnityWebRequest MakeLoginRequest(string username, string password) 
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("username", username);
+        form.AddField("password", password);
+        form.AddField("action", "login");
+        UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
+        return w;
+    }
+
+    //Make request for signup.
+    private UnityWebRequest MakeSignupRequest(string username, string password, string authKey)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("username", username);
+        form.AddField("password", password);
+        form.AddField("authKey", authKey);
+        form.AddField("action", "signup");
+        UnityWebRequest w = UnityWebRequest.Post(loginUrl, form);
+        return w;
+    }
+
+    //Make request for signup.
+    private UnityWebRequest MakeStatsRequest(string username, string password, int type)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("username", username);
+        form.AddField("password", password);
+        form.AddField("all", type);
+        UnityWebRequest w = UnityWebRequest.Post(statsUrl, form);
+        return w;
+    }
+
+    //Generate random string of characters.
+    public string RandomUserCode(int length)
     {
         var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var stringChars = new char[value];
+        var stringChars = new char[length];
         var random = new System.Random();
         for (int i = 0; i < stringChars.Length; i++)
         {
