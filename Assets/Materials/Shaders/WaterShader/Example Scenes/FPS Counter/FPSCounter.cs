@@ -72,7 +72,7 @@ public class FPSCounter : MonoBehaviour
         //---------------------------------
 
         curCount = StFPS.Counter(frameUpdate, Time.deltaTime);
-        counterText.text = "FPS: " + curCount.ToString();
+        counterText.text = curCount.ToString();
 
         //---------------------------------
     }

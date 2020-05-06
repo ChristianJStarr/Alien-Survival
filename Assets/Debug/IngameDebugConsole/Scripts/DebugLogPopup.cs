@@ -51,7 +51,8 @@ namespace IngameDebugConsole
 		void Awake()
 		{
 			popupTransform = (RectTransform) transform;
-			backgroundImage = GetComponent<Image>();
+            
+			backgroundImage = GameObject.Find("BkgPanel").GetComponent<Image>();
 			canvasGroup = GetComponent<CanvasGroup>();
 
 			normalColor = backgroundImage.color;
