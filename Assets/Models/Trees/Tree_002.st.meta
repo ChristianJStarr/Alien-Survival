@@ -97,15 +97,6 @@ SpeedTreeImporter:
     enableBump: 1
     enableHue: 1
     enableSubsurface: 1
-    windQuality: 3
-  - height: 0.999
-    castShadows: 1
-    receiveShadows: 1
-    useLightProbes: 1
-    reflectionProbeUsage: 1
-    enableBump: 1
-    enableHue: 1
-    enableSubsurface: 1
     windQuality: 4
   - height: 0.999
     castShadows: 1
@@ -134,7 +125,16 @@ SpeedTreeImporter:
     enableHue: 1
     enableSubsurface: 1
     windQuality: 4
-  - height: 0.052866556
+  - height: 0.999
+    castShadows: 1
+    receiveShadows: 1
+    useLightProbes: 1
+    reflectionProbeUsage: 1
+    enableBump: 1
+    enableHue: 1
+    enableSubsurface: 1
+    windQuality: 4
+  - height: 0.05023932
     castShadows: 1
     receiveShadows: 1
     useLightProbes: 0
