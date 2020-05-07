@@ -37,7 +37,6 @@ public class SettingsMenu : MonoBehaviour
             group.SetAllTogglesOff();
             if(Convert.ToInt32(item.name) == value) 
             {
-                Debug.Log(item.name);
                 item.isOn = true;
                 break;
             }
