@@ -5,32 +5,32 @@ SpeedTreeImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Main_Bark_LOD0
-    second: {fileID: 2100000, guid: ce7b507270b78e04c99b6dce5179bc1a, type: 2}
+      name: Bark_LOD0
+    second: {fileID: 2100000, guid: d160c438923cd144e88166eb5d7fe804, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Main_Bark_LOD1
-    second: {fileID: 2100000, guid: ce7b507270b78e04c99b6dce5179bc1a, type: 2}
+      name: Bark_LOD1
+    second: {fileID: 2100000, guid: d160c438923cd144e88166eb5d7fe804, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Main_Bark_LOD2
-    second: {fileID: 2100000, guid: ce7b507270b78e04c99b6dce5179bc1a, type: 2}
+      name: Bark_LOD2
+    second: {fileID: 2100000, guid: d160c438923cd144e88166eb5d7fe804, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Main_Bark_LOD3
-    second: {fileID: 2100000, guid: ce7b507270b78e04c99b6dce5179bc1a, type: 2}
+      name: Cap_LOD0
+    second: {fileID: 2100000, guid: 4e45ca1caf4168d48b25dcb866900d60, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Main_Bark_LOD4
-    second: {fileID: 2100000, guid: ce7b507270b78e04c99b6dce5179bc1a, type: 2}
+      name: Cap_LOD1
+    second: {fileID: 2100000, guid: 4e45ca1caf4168d48b25dcb866900d60, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Tree_003_Billboard_LOD5
+      name: Tree_003_Billboard_LOD3
     second: {fileID: 2100000, guid: 284497932d9e87c4a8a536d312ad5c7e, type: 2}
   - first:
       type: UnityEngine:Material
@@ -47,24 +47,14 @@ SpeedTreeImporter:
       assembly: UnityEngine.CoreModule
       name: Tree_003_LOD2
     second: {fileID: 2100000, guid: 3ed81880cc1150347bc949640e8c5100, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Tree_003_LOD3
-    second: {fileID: 2100000, guid: 3ed81880cc1150347bc949640e8c5100, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Tree_003_LOD4
-    second: {fileID: 2100000, guid: 3ed81880cc1150347bc949640e8c5100, type: 2}
   serializedVersion: 6
   mainColor: {r: 1, g: 1, b: 1, a: 1}
   hueVariation: {r: 1, g: 0.5, b: 0, a: 0.1}
   alphaTestRef: 0.33
-  bestWindQuality: 4
+  bestWindQuality: 1
   hasBillboard: 1
   lODSettings:
-  - height: 0.999
+  - height: 0.9039516
     castShadows: 1
     receiveShadows: 1
     useLightProbes: 1
@@ -72,53 +62,35 @@ SpeedTreeImporter:
     enableBump: 1
     enableHue: 1
     enableSubsurface: 1
-    windQuality: 4
-  - height: 0.999
+    windQuality: 1
+  - height: 0.8033366
     castShadows: 1
     receiveShadows: 1
-    useLightProbes: 1
+    useLightProbes: 0
     reflectionProbeUsage: 1
-    enableBump: 1
-    enableHue: 1
-    enableSubsurface: 1
-    windQuality: 4
-  - height: 0.999
-    castShadows: 1
-    receiveShadows: 1
-    useLightProbes: 1
+    enableBump: 0
+    enableHue: 0
+    enableSubsurface: 0
+    windQuality: 1
+  - height: 0.6990271
+    castShadows: 0
+    receiveShadows: 0
+    useLightProbes: 0
     reflectionProbeUsage: 1
-    enableBump: 1
-    enableHue: 1
-    enableSubsurface: 1
-    windQuality: 4
-  - height: 0.999
-    castShadows: 1
-    receiveShadows: 1
-    useLightProbes: 1
-    reflectionProbeUsage: 1
-    enableBump: 1
-    enableHue: 1
-    enableSubsurface: 1
-    windQuality: 4
-  - height: 0.999
-    castShadows: 1
-    receiveShadows: 1
-    useLightProbes: 1
-    reflectionProbeUsage: 1
-    enableBump: 1
-    enableHue: 1
-    enableSubsurface: 1
-    windQuality: 4
-  - height: 0.05154473
+    enableBump: 0
+    enableHue: 0
+    enableSubsurface: 0
+    windQuality: 0
+  - height: 0.01
     castShadows: 1
     receiveShadows: 1
     useLightProbes: 0
     reflectionProbeUsage: 0
-    enableBump: 1
-    enableHue: 1
-    enableSubsurface: 1
+    enableBump: 0
+    enableHue: 0
+    enableSubsurface: 0
     windQuality: 0
-  enableSmoothLODTransition: 1
+  enableSmoothLODTransition: 0
   animateCrossFading: 1
   billboardTransitionCrossFadeWidth: 0.25
   fadeOutWidth: 0.25

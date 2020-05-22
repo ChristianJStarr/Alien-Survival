@@ -1,11 +1,10 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 namespace UnityStandardAssets.Utility
 {
-    [RequireComponent(typeof (TextMeshProUGUI))]
+    [RequireComponent(typeof (Text))]
     public class FPSCounter : MonoBehaviour
     {
         const float fpsMeasurePeriod = 0.5f;
@@ -13,13 +12,13 @@ namespace UnityStandardAssets.Utility
         private float m_FpsNextPeriod = 0;
         private int m_CurrentFps;
         const string display = "{0} FPS";
-        private TextMeshProUGUI m_Text;
+        private Text m_Text;
 
 
         private void Start()
         {
             m_FpsNextPeriod = Time.realtimeSinceStartup + fpsMeasurePeriod;
-            m_Text = GetComponent<TextMeshProUGUI>();
+            m_Text = GetComponent<Text>();
         }
 
 

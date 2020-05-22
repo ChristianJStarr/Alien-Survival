@@ -1,0 +1,42 @@
+﻿using UnityEngine;
+using TMPro;
+public class MainMenuServerSlide : MonoBehaviour
+{
+    //What: The individual slide in the server list.
+    //Where: Main Menu Scene / Server Menu
+    
+    public string serverName,serverAddress,serverPing,serverType,serverMode,serverProtocol;
+    public TextMeshProUGUI slideName, slidePing, slideType, slideMode, slidePlayers;
+    public int serverPlayers, serverMaxPlayers;
+    public ushort serverPort;
+    public CoinManager coinManager;
+    public GameObject roomNotify;
+    public Server storedServer;
+    public void RefreshValues(Server server) 
+    {
+        slideName.text = server.name;
+        slidePing.text = server.ping.ToString();
+        slideType.text = server.description;
+        slideMode.text = server.mode;
+        slidePlayers.text = "(" + server.player + "/" + server.maxPlayer + ")";
+        storedServer = server;
+    }
+
+    public void JoinThisRoom() 
+    {
+        ClickSound();
+        GameServer gameServer = FindObjectOfType<GameServer>();
+        if(gameServer != null) 
+        {
+            gameServer.ConnectToServer(storedServer.serverIP, storedServer.serverPort);
+        }
+    }
+    private void ClickSound() 
+    {
+        MusicManager sounds = FindObjectOfType<MusicManager>();
+        if (sounds != null)
+        {
+            sounds.ButtonClick();
+        }
+    }
+}

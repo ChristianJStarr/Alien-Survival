@@ -3,7 +3,7 @@ using UnityEngine.Advertisements;
 
 public class RewardedAdsScript : MonoBehaviour, IUnityAdsListener
 {
-    public PlayerLogin playerLogin;
+    public CoinManager coinManager;
     string gameId = "3507995";
     string myPlacementId = "rewardedVideo";
     bool testMode = true;
@@ -23,7 +23,7 @@ public class RewardedAdsScript : MonoBehaviour, IUnityAdsListener
         if (showResult == ShowResult.Finished)
         {
             Debug.Log("Finished AD");
-            playerLogin.AddCoin(20);
+            coinManager.AddCoin(25);
         }
         else if (showResult == ShowResult.Skipped)
         {
