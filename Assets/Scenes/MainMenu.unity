@@ -10491,7 +10491,7 @@ MonoBehaviour:
   serverIP: 10.0.0.211
   serverPort: 7777
   serverMaxPlayer: 100
-  devServer: 0
+  devServer: 1
 --- !u!4 &1022403220 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4216859302048453862, guid: 9c7897129ec31c54cbdb025af31ef60f,
