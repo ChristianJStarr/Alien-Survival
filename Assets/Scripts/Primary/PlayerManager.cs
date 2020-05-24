@@ -8,41 +8,26 @@ using UnityStandardAssets.Characters.FirstPerson;
 public class PlayerManager : MonoBehaviour
 {
     /// <summary>
-    /// Network Object on Player.
-    /// </summary>
-    private NetworkedObject networkedObject;
-
-    /// <summary>
     /// Player Manager Start Function.
     /// </summary>
     private void Start()
     {
-        networkedObject = GetComponent<NetworkedObject>();
         //Check if object belongs to this player.
-        if (networkedObject.IsLocalPlayer) 
-        {
-            LocalPlayerStart();        
+        if (GetComponent<NetworkedObject>().IsLocalPlayer) 
+        {       
         }
         else 
         {
-            NetPlayerStart();
+            GameObject cam = GetComponentInChildren<Camera>().gameObject;
+            FirstPersonController fps = GetComponentInChildren<FirstPersonController>();
+            if (cam != null) { Destroy(cam); }
+            if (fps != null) { Destroy(fps); }
+        }
+        if (NetworkingManager.Singleton.IsClient) 
+        {
+            BreadcrumbAi.Breadcrumbs bc = GetComponentInChildren<BreadcrumbAi.Breadcrumbs>();
+            if (bc != null) { Destroy(bc); }
         }
     }
-    /// <summary>
-    /// Setup this Player gameobject as a local player.
-    /// </summary>
-    private void LocalPlayerStart() 
-    {
-        //Do local player things.
-    }
-    /// <summary>
-    /// Setup this Player gameobject as a network player.
-    /// </summary>
-    private void NetPlayerStart() 
-    {
-        GameObject cam = GetComponentInChildren<Camera>().gameObject;
-        FirstPersonController fps = GetComponentInChildren<FirstPersonController>();
-        if (cam != null) { Destroy(cam); }
-        if (fps != null) { Destroy(fps); }
-    }
+
 }

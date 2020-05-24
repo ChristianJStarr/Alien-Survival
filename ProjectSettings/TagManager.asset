@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - spawnpoint
+  - Projectile
+  - Waypoint
+  - Destructible
+  - Enemy
+  - Breadcrumb
   layers:
   - Default
   - TransparentFX
@@ -20,9 +26,9 @@ TagManager:
   - 
   - 
   - Player
-  - Test
-  - 
-  - 
+  - Enemy
+  - Breadcrumb
+  - Waypoint
   - 
   - 
   - 

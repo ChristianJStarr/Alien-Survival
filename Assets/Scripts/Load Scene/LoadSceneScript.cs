@@ -8,7 +8,7 @@ public class LoadSceneScript : MonoBehaviour
 {
     //What: Load Scene Script. Does Login/Signup/Stats & Loading into main menu.
     //Where: The Load Scene.
-
+    public bool devServer = false;
     public GameObject mainScreen, loginScreen, signupScreen, loadScreen; //Each screen layer.
     public Slider loadSlider; //Slider for load screen.
     public TextMeshProUGUI loginNotify, signupNotify; //Notify text field for login and signup screen.
@@ -18,10 +18,20 @@ public class LoadSceneScript : MonoBehaviour
     public WebServer webServer; //Web Server Handler.
     private int loadProgress, lastLoadProgress = 0; //Loading bar values.
     private bool singleAttempt = true; //A single attempt for retrying guest login.
+
     void Start() 
     {
+#if UNITY_SERVER
+        SceneManager.LoadScene(1);
+#endif
+#if UNITY_EDITOR
+        if (devServer)
+        {
+            SceneManager.LoadScene(1);
+        }
+#endif
         //Check if user has logged in before and has username/pass stored.
-        if(PlayerPrefs.GetString("username").Length > 0) 
+        if (PlayerPrefs.GetString("username").Length > 0) 
         {
             LoginRememberMe();//Login with stored credentials.
         }

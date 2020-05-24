@@ -26,7 +26,6 @@ public class WebServer : MonoBehaviour
     /// <summary>
     /// Check if already requesting.
     /// </summary>
-    private bool requesting = false; 
     /// <summary>
     /// Make a Login Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
     /// </summary>
@@ -35,11 +34,7 @@ public class WebServer : MonoBehaviour
     /// <param name="onRequestFinished">Bool Callback</param>
     public void LoginRequest(string username, string password, Action<bool> onRequestFinished)
     {
-        if (requesting)
-        {
-            onRequestFinished(false);
-            return; 
-        }
+
 
         StartCoroutine(WebServerCredential(true, username, password , returnValue => 
         {
@@ -55,11 +50,6 @@ public class WebServer : MonoBehaviour
     /// <param name="onRequestFinished"> Bool Callback</param>
     public void SignupRequest(string username, string password, string authKey, Action<bool> onRequestFinished) 
     {
-        if (requesting)
-        {
-            onRequestFinished(false);
-            return;
-        }
 
         StartCoroutine(WebServerCredential(false, username, password, returnValue =>
         {
@@ -74,11 +64,7 @@ public class WebServer : MonoBehaviour
     /// <param name="onRequestFinished"></param>
     public void StatRequest(int userId, string authKey, Action<PlayerStats> onRequestFinished)
     {
-        if (requesting)
-        {
-            onRequestFinished(null);
-            return;
-        }
+
 
         StartCoroutine(WebServerStatistics(true, userId, authKey, returnValue => { }, returnStats =>
         {
@@ -94,11 +80,7 @@ public class WebServer : MonoBehaviour
     /// <param name="onRequestFinished"></param>
     public void StatSend(int userId, string authKey, PlayerStats stats, Action<bool> onRequestFinished)
     {
-        if (requesting)
-        {
-            onRequestFinished(false);
-            return;
-        }
+
 
         StartCoroutine(WebServerStatistics(true, userId, authKey, returnValue =>
         {
@@ -111,11 +93,7 @@ public class WebServer : MonoBehaviour
     /// <param name="onRequestFinished"></param>
     public void ServerListRequest(Action<ServerList> onRequestFinished)
     {
-        if (requesting)
-        {
-            onRequestFinished(null);
-            return; 
-        }
+
 
         StartCoroutine(WebServerMaster(null, returnValue => 
         {
@@ -129,13 +107,25 @@ public class WebServer : MonoBehaviour
     /// <param name="onRequestFinished"></param>
     public void ServerListSend(Server server, Action<bool> onRequestFinished) 
     {
-        if (requesting)
-        {
-            onRequestFinished(false);
-            return;
-        }
+
 
         StartCoroutine(WebServerMaster(server, null, returnValue =>
+        {
+            onRequestFinished(returnValue);
+            
+        }));
+    }
+   /// <summary>
+   /// Update the Player Count on the Server List.
+   /// </summary>
+   /// <param name="name">Server Name</param>
+   /// <param name="count">New Player Count</param>
+   /// <param name="onRequestFinished">Callback bool</param>
+    public void ServerListPlayerCount(string name, int count, Action<bool> onRequestFinished)
+    {
+
+
+        StartCoroutine(WebServerMasterCount(name,count, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
@@ -151,7 +141,6 @@ public class WebServer : MonoBehaviour
     /// <returns></returns>
     private IEnumerator WebServerCredential(bool login, string username, string password, Action<bool> success=null, string authKey=null) 
     {
-        requesting = true;
         if (login) 
         {
             WWWForm form = new WWWForm();
@@ -160,7 +149,6 @@ public class WebServer : MonoBehaviour
             form.AddField("action", "login");
             UnityWebRequest web = UnityWebRequest.Post(Host + "/" + loginFile, form);
             yield return web.SendWebRequest();
-            requesting = false;
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
                 string[] data = web.downloadHandler.text.Split(',');
@@ -199,7 +187,6 @@ public class WebServer : MonoBehaviour
             form.AddField("action", "signup");
             UnityWebRequest web = UnityWebRequest.Post(Host + "/" + loginFile, form);
             yield return web.SendWebRequest();
-            requesting = false;
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
                 string[] data = web.downloadHandler.text.Split(',');
@@ -241,7 +228,6 @@ public class WebServer : MonoBehaviour
     /// <returns></returns>
     private IEnumerator WebServerStatistics(bool get, int userId, string authKey, Action<bool> success = null, Action<PlayerStats> statsReturn = null, PlayerStats stats = null)
     {
-        requesting = true;
         if (get)
         {
             WWWForm form = new WWWForm();
@@ -250,7 +236,6 @@ public class WebServer : MonoBehaviour
             form.AddField("action", "get");
             UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
             yield return web.SendWebRequest();
-            requesting = false;
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
                 string[] floatData = web.downloadHandler.text.Split(',');
@@ -286,7 +271,6 @@ public class WebServer : MonoBehaviour
             form.AddField("action", "set");
             UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
             yield return web.SendWebRequest();
-            requesting = false;
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
                 success(true);
@@ -306,14 +290,14 @@ public class WebServer : MonoBehaviour
     /// <returns></returns>
     private IEnumerator WebServerMaster(Server server, Action<ServerList> serverSuccess=null, Action<bool> success = null)
     {
-        requesting = true;
+
         if (server == null)
         {
             WWWForm form = new WWWForm();
             form.AddField("action", "request");
             UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
             yield return web.SendWebRequest();
-            requesting = false;
+
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
                 string[] data = web.downloadHandler.text.Split('`');
@@ -341,9 +325,34 @@ public class WebServer : MonoBehaviour
             form.AddField("action", "update");
             UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
             yield return web.SendWebRequest();
-            requesting = false;
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {                
+                success(true);
+            }
+            else
+            {
+                Debug.Log("Network - Web - Master Server Send Error: " + web.downloadHandler.text);
+                success(false);
+            }
+        }
+    }
+    /// <summary>
+    /// Change the player count on the server list.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="count"></param>
+    /// <param name="success"></param>
+    /// <returns></returns>
+    private IEnumerator WebServerMasterCount(string name,int count, Action<bool> success = null)
+    {
+            WWWForm form = new WWWForm();
+            form.AddField("name", name);
+            form.AddField("player", count);
+            form.AddField("action", "playerCount");
+            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
+            yield return web.SendWebRequest();
+            if (web.downloadHandler.text.StartsWith("TRUE"))
+            {
                 success(true);
             }
             else
@@ -351,7 +360,6 @@ public class WebServer : MonoBehaviour
                 Debug.Log("Network - Web - Master Server Error: " + web.downloadHandler.text);
                 success(false);
             }
-        }
     }
 }
 /// <summary>
