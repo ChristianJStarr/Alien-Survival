@@ -28,7 +28,7 @@ public class ServerView : MonoBehaviour
 
     public void StopServer()
     {
-        FindObjectOfType<GameServer>().StopServer();
+        FindObjectOfType<GameServer>().StopGameServer();
     }
 }
    

@@ -24,6 +24,7 @@ public class Inventory : MonoBehaviour
     public int space = 33;
     public List<Item> items;
     public List<Item> armor;
+    public List<Item> blueprints;
     public Item[] allItems;
     public PlayerStats playerStats;
 
@@ -32,95 +33,100 @@ public class Inventory : MonoBehaviour
         allItems = Resources.LoadAll("Items", typeof(Item)).Cast<Item>().ToArray();
     }
 
-    public void GetInventory() 
+    public void Incoming(PlayerInfo playerInfo) 
     {
-        if(playerStats != null) 
-        {
-            string inv = playerStats.playerInventory;
-            if (inv.Length > 2)
-            {
-                if (inv.Contains('*')) 
-                {
-                    string[] invSplit = inv.Split('*');
-                    foreach (string invItem in invSplit[0].Split('-'))
-                    {
-                        if (invItem != "")
-                        {
-                            string[] itemData = invItem.Split('#');
-                            int itemID = Convert.ToInt32(itemData[0]);
-                            int curSlot = Convert.ToInt32(itemData[1]);
-                            int sitSlot = Convert.ToInt32(itemData[2]);
-                            int itemStack = Convert.ToInt32(itemData[3]);
-                            string special = itemData[4];
-                            CreateItem(itemID, curSlot, sitSlot, itemStack, special);
-                            //Debug.Log("Inventory - Added item #" + itemID);
-                        }
-                    }
-                    foreach (string invItem in invSplit[1].Split('-'))
-                    {
-                        if (invItem != "")
-                        {
-                            string[] itemData = invItem.Split('#');
-                            int itemID = Convert.ToInt32(itemData[0]);
-                            int curSlot = Convert.ToInt32(itemData[1]);
-                            int sitSlot = Convert.ToInt32(itemData[2]);
-                            int itemStack = Convert.ToInt32(itemData[3]);
-                            string special = itemData[4];
-                            CreateArmor(itemID, curSlot, sitSlot, itemStack, special);
-                            //Debug.Log("Inventory - Added item #" + itemID);
-                        }
-                    }
-                }
-                else 
-                {
-                    foreach (string invItem in inv.Split('-'))
-                    {
-                        if (invItem != "")
-                        {
-                            string[] itemData = invItem.Split('#');
-                            int itemID = Convert.ToInt32(itemData[0]);
-                            int curSlot = Convert.ToInt32(itemData[1]);
-                            int sitSlot = Convert.ToInt32(itemData[2]);
-                            int itemStack = Convert.ToInt32(itemData[3]);
-                            string special = itemData[4];
-                            CreateItem(itemID, curSlot, sitSlot, itemStack, special);
-                            //Debug.Log("Inventory - Added item #" + itemID);
-                        }
-                    }
-                }
-            }
-        }
-        inventoryScript.UpdateUI();
+        //string items = playerInfo.items;
+        //string armor = playerInfo.armor;
+        //string blueprints = playerInfo.blueprints;
+        //List<PartialItem> incomingItems = new List<PartialItem>();
+
+        //if(items.Length > 0) 
+        //{
+        //    foreach (string item in items.Split('!'))
+        //    {
+        //        incomingItems.Add(GetPartialItemFromString(item));
+        //    }
+        //}
+        //if (armor.Length > 0)
+        //{
+        //    foreach (string item in items.Split('!'))
+        //    {
+        //        incomingItems.Add(GetPartialItemFromString(item));
+        //    }
+        //}
+        //if (blueprints.Length > 0)
+        //{
+        //    foreach (string item in items.Split('!'))
+        //    {
+        //        incomingItems.Add(GetPartialItemFromString(item));
+        //    }
+        //}
+
     }
 
-    private void SetInventory() 
+    private PartialItem GetPartialItemFromString(string value) 
     {
-        if (playerStats != null)
+        string[] data = value.Split(',');
+        PartialItem newItem = new PartialItem();
+        newItem.itemStack = Convert.ToInt32(data[0]);
+        newItem.itemID = Convert.ToInt32(data[1]);
+        newItem.currSlot = Convert.ToInt32(data[2]);
+        newItem.sitSlot = Convert.ToInt32(data[3]);
+        newItem.special = data[4];
+        return newItem;
+    }
+
+
+    private void SetInventory(int type)
+    {
+        //Type 1 - Set Items
+        //Type 2 - Set Armor
+        //Type 3 - Set Blueprints
+
+        if(type == 1) 
         {
-            string dataString = "";
+            string itemsString = "";
             foreach (Item item in items)
             {
-                int itemID = item.itemID;
-                int curSlot = item.currSlot;
-                int sitSlot = item.sitSlot;
-                int itemStack = item.itemStack;
-                string special = item.special;
-                string data = "-" + itemID + "#" + curSlot + "#" + sitSlot + "#" + itemStack + "#" + special;
-                dataString += data;
+                string builder = "";
+                builder += item.itemStack + ",";
+                builder += item.itemID + ",";
+                builder += item.currSlot + ",";
+                builder += item.sitSlot + ",";
+                builder += item.special + ",";
+                itemsString += builder + "!";
             }
-
-            dataString += "*";
+            PlayerInfoManager.singleton.SetPlayer_InventoryItems(itemsString);
+        }
+        if(type == 2) 
+        {
+            string armorString = "";
             foreach (Item item in armor)
             {
-                int itemID = item.itemID;
-                int curSlot = item.currSlot;
-                int sitSlot = item.sitSlot;
-                int itemStack = item.itemStack;
-                string special = item.special;
-                string data = "-" + itemID + "#" + curSlot + "#" + sitSlot + "#" + itemStack + "#" + special;
-                dataString += data;
+                string builder = "";
+                builder += item.itemStack + ",";
+                builder += item.itemID + ",";
+                builder += item.currSlot + ",";
+                builder += item.sitSlot + ",";
+                builder += item.special + ",";
+                armorString += builder + "!";
             }
-            playerStats.playerInventory = dataString;
+            PlayerInfoManager.singleton.SetPlayer_InventoryArmor(armorString);
+        }
+        if(type == 3) 
+        {
+            string blueprintsString = "";
+            foreach (Item item in blueprints)
+            {
+                string builder = "";
+                builder += item.itemStack + ",";
+                builder += item.itemID + ",";
+                builder += item.currSlot + ",";
+                builder += item.sitSlot + ",";
+                builder += item.special + ",";
+                blueprintsString += builder + "!";
+            }
+            PlayerInfoManager.singleton.SetPlayer_InventoryBlueprints(blueprintsString);
         }
     }
 
@@ -242,7 +248,7 @@ public class Inventory : MonoBehaviour
             if (isPlaced) 
             {
                 inventoryScript.GetAvailableCraft();
-                SetInventory();
+                SetInventory(1);
                 inventoryScript.UpdateUI();
             }
         }
@@ -271,7 +277,7 @@ public class Inventory : MonoBehaviour
         }
         if (isPlaced)
         {
-            SetInventory();
+            SetInventory(1);
             inventoryScript.GetAvailableCraft();
             inventoryScript.UpdateUI();
         }
@@ -283,13 +289,15 @@ public class Inventory : MonoBehaviour
         if (items.Contains(item)) 
         {
             items.Remove(item);
+            SetInventory(1);
         }
         if (armor.Contains(item)) 
         {
+            SetInventory(2);
             armor.Remove(item);
         }
         inventoryScript.GetAvailableCraft();
-        SetInventory();
+        SetInventory(1);
         if (onItemChangedCallback != null)
             onItemChangedCallback.Invoke();
     }

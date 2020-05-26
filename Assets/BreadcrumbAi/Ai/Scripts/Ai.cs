@@ -95,7 +95,8 @@ namespace BreadcrumbAi{
 		private float wanderTimer, wanderNext;	// Used for timing the wander time limit
 		private RaycastHit hit;
         private Rigidbody rigidbody;
-		
+        private Animator animator;
+        private MOVEMENT_STATE pastState;
 	
 		void Start(){
 			StartCoroutine(this.Ai_Lists());
@@ -108,6 +109,7 @@ namespace BreadcrumbAi{
 			if(IsGrounded()){
 				_IsJumping = false;
 			}
+            Ai_Animator();
 		}
 	
 		void FixedUpdate (){
@@ -116,6 +118,49 @@ namespace BreadcrumbAi{
 			Ai_Hover();
 		}
 				
+
+
+        private void Ai_Animator() 
+        {
+            if(pastState != moveState) 
+            {
+                animator = GetComponent<Animator>();
+                if (moveState == MOVEMENT_STATE.IsIdle)
+                {
+                    animator.SetBool("Walking", false);
+                    animator.SetBool("Idle", true);
+                    animator.SetBool("Running", false);
+
+                }
+                else if (moveState == MOVEMENT_STATE.IsWandering)
+                {
+                    animator.SetBool("Walking", true);
+                    animator.SetBool("Idle", false);
+                    animator.SetBool("Running", false);
+
+                }
+                else if (moveState == MOVEMENT_STATE.IsFollowingPlayer)
+                {
+                    animator.SetBool("Running", true);
+                    animator.SetBool("Walking", false);
+                    animator.SetBool("Idle", false);
+                }
+                else if (moveState == MOVEMENT_STATE.IsFollowingBreadcrumb)
+                {
+                    animator.SetBool("Walking", true);
+                    animator.SetBool("Idle", false);
+                    animator.SetBool("Running", false);
+                }
+                else if (moveState == MOVEMENT_STATE.IsPatrolling)
+                {
+                    animator.SetBool("Walking", true);
+                    animator.SetBool("Idle", false);
+                    animator.SetBool("Running", false);
+                }
+                pastState = moveState;
+            }
+        }
+
 		private void Ai_Controller(){
 			// Checks if following player is enabled and a player has been found	
 			if(_CanFollowPlayer && this.Ai_FindPlayer()){

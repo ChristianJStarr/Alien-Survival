@@ -7,34 +7,30 @@ public class Topbar : MonoBehaviour
     private int userExp, userHealth, userWater, userFood;
     public Slider userExp_slider, userHealth_slider, userWater_slider, userFood_slider;
     public TextMeshProUGUI userExp_text, userHealth_text, pingText;
-    public PlayerStats playerStats;
     public RawImage pingImage;
     public bool showPing = false;
 
 
-    void Update() 
+    public void Incoming(PlayerInfo playerInfo) 
     {
-        UpdateUIBar();
+        userHealth = playerInfo.health;
+        userFood = playerInfo.food;
+        userWater = playerInfo.water;
+        userExp = 0;
+        UpdateTopbar();
     }
 
-    void UpdateUIBar() 
+    private void UpdateTopbar() 
     {
-        userExp = playerStats.playerExp;
-        userHealth = playerStats.playerHealth;
-        userWater = playerStats.playerWater;
-        userFood = playerStats.playerFood;
-
         int level = GetLevel(userExp);
-
         userExp_slider.value = (userExp - (level * 1000)) / 10; ;
         userHealth_slider.value = userHealth;
         userWater_slider.value = userWater;
         userFood_slider.value = userFood;
-
         userExp_text.text = "LEVEL " + level;
         userHealth_text.text = "HP " + userHealth;
     }
-    public int GetLevel(int value)
+    private int GetLevel(int value)
     {
         value = value / 1000;
 
@@ -47,5 +43,4 @@ public class Topbar : MonoBehaviour
             return value;
         }
     }
-   
 }

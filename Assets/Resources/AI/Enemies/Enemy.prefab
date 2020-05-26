@@ -229,6 +229,7 @@ GameObject:
   - component: {fileID: 3539727621713538043}
   - component: {fileID: -4533683756945537551}
   - component: {fileID: -1711620156181799906}
+  - component: {fileID: 5571800879062464041}
   - component: {fileID: 1656025525012917178}
   - component: {fileID: -2848105887100417068}
   - component: {fileID: 3293463008295726122}
@@ -356,6 +357,28 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5571800879062464041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1096455853139250988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 623367494, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EnableProximity: 0
+  ProximityRange: 50
+  _animator: {fileID: 3293463008295726122}
+  parameterSendBits: 15
+  param0: 
+  param1: 
+  param2: 
+  param3: 
+  param4: 
+  param5: 
 --- !u!114 &1656025525012917178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -436,10 +459,10 @@ MonoBehaviour:
   _IsGround: 1
   _IsAir: 0
   _IsInvincible: 0
-  followSpeed: 4.2
-  wanderSpeed: 2.9
+  followSpeed: 9.3
+  wanderSpeed: 5
   patrolSpeed: 0
-  rotationSpeed: 4.25
+  rotationSpeed: 0.42
   avoidSpeed: 2
   jumpDistance: 0
   jumpForce: 0

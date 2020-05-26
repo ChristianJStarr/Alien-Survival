@@ -25,10 +25,10 @@ public class MainMenuServerSlide : MonoBehaviour
     public void JoinThisRoom() 
     {
         ClickSound();
-        GameServer gameServer = FindObjectOfType<GameServer>();
-        if(gameServer != null) 
+        ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+        if(serverConnect != null) 
         {
-            gameServer.ConnectToServer(storedServer.serverIP, storedServer.serverPort);
+            serverConnect.ConnectToServer(storedServer.serverIP, storedServer.serverPort);
         }
     }
     private void ClickSound() 

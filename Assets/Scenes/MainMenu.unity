@@ -4499,7 +4499,7 @@ Transform:
   - {fileID: 1883184097}
   - {fileID: 822579273}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &478381224
 GameObject:
@@ -8073,6 +8073,7 @@ GameObject:
   - component: {fileID: 804832995}
   - component: {fileID: 804832993}
   - component: {fileID: 804832996}
+  - component: {fileID: 804832997}
   m_Layer: 5
   m_Name: Interface
   m_TagString: Untagged
@@ -8157,7 +8158,7 @@ RectTransform:
   - {fileID: 2050273269}
   - {fileID: 1578978464}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -8215,7 +8216,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coinNotify: {fileID: 0}
   playerStats: {fileID: 11400000, guid: 0fa82ddbb9514ce4f8efb449490936da, type: 2}
-  webServer: {fileID: 1011803583}
+  webServer: {fileID: 804832997}
   mainMenuStatUpdater: {fileID: 804832994}
 --- !u!114 &804832994
 MonoBehaviour:
@@ -8262,11 +8263,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0aeccd8abd7df0440a58244465d69951, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  webServer: {fileID: 1011803583}
+  webServer: {fileID: 804832997}
   serverCount: {fileID: 177175751}
   listContainer: {fileID: 737399480}
   serverItem: {fileID: 8367031948339291146, guid: 9df71749b0325b74cbb8b9ce189ba834,
     type: 3}
+--- !u!114 &804832997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 804832986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1956136b1ab657d468a7360a6bea01b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &819845822
 GameObject:
   m_ObjectHideFlags: 0
@@ -9516,7 +9529,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &926059663 stripped
 Transform:
@@ -10358,7 +10371,7 @@ GameObject:
   - component: {fileID: 1011803583}
   - component: {fileID: 1011803585}
   - component: {fileID: 1011803584}
-  - component: {fileID: 1011803587}
+  - component: {fileID: 1011803588}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -10438,7 +10451,7 @@ MonoBehaviour:
     EventTickrate: 64
     MaxObjectUpdatesPerTick: -1
     ClientConnectionBufferTimeout: 10
-    ConnectionApproval: 0
+    ConnectionApproval: 1
     ConnectionData: 
     SecondsHistory: 5
     EnableTimeResync: 0
@@ -10448,7 +10461,7 @@ MonoBehaviour:
     EnableSceneManagement: 1
     ForceSamePrefabs: 1
     UsePrefabSync: 0
-    RecycleNetworkIds: 1
+    RecycleNetworkIds: 0
     NetworkIdRecycleDelay: 120
     RpcHashSize: 0
     LoadSceneTimeOut: 120
@@ -10471,7 +10484,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1011803587
+--- !u!114 &1011803588
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10480,18 +10493,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1011803582}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05a5f388a88284f499261400289fa257, type: 3}
+  m_Script: {fileID: 11500000, guid: 9730dd5a37e58f94e9e729dc4012a1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  webServer: {fileID: 1011803583}
-  serverName: Development Server #1
-  serverDescription: Server
-  serverMode: Default Mode
-  serverMap: Default Map
-  serverIP: 10.0.0.211
-  serverPort: 7777
-  serverMaxPlayer: 100
-  devServer: 1
+  devServer: 0
+  maxEnemies: 0
+  maxFriendly: 0
 --- !u!4 &1022403220 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4216859302048453862, guid: 9c7897129ec31c54cbdb025af31ef60f,
@@ -13337,7 +13344,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1331947697
 PrefabInstance:
@@ -15742,6 +15749,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: backpack2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: cc63fb1dccebb164d84568048e4df032,
+        type: 3}
+      propertyPath: m_LODs.Array.data[2].screenRelativeHeight
+      value: 0.0018336395
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: cc63fb1dccebb164d84568048e4df032,
+        type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0.0029360116
+      objectReference: {fileID: 0}
+    - target: {fileID: 5551014577142218206, guid: cc63fb1dccebb164d84568048e4df032,
+        type: 3}
+      propertyPath: m_LODs.Array.data[0].screenRelativeHeight
+      value: 0.0042191013
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cc63fb1dccebb164d84568048e4df032, type: 3}
@@ -18710,7 +18732,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2024708631
 GameObject:
@@ -32852,6 +32874,11 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[3].m_Target
       value: 
       objectReference: {fileID: 804832991}
+    - target: {fileID: 4158147227308501822, guid: d2392290c06e30f48ab4b2ceeca80223,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -56.73004
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d2392290c06e30f48ab4b2ceeca80223, type: 3}
 --- !u!1 &4165696014378753316

@@ -28,3 +28,12 @@ public class Item : ScriptableObject
 
     public string[] recipe;
 }
+
+public class PartialItem
+{
+    public int itemStack = 1;
+    public int itemID = 0;
+    public int currSlot;
+    public int sitSlot;
+    public string special = "";
+}

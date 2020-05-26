@@ -52,7 +52,6 @@ public class MainMenuServerList : MonoBehaviour
     /// <param name="servers">Server Array</param>
     private void UpdateList(Server[] servers) 
     {
-        Debug.Log("Network - Web - Getting serverlist. Length: " + servers.Length);
         int ct = servers.Length;
         serverCount.text = "(" + ct + "/" + ct + ") SERVERS";
         foreach (MainMenuServerSlide slide in listContainer.GetComponentsInChildren<MainMenuServerSlide>()) 

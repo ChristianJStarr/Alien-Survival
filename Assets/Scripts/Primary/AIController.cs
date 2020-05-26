@@ -1,4 +1,5 @@
 ﻿using MLAPI;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 /// <summary>
@@ -9,11 +10,8 @@ public class AIController : MonoBehaviour
     private Object[] enemies;
     private Object[] friendly;
 
-    private bool spawnEnemies = true;
-    private bool spawnFriendly = false;
-
-    private int maxEnemies = 100;
-    private int maxFriendly = 20;
+    private int maxEnemies = 0;
+    private int maxFriendly = 0;
 
     private List<GameObject> currentEnemies;
     private List<GameObject> currentFriendly;
@@ -24,6 +22,8 @@ public class AIController : MonoBehaviour
        
         if (NetworkingManager.Singleton.IsServer) 
         {
+            maxEnemies = FindObjectOfType<ServerConnect>().maxEnemies;
+            maxFriendly = FindObjectOfType<ServerConnect>().maxFriendly;
             HandleAI();
         }
     }
@@ -33,23 +33,35 @@ public class AIController : MonoBehaviour
         currentFriendly = new List<GameObject>();
         enemies = Resources.LoadAll("AI/Enemies");
         friendly = Resources.LoadAll("AI/Friendly");
-        Debug.Log(enemies.Length);
-        if (spawnEnemies) 
-        {
-            for (int i = 0; i < maxEnemies; i++)
-            {
-                SpawnEnemy();
-            }
-        }
-        if (spawnFriendly) 
-        {
-            for (int i = 0; i < maxFriendly; i++)
-            {
-                SpawnFriendly();
-            }
-        }
+        SpawnOverTime(maxEnemies, maxFriendly);
     }
 
+    private void SpawnOverTime(int maxEnemy, int maxFriend) 
+    {
+        if(maxEnemy > 0 || maxFriend > 0) 
+        {
+            StartCoroutine(SpawnOverTime_Cycle(maxEnemy, maxFriend));
+        }
+    }
+    private IEnumerator SpawnOverTime_Cycle(int maxEnemy, int maxFriend)
+    {
+
+        int changedEnemy = 0;
+        int changedFriend = 0;
+        if (maxEnemy > 0)
+        {
+            SpawnEnemy();
+            changedEnemy++;
+        }
+        if (maxFriend > 0)
+        {
+            SpawnFriendly();
+            changedFriend++;
+        }
+        yield return new WaitForSeconds(.222f);
+        SpawnOverTime(maxEnemy - changedEnemy, maxFriend - changedFriend);
+
+    }
 
 
     private Vector3 RandomSpawnPoint() 
@@ -79,7 +91,6 @@ public class AIController : MonoBehaviour
         liveEnemy.GetComponent<NetworkedObject>().Spawn();
         currentEnemies.Add(liveEnemy);
         
-        Debug.Log("Network - Game - Spawned Enemy. Enemy Count: " + currentEnemies.Count);
     }
     private void DestroyEnemy(GameObject enemy)
     {
@@ -87,7 +98,6 @@ public class AIController : MonoBehaviour
         {
             currentEnemies.Remove(enemy);
             Destroy(enemy);
-            Debug.Log("Network - Game - Destroyed Enemy. Enemy Count: " + currentEnemies.Count);
         }
     }
     private void SpawnFriendly()
@@ -96,7 +106,6 @@ public class AIController : MonoBehaviour
         GameObject liveFriend = Instantiate(friend, RandomSpawnPoint(), Quaternion.identity);
         liveFriend.GetComponent<NetworkedObject>().Spawn();
         currentFriendly.Add(liveFriend);
-        Debug.Log("Network - Game - Spawned Friendly. Friendly Count: " + currentFriendly.Count);
     }
     private void DestroyFriendly(GameObject enemy)
     {
@@ -104,7 +113,6 @@ public class AIController : MonoBehaviour
         {
             currentEnemies.Remove(enemy);
             Destroy(enemy);
-            Debug.Log("Network - Game - Destroyed Friendly. Friendly Count: " + currentFriendly.Count);
         }
     }
 

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
 using TMPro;
+using MLAPI;
 
 public class LoadAwake : MonoBehaviour
 {
@@ -18,43 +19,48 @@ public class LoadAwake : MonoBehaviour
 
     void Start()
     {
-        controls = GetComponent<ControlControl>();
-        loadScreen.SetActive(true);
-        image = loadScreen.GetComponent<Image>();
-        if (image == null)
+        if (NetworkingManager.Singleton.IsClient) 
         {
-            return;
+            controls = GetComponent<ControlControl>();
+            loadScreen.SetActive(true);
+            image = loadScreen.GetComponent<Image>();
+            if (image == null)
+            {
+                return;
+            }
+            targetAlpha = 1.0f;
+            text1Target = 1.0f;
+            text2Target = 0.0f;
+            controls.Hide();
+            Cursor.visible = true;
         }
-        targetAlpha = 1.0f;
-        text1Target = 1.0f;
-        text2Target = 0.0f;
-        controls.Hide();
-        Cursor.visible = true;
     }
     
     void Update()
     {
-        if (loadScreen.activeSelf) 
+        if (NetworkingManager.Singleton.IsClient) 
         {
-            ColorFade();
-        }
-        if (Input.anyKeyDown) 
-        {
-            if (readyToWake) 
+            if (loadScreen.activeSelf)
             {
-                WakeUp();
+                ColorFade();
             }
-            else 
+            if (Input.anyKeyDown)
             {
-                ReadyWake();
+                if (readyToWake)
+                {
+                    WakeUp();
+                }
+                else
+                {
+                    ReadyWake();
+                }
             }
-        }
+        } 
     }
     
     public void ReadyWake() 
     {
         readyToWake = true;
-        Debug.Log("Load Awake - Player is ready to wake up.");
         targetAlpha = 0.8f;
         text2Target = 1;
         text1Target = 1f;
@@ -63,19 +69,12 @@ public class LoadAwake : MonoBehaviour
 
     public void WakeUp() 
     {
-        Debug.Log("Load Awake - Waking up player.");
         FadeOut();
         if(animator == null) 
         {
             animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
         }
         animator.SetTrigger("Wake");
-        //HeadLookController headLook = GetComponent<HeadLookController>();
-        //if(headLook != null) 
-        //{
-        //    headLook.EnableHead();
-        //}
-        
         controls.Show();
     }
 

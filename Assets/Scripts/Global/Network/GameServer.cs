@@ -1,152 +1,558 @@
 ﻿using MLAPI;
-using MLAPI.SceneManagement;
-using MLAPI.Spawning;
-using MLAPI.Transports.UNET;
+using MLAPI.LagCompensation;
+using MLAPI.Messaging;
+using MLAPI.Serialization;
+using MLAPI.Serialization.Pooled;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-
-public class GameServer : MonoBehaviour
+public class GameServer : NetworkedBehaviour
 {
-    public WebServer webServer;
-    public string serverName = "Development Server #1";
-    public string serverDescription = "This is a development server.";
-    public string serverMode = "Default Mode";
-    public string serverMap = "Default Map";
-    public string serverIP = "127.0.0.1";
-    public ushort serverPort = 7777;
-    public int serverMaxPlayer = 200;
-    public bool devServer = false;
+
+    #region Singleton
+
+    public static GameServer singleton;
+
+    void Awake()
+    {
+        singleton = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    #endregion
+    public List<PlayerInfo> activePlayers;
+    public List<PlayerInfo> inactivePlayers;
+    private PlayerInfoManager playerInfoManager;
+    private ServerSaveData serverSaveData;
+
 
     private void Start()
     {
-        webServer = GetComponent<WebServer>();
-#if UNITY_SERVER
-        StartServer();
-#endif
-#if UNITY_EDITOR
-        if (devServer) 
+        if (NetworkingManager.Singleton.IsServer) 
         {
-            StartServer();
+            StartGameServer();
         }
-#endif
     }
-    /// <summary>
-    /// Start Client & Connect to Server.
-    /// </summary>
-    /// <param name="ip">Server IP Address</param>
-    /// <param name="port">Server Port</param>
-    public void ConnectToServer(string ip, ushort port)
-    {
-        NetworkingManager.Singleton.GetComponent<UnetTransport>().ConnectAddress = ip;
 
+    //-----------------------------------------------------------------//
+    //             SERVER FUNCTIONS                                    //
+    //-----------------------------------------------------------------//
 
-        NetworkingManager.Singleton.GetComponent<UnetTransport>().ConnectPort = port;
-        NetworkingManager.Singleton.StartClient();
-    }
-    /// <summary>
-    /// Start Server as Server
-    /// </summary>
-    public void StartServer()
+    private void StartGameServer()
     {
-        NetworkingManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
-        NetworkingManager.Singleton.OnServerStarted += ServerStarted;
-        NetworkingManager.Singleton.OnClientConnectedCallback += PlayerConnected;
-        NetworkingManager.Singleton.OnClientDisconnectCallback += PlayerDisconnected; 
-        NetworkingManager.Singleton.StartServer();
-    }
-    public void StopServer() 
-    {
-        NetworkingManager.Singleton.StopServer();
-        UpdateServerList(false);
-    }
-    private void PlayerConnected(ulong obj)
-    {
-        Debug.Log("Network - Game - Player Connected.");
-        UpdatePlayerCount();
-    }
-    private void PlayerDisconnected(ulong obj)
-    {
-        Debug.Log("Network - Game - Player Disconnected.");
-        UpdatePlayerCount();
-    }
-    private void ServerStarted() 
-    {
-        Debug.Log("Network - Game - Server Started.");
-        UpdateServerList(true);
-        NetworkSceneManager.SwitchScene("Primary");
-    }
-    /// <summary>
-    /// Approval Check Callback.
-    /// </summary>
-    /// <param name="connectionData"></param>
-    /// <param name="clientId"></param>
-    /// <param name="callback"></param>
-    private void ApprovalCheck(byte[] connectionData, ulong clientId, MLAPI.NetworkingManager.ConnectionApprovedDelegate callback) 
-    {
-        //Your logic here
-        bool approve = true;
-        bool createPlayerObject = true;
-        Debug.Log("Network - Game - Approval Check.");
-        ulong? prefabHash = SpawnManager.GetPrefabHashFromGenerator(null); // The prefab hash. Use null to use the default player prefab
-        //Find array of available spawn points.
-        GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-        //Pick a random point in array of available.
-        Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position; 
-        //If approve is true, the connection gets added. If it's false. The client gets disconnected
-        callback(createPlayerObject, prefabHash, approve, spawnPoint, Quaternion.identity);
-    }
-    /// <summary>
-    /// Update the Server list with stored settings.
-    /// </summary>
-    private void UpdateServerList(bool value) 
-    {
-        
-        Server server = new Server();
-        server.name = serverName;
-        server.description = serverDescription;
-        server.map = serverMap;
-        server.mode = serverMode;
-        server.player = 0;
-        server.maxPlayer = serverMaxPlayer;
-        server.serverIP = serverIP;
-        server.serverPort = serverPort;
-        if (!value)
+        Debug.Log("Network - Server - Starting Game Server");
+        activePlayers = new List<PlayerInfo>();
+        inactivePlayers = new List<PlayerInfo>();
+        serverSaveData = Resources.Load("Data/ServerSaveData") as ServerSaveData;
+        if (serverSaveData.playerData != null) 
         {
-            server.serverIP = "REMOVE";
+            inactivePlayers = serverSaveData.playerData;
         }
-        if (webServer != null)
+        playerInfoManager = PlayerInfoManager.singleton;
+    }
+    public void StopGameServer() 
+    {
+        inactivePlayers.Concat(activePlayers).ToList();
+        if (serverSaveData != null)
         {
-            webServer.ServerListSend(server, returnValue =>
-            {
-                if (returnValue)
-                {
-                    //Server List updated successfully
-                    Debug.Log("Network - Game - Updated Server List.");
-                }
-            });
+            serverSaveData.playerData = inactivePlayers;
+            NetworkingManager.Singleton.StopServer();
+        }
+    }
+    public void ActiveManage(PlayerInfo info, bool add) 
+    {
+        if (add) 
+        {
+            activePlayers.Add(info);    
         }
         else 
         {
-            Debug.Log("Network - Game - Web Server is null");
+            activePlayers.Remove(info);
         }
     }
-    /// <summary>
-    /// Update the current player count on the server list.
-    /// </summary>
-    private void UpdatePlayerCount() 
+    public void InactiveManage(PlayerInfo info, bool add)
+    {
+        if (add)
+        {
+            inactivePlayers.Add(info);
+        }
+        else
+        {
+            inactivePlayers.Remove(info);
+        }
+    }
+
+    //-----------------------------------------------------------------//
+    //             CLIENT CALLBACKS                                    //
+    //-----------------------------------------------------------------//
+
+    public void PlayerConnected_Player(ulong networkId)
+    {
+        Debug.Log("Network - Game - Connected to Server.");
+        InvokeServerRpc(HandoverNetworkId, PlayerPrefs.GetInt("id") , PlayerPrefs.GetString("authKey") , networkId);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void HandoverNetworkId(int id, string authKey, ulong networkId)
+    {
+        GetActivePlayerByAuth(id, authKey).networkId = networkId;
+    }
+    public void PlayerDisconnected_Player(ulong obj)
+    {
+        
+    }
+
+    //-----------------------------------------------------------------//
+    //             SERVER SIDE TOOLS                                   //
+    //-----------------------------------------------------------------//
+
+    private PlayerInfo GetActivePlayerByAuth(int id, string authKey) 
+    {
+        PlayerInfo info = null;
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if(player.id == id) 
+            {
+                if(player.authKey == authKey) 
+                {
+                    info = player;
+                    break;
+                }
+            }
+        }
+        return info;
+    }
+    private PlayerInfo GetActivePlayerById(ulong networkId)
+    {
+        PlayerInfo info = null;
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.networkId == networkId)
+            {
+                    info = player;
+                    break;
+            }
+        }
+        return info;
+    }
+    private PlayerInfo GetActivePlayerByClientId(ulong clientId)
+    {
+        PlayerInfo info = null;
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.clientId == clientId)
+            {
+                info = player;
+                break;
+            }
+        }
+        return info;
+    }
+    public void MovePlayerToInactive(ulong clientId) 
+    {
+        PlayerInfo player = GetActivePlayerByClientId(clientId);
+        inactivePlayers.Add(player);
+        activePlayers.Remove(player);
+    }
+
+    //-----------------------------------------------------------------//
+    //             Player Request : Retrieve Player Info               //
+    //-----------------------------------------------------------------//
+
+    //--Health
+    public void GetPlayerHealth(int id, Action<int> callback) 
+    {
+        StartCoroutine(GetPlayerHealth_Wait(id, returnValue =>{callback(returnValue);}));
+    }
+    private IEnumerator GetPlayerHealth_Wait(int id, Action<int> callback) 
+    {
+        RpcResponse<int> response = InvokeServerRpc(GetPlayerHealth_Rpc, id);
+        while (!response.IsDone){yield return null;}
+        callback(response.Value);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private int GetPlayerHealth_Rpc(int id)
+    {
+        int value = 0;
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.id == id)
+            {
+                value = player.health;
+                break;
+            }
+        }
+        return value;
+    }
+    //--Water
+    public void GetPlayerWater(int id, Action<int> callback)
+    {
+        StartCoroutine(GetPlayerWater_Wait(id, returnValue => { callback(returnValue); }));
+    }
+    private IEnumerator GetPlayerWater_Wait(int id, Action<int> callback)
+    {
+        RpcResponse<int> response = InvokeServerRpc(GetPlayerWater_Rpc, id);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private int GetPlayerWater_Rpc(int id)
+    {
+        int value = 0;
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.id == id)
+            {
+                value = player.water;
+                break;
+            }
+        }
+        return value;
+    }
+    //--Food
+    public void GetPlayerFood(int id, Action<int> callback)
+    {
+        StartCoroutine(GetPlayerFood_Wait(id, returnValue => { callback(returnValue); }));
+    }
+    private IEnumerator GetPlayerFood_Wait(int id, Action<int> callback)
+    {
+        RpcResponse<int> response = InvokeServerRpc(GetPlayerFood_Rpc, id);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private int GetPlayerFood_Rpc(int id)
+    {
+        int value = 0;
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.id == id)
+            {
+                value = player.food;
+                break;
+            }
+        }
+        return value;
+    }
+    //--Inventory items
+    public void GetPlayerInventoryItems(int id, Action<string> callback)
+    {
+        StartCoroutine(GetPlayerInventoryItems_Wait(id, returnValue => { callback(returnValue); }));
+    }
+    private IEnumerator GetPlayerInventoryItems_Wait(int id, Action<string> callback)
+    {
+        RpcResponse<string> response = InvokeServerRpc(GetPlayerInventoryItems_Rpc, id);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private string GetPlayerInventoryItems_Rpc(int id)
+    {
+        string value = "";
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.id == id)
+            {
+                value = player.items;
+                break;
+            }
+        }
+        return value;
+    }
+    //--Inventory armor
+    public void GetPlayerInventoryArmor(int id, Action<string> callback)
+    {
+        StartCoroutine(GetPlayerInventoryArmor_Wait(id, returnValue => { callback(returnValue); }));
+    }
+    private IEnumerator GetPlayerInventoryArmor_Wait(int id, Action<string> callback)
+    {
+        RpcResponse<string> response = InvokeServerRpc(GetPlayerInventoryArmor_Rpc, id);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private string GetPlayerInventoryArmor_Rpc(int id)
+    {
+        string value = "";
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.id == id)
+            {
+                value = player.armor;
+                break;
+            }
+        }
+        return value;
+    }
+    //--Inventory blueprints
+    public void GetPlayerInventoryBlueprints(int id, Action<string> callback)
+    {
+        StartCoroutine(GetPlayerInventoryBlueprints_Wait(id, returnValue => { callback(returnValue); }));
+    }
+    private IEnumerator GetPlayerInventoryBlueprints_Wait(int id, Action<string> callback)
+    {
+        RpcResponse<string> response = InvokeServerRpc(GetPlayerInventoryBlueprints_Rpc, id);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private string GetPlayerInventoryBlueprints_Rpc(int id)
+    {
+        string value = "";
+        foreach (PlayerInfo player in activePlayers)
+        {
+            if (player.id == id)
+            {
+                value = player.blueprints;
+                break;
+            }
+        }
+        return value;
+    }
+
+
+    //-----------------------------------------------------------------//
+    //             Player Request : Modify Own Values                  //
+    //-----------------------------------------------------------------//
+
+    //--Set Player Health
+    public void SetPlayerHealth(int id, string authKey, int health) 
+    {
+        InvokeServerRpc(SetPlayerHealth_Rpc, id, authKey, health);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerHealth_Rpc(int id, string authKey, int health) 
+    {
+        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
+        GetActivePlayerByAuth(id, authKey).health += health;
+        ForceRequestInfoById(player.clientId, 2);
+    }
+    //--Set Player Water
+    public void SetPlayerWater(int id, string authKey, int water)
+    {
+        InvokeServerRpc(SetPlayerWater_Rpc, id, authKey, water);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerWater_Rpc(int id, string authKey, int water)
+    {
+        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
+        player.water +=water;
+        ForceRequestInfoById(player.clientId, 4);
+    }
+    //--Set Player Food
+    public void SetPlayerFood(int id, string authKey, int food)
+    {
+        InvokeServerRpc(SetPlayerFood_Rpc, id, authKey, food);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerFood_Rpc(int id, string authKey, int food)
+    {
+        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
+        player.food += food;
+        ForceRequestInfoById(player.clientId, 3);
+    }
+    //--Set Player Inventory Items
+    public void SetPlayerInventoryItems(int id, string authKey, string items)
+    {
+        InvokeServerRpc(SetPlayerInventoryItems_Rpc, id, authKey, items);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerInventoryItems_Rpc(int id, string authKey, string items)
+    {
+        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
+        player.items += items;
+        ForceRequestInfoById(player.clientId, 5);
+    }
+    //--Set Player Inventory Armor
+    public void SetPlayerInventoryArmor(int id, string authKey, string armor)
+    {
+        InvokeServerRpc(SetPlayerInventoryArmor_Rpc, id, authKey, armor);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerInventoryArmor_Rpc(int id, string authKey, string armor)
+    {
+        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
+        player.armor += armor;
+        ForceRequestInfoById(player.clientId, 6);
+    }
+    //--Set Player Inventory Blueprints
+    public void SetPlayerInventoryBlueprints(int id, string authKey, string blueprints)
+    {
+        InvokeServerRpc(SetPlayerInventoryBlueprints_Rpc, id, authKey, blueprints);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerInventoryBlueprints_Rpc(int id, string authKey, string blueprints)
+    {
+        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
+        player.blueprints += blueprints;
+        ForceRequestInfoById(player.clientId, 7);
+    }
+    //--Set Player Location
+    public void SetPlayerLocation(int id, string authKey, Vector3 location)
+    {
+        InvokeServerRpc(SetPlayerLocation_Rpc, id, authKey, location);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerLocation_Rpc(int id, string authKey, Vector3 location)
+    {
+        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
+        player.location += location;
+    }
+
+
+
+    //-----------------------------------------------------------------//
+    //             Player Request : Raycast Hit                        //
+    //-----------------------------------------------------------------//
+    public void PlayerRayCastHit(NetworkedObject player, int type) 
+    {
+        InvokeServerRpc(PlayerRayCastHitRpc, player, type);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void PlayerRayCastHitRpc(NetworkedObject player, int type) 
     {
 
-        int count = NetworkingManager.Singleton.ConnectedClients.Count;
-        if (webServer != null)
+        float distance = 1F;
+        int damage = 1;
+        if(type == 1) { distance = 2f; }
+        if (type == 2) { distance = 8f; }
+        if (type == 3) { distance = 30f; }
+        if (type == 4) { distance = 50f; }
+
+        Transform playerTransform = player.GetComponent<Transform>();
+        RaycastHit hit;
+        LagCompensationManager.Simulate(player.NetworkId, () => 
         {
-            webServer.ServerListPlayerCount(serverName, count, returnValue =>
+            if (Physics.Raycast(playerTransform.position, -Vector3.up, out hit, distance))
             {
-                if (returnValue)
+                GameObject hitObject = hit.collider.gameObject;
+                Vector3 hitPosition = hitObject.transform.position;
+                string tag = hitObject.tag;
+
+                if (tag == "Player") 
                 {
-                    //Player Count updated successfully
-                    Debug.Log("Network - Game - Updated Player Count.");
+                    ulong playerId = hitObject.GetComponent<NetworkedObject>().NetworkId;
+                    PlayerInfo playerInfo = GetActivePlayerById(playerId);
+                    int health = playerInfo.health;
+                    if(health - damage <= 0) 
+                    {
+                        //Kill Player
+                    }
+                    else 
+                    {
+                        health -= damage;
+                        ForceRequestInfoById(playerId, 2);
+                    }
                 }
-            });
+                if (tag == "Enemy")
+                {
+
+                }
+                if (tag == "Friendly")
+                {
+
+                }
+                if (tag == "Tree")
+                {
+
+                }
+
+            }
+        });
+    }
+
+    //-----------------------------------------------------------------//
+    //             Client RPC : Force Request                          //
+    //-----------------------------------------------------------------//
+    private void ForceRequestInfoById(ulong clientId, int infoDepth) 
+    {
+        List<ulong> idList = new List<ulong>();
+        idList.Add(clientId);
+
+        if(infoDepth == 1) 
+        {
+            InvokeClientRpc("ForceRequestInfoAll_Rpc", idList);
+        }
+        if (infoDepth == 2)
+        {
+            InvokeClientRpc("ForceRequestInfoHealth_Rpc", idList);
+        }
+        if (infoDepth == 3)
+        {
+            InvokeClientRpc("ForceRequestInfoFood_Rpc", idList);
+        }
+        if (infoDepth == 4)
+        {
+            InvokeClientRpc("ForceRequestInfoWater_Rpc", idList);
+        }
+        if (infoDepth == 5)
+        {
+            InvokeClientRpc("ForceRequestInfoItems_Rpc", idList);
+        }
+        if (infoDepth == 6)
+        {
+            InvokeClientRpc("ForceRequestInfoArmor_Rpc", idList);
+        }
+        if (infoDepth == 7)
+        {
+            InvokeClientRpc("ForceRequestInfoBlueprints_Rpc", idList);
         }
     }
+    [ClientRPC]
+    private void ForceRequestInfoAll_Rpc() 
+    {
+        PlayerInfoManager.singleton.GetPlayer_AllInfo();
+    }
+    [ClientRPC]
+    private void ForceRequestInfoHealth_Rpc()
+    {
+        PlayerInfoManager.singleton.GetPlayer_Health();
+    }
+    [ClientRPC]
+    private void ForceRequestInfoFood_Rpc()
+    {
+        PlayerInfoManager.singleton.GetPlayer_Food();
+    }
+    [ClientRPC]
+    private void ForceRequestInfoWater_Rpc()
+    {
+        PlayerInfoManager.singleton.GetPlayer_Water();
+    }
+    [ClientRPC]
+    private void ForceRequestInfoItems_Rpc()
+    {
+        PlayerInfoManager.singleton.GetPlayer_InventoryItems();
+    }
+    [ClientRPC]
+    private void ForceRequestInfoArmor_Rpc()
+    {
+        PlayerInfoManager.singleton.GetPlayer_InventoryArmor();
+    }
+    [ClientRPC]
+    private void ForceRequestInfoBlueprints_Rpc()
+    {
+        PlayerInfoManager.singleton.GetPlayer_InventoryBlueprints();
+    }
+
+}
+
+
+public class PlayerInfo 
+{
+    public string name;
+    public string authKey;
+    public int id;
+    public int health;
+    public int food;
+    public int water;
+    public Vector3 location;
+    public ulong networkId;
+    public string items;
+    public string armor;
+    public string blueprints;
+    public ulong clientId;
 }

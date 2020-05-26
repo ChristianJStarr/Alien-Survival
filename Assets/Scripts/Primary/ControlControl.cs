@@ -17,6 +17,17 @@ public class ControlControl : MonoBehaviour
     private int btn_opacity; //Button Opacity
     private int text_opacity; //Button Text Opacity
 
+    public Image JoyBkg;
+    public Image JoyStick;
+    public Image UseLeft;
+    public Image UseRight;
+    public Image Button1;
+    public Image Button2;
+    public Image Button3;
+    public Image Button4;
+    public Image Button5;
+
+
     void Start() 
     {
         left = leftScreen.GetComponentsInChildren<Image>(); //Get all Image components in leftScreen.
@@ -29,6 +40,23 @@ public class ControlControl : MonoBehaviour
     {
         //Set opacity to stored settings. 0-255.
         SetOpacity(settings.gameControlsOpacity); 
+    }
+
+    private void ChangeImageColor(Color color) 
+    {
+        JoyBkg.color = color;
+        JoyStick.color = color;
+        UseLeft.color = color;
+        UseRight.color = color;
+        Button1.color = color;
+        Button2.color = color;
+        Button3.color = color;
+        Button4.color = color;
+        Button5.color = color;
+    }
+    private void ChangeTextColor(Color color) 
+    {
+    
     }
 
     //Set opacity from int.
@@ -58,14 +86,6 @@ public class ControlControl : MonoBehaviour
     //Change opacity of buttons.
     private void ToggleVisible(bool value)
     {
-        if (left == null) 
-        {
-            left = leftScreen.GetComponentsInChildren<Image>();
-        }
-        if(right == null) 
-        {
-            right = rightScreen.GetComponentsInChildren<Image>();
-        }
 
         Color color;
         Color textColor;
@@ -79,22 +99,8 @@ public class ControlControl : MonoBehaviour
             color = new Color32(255, 255, 255, 0);
             textColor = new Color32(255, 255, 255, 0);
         }
-        foreach (Image image in left)
-        {
-            image.color = color;
-            if(image.GetComponentInChildren<TextMeshProUGUI>() != null) 
-            {
-                image.GetComponentInChildren<TextMeshProUGUI>().color = textColor;
-            }
-        }
-        foreach (Image image in right)
-        {
-            image.color = color;
-            if (image.GetComponentInChildren<TextMeshProUGUI>() != null)
-            {
-                image.GetComponentInChildren<TextMeshProUGUI>().color = textColor;
-            }
-        }
+        ChangeImageColor(color);
+        ChangeTextColor(textColor);
         cover.GetComponent<Image>().raycastTarget = !value;
     }
 }

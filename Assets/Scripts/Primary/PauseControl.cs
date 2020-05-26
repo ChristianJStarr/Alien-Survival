@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MLAPI;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PauseControl : MonoBehaviour
@@ -64,6 +65,7 @@ public class PauseControl : MonoBehaviour
     public void ButtonExitMain() 
     {
         gamePaused = false;
-        SceneManager.LoadScene(1); //Loads the Main Menu scene.
+        NetworkingManager.Singleton.StopClient();
+        SceneManager.LoadScene(1);
     }
 }
