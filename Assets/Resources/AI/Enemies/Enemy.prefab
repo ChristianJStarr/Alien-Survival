@@ -331,14 +331,14 @@ MonoBehaviour:
   ExtrapolatePosition: 0
   MaxSendsToExtrapolate: 5
   Channel: 
-  EnableRange: 0
+  EnableRange: 1
   EnableNonProvokedResendChecks: 0
   DistanceSendrate:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 20
+      time: -0.877964
+      value: 19.979004
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -346,8 +346,44 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 500
-      value: 20
+      time: 97.60251
+      value: 19.950312
+      inSlope: -0.000082328595
+      outSlope: -0.000082328595
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.067841485
+    - serializedVersion: 3
+      time: 112.216125
+      value: 14.701727
+      inSlope: -0.35761085
+      outSlope: -0.35761085
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.16169101
+      outWeight: 0.014691934
+    - serializedVersion: 3
+      time: 149.40875
+      value: 2.4854088
+      inSlope: -0.17252177
+      outSlope: -0.17252177
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.047616452
+    - serializedVersion: 3
+      time: 196.60397
+      value: -1.1098022
+      inSlope: -0.000020638443
+      outSlope: -0.000020638443
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 501.204
+      value: -1.1190506
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -462,7 +498,7 @@ MonoBehaviour:
   followSpeed: 9.3
   wanderSpeed: 5
   patrolSpeed: 0
-  rotationSpeed: 0.42
+  rotationSpeed: 0.04
   avoidSpeed: 2
   jumpDistance: 0
   jumpForce: 0

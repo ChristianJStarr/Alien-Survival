@@ -10496,7 +10496,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9730dd5a37e58f94e9e729dc4012a1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  devServer: 0
+  devServer: 1
   maxEnemies: 0
   maxFriendly: 0
 --- !u!4 &1022403220 stripped
