@@ -44,15 +44,15 @@ public class MainMenuScript : MonoBehaviour
     /// </summary>
     void Update()
     {
-        float step = 15 * Time.deltaTime;
-        if (cam.transform.position != camTargetposition) 
-        {
-            cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetposition,step);
-        }
-        if (cam.transform.localRotation.y != camTargetrotation.y)
-        {
-            cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
-        }
+        //float step = 15 * Time.deltaTime;
+        //if (cam.transform.position != camTargetposition) 
+        //{
+        //    cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetposition,step);
+        //}
+        //if (cam.transform.localRotation.y != camTargetrotation.y)
+        //{
+        //    cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
+        //}
     }
     /// <summary>
     /// Activate Menu: Play Menu
