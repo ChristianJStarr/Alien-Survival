@@ -9,23 +9,15 @@ using UnityEngine.SceneManagement;
 
 public class ServerConnect : MonoBehaviour
 {
-    public bool devServer = false;
-    private string serverName;
-    private string serverDescription;
-    private string serverMode;
-    private string serverMap;
-    private string serverIP;
-    private ushort serverPort;
-    private int serverMaxPlayer;
-    public int maxEnemies;
-    public int maxFriendly;
-
     private NetworkingManager networkManager;
     private GameServer gameServer;
     private WebServer webServer;
 
-
-
+    public bool devServer = false;
+    private string serverName, serverDescription, serverMode, serverMap, serverIP;
+    private int serverMaxPlayer, maxEnemies, maxFriendly;
+    private ushort serverPort;
+    
 
     private void Start()
     {
@@ -47,12 +39,12 @@ public class ServerConnect : MonoBehaviour
     //-----------------------------------------------------------------//
     public void ConnectToServer(string ip, ushort port)
     {
-        NetworkingManager.Singleton.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("id") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
-        NetworkingManager.Singleton.GetComponent<UnetTransport>().ConnectAddress = ip;
-        NetworkingManager.Singleton.GetComponent<UnetTransport>().ConnectPort = port;
-        NetworkingManager.Singleton.OnClientConnectedCallback += PlayerConnected_Player;
-        NetworkingManager.Singleton.OnClientDisconnectCallback += PlayerDisconnected_Player;
-        NetworkingManager.Singleton.StartClient();
+        networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("id") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
+        networkManager.GetComponent<UnetTransport>().ConnectAddress = ip;
+        networkManager.GetComponent<UnetTransport>().ConnectPort = port;
+        networkManager.OnClientConnectedCallback += PlayerConnected_Player;
+        networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
+        networkManager.StartClient();
     }
     private void PlayerConnected_Player(ulong id) 
     {
@@ -72,11 +64,15 @@ public class ServerConnect : MonoBehaviour
         webServer = GetComponent<WebServer>();
         if (GetServerSettings()) 
         {
-            NetworkingManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
-            NetworkingManager.Singleton.OnServerStarted += ServerStarted;
-            NetworkingManager.Singleton.OnClientConnectedCallback += PlayerConnected_Server;
-            NetworkingManager.Singleton.OnClientDisconnectCallback += PlayerDisconnected_Server;
-            NetworkingManager.Singleton.StartServer();
+            networkManager.ConnectionApprovalCallback += ApprovalCheck;
+            networkManager.OnServerStarted += ServerStarted;
+            networkManager.OnClientConnectedCallback += PlayerConnected_Server;
+            networkManager.OnClientDisconnectCallback += PlayerDisconnected_Server;
+            networkManager.GetComponent<UnetTransport>().MaxConnections = serverMaxPlayer;
+            networkManager.GetComponent<UnetTransport>().ConnectAddress = serverIP;
+            networkManager.GetComponent<UnetTransport>().ConnectPort = serverPort;
+            networkManager.GetComponent<UnetTransport>().ServerListenPort = serverPort;
+            networkManager.StartServer();
         }
     }
     public void StopServer()
@@ -184,7 +180,7 @@ public class ServerConnect : MonoBehaviour
             {
                 if (returnValue)
                 {
-                    Debug.Log("Update Server list Successful");
+                    Debug.Log("ServerUpdate Server list Successful");
                 }
             });
         }
