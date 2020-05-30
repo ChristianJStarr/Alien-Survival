@@ -8,7 +8,7 @@ public class MainMenuServerList : MonoBehaviour
     /// <summary>
     /// Web Server in use.
     /// </summary>
-    public WebServer webServer;
+    private WebServer webServer;
     /// <summary>
     /// Server Count on server screen.
     /// </summary>
@@ -26,6 +26,7 @@ public class MainMenuServerList : MonoBehaviour
     /// </summary>
     private void Start()
     {
+        webServer = GetComponent<WebServer>();
         serverCount.text = "(0/0) SERVERS";
         GetServers();
     }

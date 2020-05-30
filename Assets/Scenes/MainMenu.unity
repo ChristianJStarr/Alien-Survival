@@ -8360,13 +8360,13 @@ GameObject:
   - component: {fileID: 804832989}
   - component: {fileID: 804832988}
   - component: {fileID: 804832987}
+  - component: {fileID: 804832997}
+  - component: {fileID: 804832993}
   - component: {fileID: 804832991}
   - component: {fileID: 804832992}
   - component: {fileID: 804832994}
   - component: {fileID: 804832995}
-  - component: {fileID: 804832993}
   - component: {fileID: 804832996}
-  - component: {fileID: 804832997}
   m_Layer: 5
   m_Name: Interface
   m_TagString: Untagged
@@ -8494,7 +8494,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe2f748c102b78042a6ea3be24db1b2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinManager: {fileID: 804832993}
 --- !u!114 &804832993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8556,7 +8555,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0aeccd8abd7df0440a58244465d69951, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  webServer: {fileID: 804832997}
   serverCount: {fileID: 177175751}
   listContainer: {fileID: 737399480}
   serverItem: {fileID: 8367031948339291146, guid: 9df71749b0325b74cbb8b9ce189ba834,

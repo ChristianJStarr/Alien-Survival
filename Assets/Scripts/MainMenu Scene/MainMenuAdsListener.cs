@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.Advertisements;
 
-public class RewardedAdsScript : MonoBehaviour, IUnityAdsListener
+public class MainMenuAdsListener : MonoBehaviour, IUnityAdsListener
 {
-    public CoinManager coinManager;
-    string gameId = "3507995";
-    string myPlacementId = "rewardedVideo";
-    bool testMode = true;
+    private CoinManager coinManager;
+    private string gameId = "3507995";
+    private string myPlacementId = "rewardedVideo";
+    private bool testMode = true;
 
     void Start()
     {
+        coinManager = GetComponent<CoinManager>();
         Advertisement.AddListener(this);
         Advertisement.Initialize(gameId, testMode);
     }
@@ -19,19 +20,18 @@ public class RewardedAdsScript : MonoBehaviour, IUnityAdsListener
     }
     public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
     {
-        // Define conditional logic for each ad completion status:
         if (showResult == ShowResult.Finished)
         {
-            Debug.Log("Finished AD");
+            Debug.Log("Ads - Finished AD");
             coinManager.AddCoin(25);
         }
         else if (showResult == ShowResult.Skipped)
         {
-            Debug.Log("Skipped AD");
+            Debug.Log("Ads - Skipped AD");
         }
         else if (showResult == ShowResult.Failed)
         {
-            Debug.LogWarning("The ad did not finish due to an error.");
+            Debug.LogWarning("Ads - The ad did not finish due to an error.");
         }
     }
 
