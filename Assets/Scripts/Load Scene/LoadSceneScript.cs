@@ -30,7 +30,7 @@ public class LoadSceneScript : MonoBehaviour
             SceneManager.LoadScene(1);
         }
 #endif
-        Application.targetFrameRate = 100;
+        Application.targetFrameRate = 30;
         //Check if user has logged in before and has username/pass stored.
         if (PlayerPrefs.GetString("username").Length > 0) 
         {
