@@ -9,6 +9,7 @@ public class MainMenuScript : MonoBehaviour
 {
     //What: Main Menu Scene Controller. 
     //Where: MainMenu Scene / UI
+    public Animator alienAnimator;
     public PlayerStats playerStats; //Stored player data.
     public GameObject mainScreen; //Main Screen.
     public GameObject loadScreen; //Loading Screen.
@@ -17,6 +18,7 @@ public class MainMenuScript : MonoBehaviour
     public GameObject onlineMenu; //Server Screen.
     public Slider loadSlider; //Loading Screen slider.
     public Camera cam; //Scene Camera.
+    public GameObject easterEggBeam;
     static Transform camReset; //Camera default positon to reset to.
     //Camera locations for switching screens effect.
     public Vector3 playTargetCord;
@@ -28,6 +30,9 @@ public class MainMenuScript : MonoBehaviour
     private Quaternion resetTargetRot;
     private Vector3 camTargetposition;
     private Quaternion camTargetrotation;
+    private TouchPhase touchPhase = TouchPhase.Ended;
+
+    
     /// <summary>
     /// Main Menu Start Function. Set camera transforms.
     /// </summary>
@@ -44,6 +49,22 @@ public class MainMenuScript : MonoBehaviour
     /// </summary>
     void Update()
     {
+        if (Input.touchCount == 1 && Input.GetTouch(0).phase == touchPhase && Input.GetTouch(0).tapCount == 2)
+        {
+            if (mainScreen.activeSelf) 
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
+                {
+                    if (hit.collider != null)
+                    {
+                        alienAnimator.SetTrigger("EasterEgg");
+                        StartCoroutine(EasterEggStart());
+                    }
+                }
+            }
+        }
         //float step = 15 * Time.deltaTime;
         //if (cam.transform.position != camTargetposition) 
         //{
@@ -63,7 +84,6 @@ public class MainMenuScript : MonoBehaviour
         onlineMenu.SetActive(true);
         camTargetposition = playTargetCord;
         camTargetrotation = playTargetRot;
-        
     }
     /// <summary>
     /// Activate Menu: Profile Menu
@@ -96,6 +116,8 @@ public class MainMenuScript : MonoBehaviour
         mainScreen.SetActive(true);
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
+        alienAnimator.SetTrigger("EasterEgg");
+        StartCoroutine(EasterEggStart());
     }
     /// <summary>
     /// Show loading screen. Load the Primary Scene
@@ -176,5 +198,28 @@ public class MainMenuScript : MonoBehaviour
         }
         loadProgress = 100;
         loadSlider.value = loadProgress;
+    }
+
+    private bool IsDoubleTap() 
+    {
+        bool result = false;
+        float MaxTimeWait = 1;
+        float VariancePosition = 1;
+
+        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began)
+        {
+            float DeltaTime = Input.GetTouch(0).deltaTime;
+            float DeltaPositionLenght = Input.GetTouch(0).deltaPosition.magnitude;
+
+            if (DeltaTime > 0 && DeltaTime < MaxTimeWait && DeltaPositionLenght < VariancePosition)
+                result = true;
+        }
+        return result;
+    }
+
+    private IEnumerator EasterEggStart() 
+    {
+        yield return new WaitForSeconds(5f);
+        easterEggBeam.SetActive(true);
     }
 }

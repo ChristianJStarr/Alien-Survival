@@ -26,17 +26,17 @@ SpeedTreeImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Tree_004_LOD0
-    second: {fileID: 2100000, guid: 6ae6f11507cd38840b6ca461b901574f, type: 2}
+    second: {fileID: 2100000, guid: 69e93f7eccbedfb47a92f65c12d7e3e2, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Tree_004_LOD1
-    second: {fileID: 2100000, guid: 6ae6f11507cd38840b6ca461b901574f, type: 2}
+    second: {fileID: 2100000, guid: 69e93f7eccbedfb47a92f65c12d7e3e2, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Tree_004_LOD2
-    second: {fileID: 2100000, guid: 6ae6f11507cd38840b6ca461b901574f, type: 2}
+    second: {fileID: 2100000, guid: 69e93f7eccbedfb47a92f65c12d7e3e2, type: 2}
   serializedVersion: 6
   mainColor: {r: 1, g: 1, b: 1, a: 1}
   hueVariation: {r: 1, g: 0.5, b: 0, a: 0.1}
@@ -52,7 +52,7 @@ SpeedTreeImporter:
     enableBump: 1
     enableHue: 1
     enableSubsurface: 1
-    windQuality: 1
+    windQuality: 3
   - height: 0.8033366
     castShadows: 1
     receiveShadows: 1

@@ -10,7 +10,7 @@ Material:
   m_Name: Tree_002
   m_Shader: {fileID: 4800000, guid: 99134b1f0c27d54469a840832a28fadf, type: 3}
   m_ShaderKeywords: EFFECT_BUMP EFFECT_EXTRA_TEX EFFECT_HUE_VARIATION EFFECT_SUBSURFACE
-    _WINDQUALITY_FASTEST
+    _WINDQUALITY_BETTER
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -83,7 +83,7 @@ Material:
     - _SubsurfaceKwToggle: 1
     - _Surface: 0
     - _TwoSided: 0
-    - _WindQuality: 1
+    - _WindQuality: 3
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
