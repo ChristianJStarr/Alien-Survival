@@ -7,25 +7,17 @@ using UnityEngine.Networking;
 /// </summary>
 public class MainMenuRecentNews : MonoBehaviour
 {
-    /// <summary>
-    /// News Slide Container
-    /// </summary>
+
     public GameObject content;
-    /// <summary>
-    /// News Slide Prefab
-    /// </summary>
     public GameObject slidePref;
-    /// <summary>
-    /// News URL
-    /// </summary>
     private string newsUrl = "https://www.game.aliensurvival.com/news.php";
-    /// <summary>
-    /// Start Function for News
-    /// </summary>
+
     void Start()
     {
         StartCoroutine(GetNews());
     }
+
+
     /// <summary>
     /// Get the news and instantiate slides.
     /// </summary>

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 
 public class MainMenuEasterEgg : MonoBehaviour
@@ -31,7 +30,7 @@ public class MainMenuEasterEgg : MonoBehaviour
             if (PostFx.weight <= .5)
             {
                 Alien.GetComponentInParent<Animator>().gameObject.SetActive(false);
-                Destroy(gameObject);
+                gameObject.SetActive(false);
             }
         }
         else 
@@ -55,6 +54,8 @@ public class MainMenuEasterEgg : MonoBehaviour
         
         weightTarget = 0;
         fadeOut = true;
-        
     }
+    
 }
+
+

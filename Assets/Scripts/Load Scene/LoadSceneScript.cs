@@ -9,7 +9,7 @@ public class LoadSceneScript : MonoBehaviour
     //What: Load Scene Script. Does Login/Signup/Stats & Loading into main menu.
     //Where: The Load Scene.
     public bool devServer = false;
-    public GameObject mainScreen, loginScreen, signupScreen, loadScreen; //Each screen layer.
+    public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting; //Each screen layer.
     public Slider loadSlider; //Slider for load screen.
     public TextMeshProUGUI loginNotify, signupNotify; //Notify text field for login and signup screen.
     public TMP_InputField usernameText, passwordText, regUsernameText, regPassText; //Input fields for login and signup.
@@ -70,6 +70,7 @@ public class LoadSceneScript : MonoBehaviour
         mainScreen.SetActive(false);
         loginScreen.SetActive(false);
         signupScreen.SetActive(false);
+        userReporting.SetActive(false);
         loadScreen.SetActive(true);
         StartCoroutine(LoadRoutine());//Start loading the MainMenu scene.
     }

@@ -9,7 +9,8 @@ public class MainMenuScript : MonoBehaviour
 {
     //What: Main Menu Scene Controller. 
     //Where: MainMenu Scene / UI
-    public Animator alienAnimator;
+
+    public Animator alienAnimator; //Animator of Alien Model
     public PlayerStats playerStats; //Stored player data.
     public GameObject mainScreen; //Main Screen.
     public GameObject loadScreen; //Loading Screen.
@@ -20,19 +21,22 @@ public class MainMenuScript : MonoBehaviour
     public Camera cam; //Scene Camera.
     public GameObject easterEggBeam;
     static Transform camReset; //Camera default positon to reset to.
+
     //Camera locations for switching screens effect.
     public Vector3 playTargetCord;
     public Quaternion playTargetRot;
     public Vector3 profTargetCord;
     public Quaternion profTargetRot;
+
     //Defaults for above positions and rotations.
     private Vector3 resetTargetCord;
     private Quaternion resetTargetRot;
     private Vector3 camTargetposition;
     private Quaternion camTargetrotation;
+
+    //Touch Phase
     private TouchPhase touchPhase = TouchPhase.Ended;
 
-    
     /// <summary>
     /// Main Menu Start Function. Set camera transforms.
     /// </summary>
@@ -44,11 +48,13 @@ public class MainMenuScript : MonoBehaviour
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
     }
+    
     /// <summary>
     /// Main Menu Update Function. Keep up with camera targets.
     /// </summary>
     void Update()
     {
+        //Detect double click for easter egg.
         if (Input.touchCount == 1 && Input.GetTouch(0).phase == touchPhase && Input.GetTouch(0).tapCount == 2)
         {
             if (mainScreen.activeSelf) 
@@ -65,16 +71,17 @@ public class MainMenuScript : MonoBehaviour
                 }
             }
         }
-        //float step = 15 * Time.deltaTime;
-        //if (cam.transform.position != camTargetposition) 
-        //{
-        //    cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetposition,step);
-        //}
-        //if (cam.transform.localRotation.y != camTargetrotation.y)
-        //{
-        //    cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
-        //}
+        float step = 15 * Time.deltaTime;
+        if (cam.transform.position != camTargetposition)
+        {
+            cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetposition, step);
+        }
+        if (cam.transform.localRotation.y != camTargetrotation.y)
+        {
+            cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
+        }
     }
+    
     /// <summary>
     /// Activate Menu: Play Menu
     /// </summary>
@@ -85,6 +92,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetposition = playTargetCord;
         camTargetrotation = playTargetRot;
     }
+    
     /// <summary>
     /// Activate Menu: Profile Menu
     /// </summary>
@@ -95,6 +103,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetposition = profTargetCord;
         camTargetrotation = profTargetRot;
     }
+    
     /// <summary>
     /// Activate Menu: Settings Menu
     /// </summary>
@@ -105,6 +114,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetposition = profTargetCord;
         camTargetrotation = profTargetRot;
     }
+    
     /// <summary>
     /// Close Menus. Display Main Menu.
     /// </summary>
@@ -116,9 +126,8 @@ public class MainMenuScript : MonoBehaviour
         mainScreen.SetActive(true);
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
-        alienAnimator.SetTrigger("EasterEgg");
-        StartCoroutine(EasterEggStart());
     }
+    
     /// <summary>
     /// Show loading screen. Load the Primary Scene
     /// </summary>
@@ -133,6 +142,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetrotation = resetTargetRot;
         StartCoroutine(LoadRoutine());
     }
+    
     /// <summary>
     /// Preform the load routine. 
     /// </summary>
@@ -152,6 +162,7 @@ public class MainMenuScript : MonoBehaviour
         loadProgress = 100;
         loadSlider.value = loadProgress;
     }
+    
     /// <summary>
     /// Log Player Out. Return to Load Scene.
     /// </summary>
@@ -172,6 +183,7 @@ public class MainMenuScript : MonoBehaviour
         loadScreen.SetActive(true);
         StartCoroutine(LogOutRoutine());
     }
+    
     /// <summary>
     /// Preform the log out routine.
     /// </summary>
@@ -199,24 +211,11 @@ public class MainMenuScript : MonoBehaviour
         loadProgress = 100;
         loadSlider.value = loadProgress;
     }
-
-    private bool IsDoubleTap() 
-    {
-        bool result = false;
-        float MaxTimeWait = 1;
-        float VariancePosition = 1;
-
-        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-            float DeltaTime = Input.GetTouch(0).deltaTime;
-            float DeltaPositionLenght = Input.GetTouch(0).deltaPosition.magnitude;
-
-            if (DeltaTime > 0 && DeltaTime < MaxTimeWait && DeltaPositionLenght < VariancePosition)
-                result = true;
-        }
-        return result;
-    }
-
+    
+    /// <summary>
+    /// Start the Main Menu Easter Egg
+    /// </summary>
+    /// <returns>Coroutine</returns>
     private IEnumerator EasterEggStart() 
     {
         yield return new WaitForSeconds(5f);
