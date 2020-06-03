@@ -8410,7 +8410,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 1500.3
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -8459,8 +8459,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_RenderPostProcessing: 0
-  m_Antialiasing: 0
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 1
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
@@ -11897,7 +11897,7 @@ Transform:
   m_GameObject: {fileID: 3807543680349778164}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 624.5481, y: 121.0387, z: -272.91492}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
   m_Children:
   - {fileID: 6775352397216517904}
   - {fileID: 8365790119431660505}
@@ -12115,12 +12115,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05ec5cf00ca181d45a42ba1870e148c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IsWalking: 1
+  m_IsWalking: 0
   m_WalkSpeed: 4
   m_RunSpeed: 4
-  m_RunstepLenghten: 0
+  m_RunstepLenghten: 0.166
   m_JumpSpeed: 2
-  m_StickToGroundForce: 1
+  m_StickToGroundForce: 3
   m_GravityMultiplier: 1
   m_MouseLook:
     XSensitivity: 2
@@ -12203,8 +12203,23 @@ MonoBehaviour:
   m_JumpBob:
     BobDuration: 0
     BobAmount: 0
-  m_StepInterval: 20
-  m_FootstepSounds: []
+  m_StepInterval: 3
+  m_FootstepSounds:
+  - {fileID: 8300000, guid: 18f1ff003e8fbdb44aba8266f6e1d168, type: 3}
+  - {fileID: 8300000, guid: 59cd085e234f32e4daddd2e589174a96, type: 3}
+  - {fileID: 8300000, guid: 2f96d3d47551ed848be9307342dcd667, type: 3}
+  - {fileID: 8300000, guid: 4901040e735fd2547870b06a27124c49, type: 3}
+  - {fileID: 8300000, guid: 4dcd8f2dc477f5e4aa277ee503048ee8, type: 3}
+  - {fileID: 8300000, guid: 15b220b1b01e9d8469f3b754b8eb2a10, type: 3}
+  - {fileID: 8300000, guid: 79a7606463e6a0748b531715f315489d, type: 3}
+  - {fileID: 8300000, guid: aa859614ff9b2234e8547d93e1cd9e73, type: 3}
+  - {fileID: 8300000, guid: 7a1ca87fc8b38af43bd269e557438cf3, type: 3}
+  - {fileID: 8300000, guid: e85ebefcaa228bc42adb2554e5a428d4, type: 3}
+  - {fileID: 8300000, guid: 363fb6bde7237674c9ab1b4ea4db05a3, type: 3}
+  - {fileID: 8300000, guid: bd2e21727b290c94586e70231e309cbd, type: 3}
+  - {fileID: 8300000, guid: 7e30146df5f9bb84d9d63ed8211311b9, type: 3}
+  - {fileID: 8300000, guid: dc51086bc85dc5448b059b6487ce0e0b, type: 3}
+  - {fileID: 8300000, guid: bf247942e61355f4d9d1804c09c647ee, type: 3}
   m_JumpSound: {fileID: 8300000, guid: 5699dddcce16c4543b95951c4ce0e092, type: 3}
   m_LandSound: {fileID: 8300000, guid: 59cd085e234f32e4daddd2e589174a96, type: 3}
   m_Jump: 0
@@ -12291,7 +12306,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 863972a6cf73ec44c89608b2ab82ae3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  breadcrumbAmount: 0
+  breadcrumbAmount: 1
   breadRate: 0
   breadCleanRate: 0
   _hasUFPS: 0

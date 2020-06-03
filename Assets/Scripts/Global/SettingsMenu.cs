@@ -28,7 +28,6 @@ public class SettingsMenu : MonoBehaviour
         SetToggle(quality, settings.quality);
         SetToggle(shadows, settings.shadow);
         SetToggle(aliasing, settings.aliasing);
-        SetToggle(postpro, settings.postpro);
 
         //Get Controls
         xSense.value = settings.xSensitivity;
@@ -79,7 +78,6 @@ public class SettingsMenu : MonoBehaviour
         settings.quality = Convert.ToInt32(quality.ActiveToggles().FirstOrDefault().name);
         settings.shadow = Convert.ToInt32(shadows.ActiveToggles().FirstOrDefault().name);
         settings.aliasing = Convert.ToInt32(aliasing.ActiveToggles().FirstOrDefault().name);
-        settings.postpro = Convert.ToInt32(postpro.ActiveToggles().FirstOrDefault().name);
 
         //Controls
         settings.xSensitivity = xSense.value;
