@@ -8714,7 +8714,6 @@ GameObject:
   - component: {fileID: 815405744}
   - component: {fileID: 815405743}
   - component: {fileID: 815405742}
-  - component: {fileID: 815405741}
   - component: {fileID: 815405740}
   - component: {fileID: 815405739}
   m_Layer: 0
@@ -8755,20 +8754,6 @@ MonoBehaviour:
   blendDistance: 0
   weight: 0
   sharedProfile: {fileID: 11400000, guid: 67e83e14d4dce31439a584875d92a709, type: 2}
---- !u!136 &815405741
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 815405738}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!23 &815405742
 MeshRenderer:
   m_ObjectHideFlags: 0

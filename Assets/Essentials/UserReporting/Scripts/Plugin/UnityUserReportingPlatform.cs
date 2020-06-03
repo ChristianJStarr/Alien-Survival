@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Unity.Cloud.UserReporting.Client;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Networking;
@@ -605,6 +606,9 @@ namespace Unity.Cloud.UserReporting.Plugin
                 }
             }
         }
+
+
+
 
         /// <summary>
         /// Samples automatic metrics.

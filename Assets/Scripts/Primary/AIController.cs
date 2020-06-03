@@ -22,9 +22,7 @@ public class AIController : MonoBehaviour
        
         if (NetworkingManager.Singleton.IsServer) 
         {
-            //maxEnemies = FindObjectOfType<ServerConnect>().maxEnemies;
-            //maxFriendly = FindObjectOfType<ServerConnect>().maxFriendly;
-            //HandleAI();
+            
         }
     }
     private void HandleAI() 
