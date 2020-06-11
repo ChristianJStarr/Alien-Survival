@@ -1,0 +1,59 @@
+# 3ds Max Wavefront OBJ Exporter v0.94b - (c)2007 guruware
+# File Created: 23.04.2011 12:05:55
+
+newmtl planks
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5880 0.5880 0.5880
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\Users\Home\Desktop\Wooden_Fence_Geo_Piskas\Textures\JPG\planks.jpg
+	map_Kd C:\Users\Home\Desktop\Wooden_Fence_Geo_Piskas\Textures\JPG\planks.jpg
+	map_bump -bm 0.3000 planks_bump_Normal Bump.tga
+
+newmtl log
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5880 0.5880 0.5880
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\Users\Home\Desktop\Wooden_Fence_Geo_Piskas\Textures\JPG\logs.jpg
+	map_Kd C:\Users\Home\Desktop\Wooden_Fence_Geo_Piskas\Textures\JPG\logs.jpg
+	map_bump -bm 0.3000 logs_bump_Normal Bump.tga
+
+newmtl logends
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 1.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.5880 0.5880 0.5880
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka C:\Users\Home\Desktop\Wooden_Fence_Geo_Piskas\Textures\JPG\logends.jpg
+	map_Kd C:\Users\Home\Desktop\Wooden_Fence_Geo_Piskas\Textures\JPG\logends.jpg
+	map_bump -bm 0.3000 logends_bump_Normal Bump.tga
+
+newmtl proxy
+	Ns 10.0000
+	Ni 1.5000
+	d 0.1800
+	Tr 0.1800
+	Tf 0.1800 0.1800 0.1800 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.9098 0.3216 0.3216
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000

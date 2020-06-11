@@ -16,7 +16,8 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     public int slotNumber = 0;
     public int armorType = 0;
     public Item item;
-    public InventoryScript inventoryScript;
+    public ItemData itemData;
+    public InventoryGfx inventoryGfx;
     public GameObject itemTooltip;
     public GameObject itemToolcraft;
     public GameObject toolTipSplit;
@@ -32,18 +33,21 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     }
 
 
-    public void AddItem(Item newItem)
+    public void AddItem(Item newItem, ItemData data)
     {
         item = newItem;
-        
-        if (item.icon != null)
+        if (data.icon != null)
         {
-            icon.sprite = item.icon;
+            icon.sprite = data.icon;
             icon.enabled = true;
-            item.sitSlot = slotNumber;
             numberItems = item.itemStack;
+            itemData = data;
         }
-        
+    }
+
+    public void Selected(bool value)
+    {
+        Hover.SetActive(value);
     }
 
     public GameObject GetImage() 
@@ -77,7 +81,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
         {
             icon.gameObject.transform.position = Input.mousePosition;
             item.isDragging = true;
-            SetTooltip();
+            //SetTooltip();
         }
     }
     public void OnEndDrag(PointerEventData eventData)
@@ -114,7 +118,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     }
     public void SetTooltip() 
     {
-        if (inventoryScript.invOpen) 
+        if (inventoryGfx.invOpen) 
         {
             itemTooltip.SetActive(true);
             itemToolcraft.SetActive(false);
@@ -131,9 +135,9 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
                 toolTipSplit.SetActive(false);
             }
             toolTipImage.sprite = icon.sprite;
-            toolTip_name.text = item.name;
-            toolTip_desc.text = item.description;
-            inventoryScript.toolTipItem = item;
+            toolTip_name.text = itemData.name;
+            toolTip_desc.text = itemData.description;
+            inventoryGfx.toolTipItem = item;
         }
     }
 }

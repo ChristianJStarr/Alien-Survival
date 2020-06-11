@@ -80,7 +80,7 @@ public class ServerConnect : MonoBehaviour
         UpdateServerList(false);
         GameServer.singleton.StopGameServer();
     }
-    private void ApprovalCheck(byte[] connectionData, ulong clientId, MLAPI.NetworkingManager.ConnectionApprovedDelegate callback)
+    private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkingManager.ConnectionApprovedDelegate callback)
     {
         bool approve = true;
         bool noData = true;
@@ -90,7 +90,8 @@ public class ServerConnect : MonoBehaviour
         string authKey = connectDataSplit[1].ToString();
         string username = connectDataSplit[2].ToString();
         GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-        Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
+        Vector3 spawnPoint = new Vector3(0,0,0);
+        //Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
         GameServer gs = GameServer.singleton;
         
         foreach (PlayerInfo player in gs.activePlayers)

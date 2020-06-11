@@ -302,7 +302,8 @@ public class WebServer : MonoBehaviour
             {
                 string[] data = web.downloadHandler.text.Split('`');
                 ServerList serverList = new ServerList();
-                serverList.servers = JsonHelper.FromJson<Server>(data[1]);
+                string json = "{ \"server\": " + data[1] + "}";
+                serverList.servers = JsonHelper.FromJson<Server>(json);
                 serverSuccess(serverList);
             }
             else

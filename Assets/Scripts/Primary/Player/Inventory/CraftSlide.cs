@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -11,17 +10,16 @@ public class CraftSlide : MonoBehaviour, IPointerClickHandler
     public Image image;
     public Image bkg;
     public TextMeshProUGUI name;
-    public Item item;
+    public ItemData item;
+    public bool crafting;
     public bool craftable;
-    CraftingMenu craftingMenu;
-    Color onColor = new Color32(67, 67, 67, 180);
-    Color offColor = new Color32(67, 67, 67, 85);
-    Color textColor = new Color32(188, 188, 188, 255);
 
-    void Start() 
-    {
-        craftingMenu = CraftingMenu.Instance();
-    }
+    private CraftingMenu craftingMenu;
+
+    private Color onColor = new Color32(67, 67, 67, 180);
+    private Color offColor = new Color32(67, 67, 67, 85);
+    private Color textColor = new Color32(188, 188, 188, 255);
+
 
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -31,8 +29,13 @@ public class CraftSlide : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    public void Craftable(bool value) 
+    public void Craftable(bool value, ItemData itemData, CraftingMenu menu)
     {
+        craftingMenu = menu;
+        item = itemData;
+        image.sprite = itemData.icon;
+        name.text = itemData.name;
+        craftable = value;
         if (value) 
         {
             bkg.color = onColor;

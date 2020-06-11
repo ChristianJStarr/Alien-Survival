@@ -1,39 +1,23 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-
-[CreateAssetMenu(fileName = "New Item", menuName = "Inventory/Item")]
-
-public class Item : ScriptableObject
+[Serializable]
+public class Item
 {
-    public string dropObject = "object-2";
-    public Sprite icon = null;
-    
-    public int itemStack = 1;
-    public int maxItemStack = 64;
     public int itemID = 0;
-    public int currSlot;
-    public int sitSlot;
+    public int itemStack = 0;
+    public int maxItemStack = 0;
+    public int currSlot = 0;
     public int armorType = 0;
-    public int craftAmount = 0;
 
     public string special = "";
-    new public string name = "New Item";
-    public string description = "This is the description for this item";
 
-    public bool showInInventory = true;
     public bool isCraftable = false;
     public bool isHoldable = false;
     public bool isArmor = false;
     public bool isDragging = false;
+    public bool showInInventory = true;
 
-    public string[] recipe;
 }
 
-public class PartialItem
-{
-    public int itemStack = 1;
-    public int itemID = 0;
-    public int currSlot;
-    public int sitSlot;
-    public string special = "";
-}
+

@@ -13,7 +13,7 @@ public static class JsonHelper
     /// <returns></returns>
     public static T[] FromJson<T>(string json)
     {
-        json = "{ \"server\": " + json + "}";
+        
         JToken jToken = JToken.Parse(json);
         Wrapper<T> wrapper = jToken.ToObject<Wrapper<T>>();
         return wrapper.server;

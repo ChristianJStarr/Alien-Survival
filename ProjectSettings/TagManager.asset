@@ -10,6 +10,8 @@ TagManager:
   - Destructible
   - Enemy
   - Breadcrumb
+  - RHandTarget
+  - LHandTarget
   layers:
   - Default
   - TransparentFX

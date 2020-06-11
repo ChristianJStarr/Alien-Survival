@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameServer : NetworkedBehaviour
 {
@@ -17,26 +16,82 @@ public class GameServer : NetworkedBehaviour
     #region Singleton
 
     public static GameServer singleton;
-
+    public bool logActions = true;
     void Awake()
     {
         singleton = this;
         DontDestroyOnLoad(gameObject);
+        SerializationManager.RegisterSerializationHandlers<Item>((Stream stream, Item instance) =>
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(stream))
+            {
+                writer.WriteInt32Packed(instance.itemID);
+                writer.WriteInt32Packed(instance.itemStack);
+                writer.WriteInt32Packed(instance.maxItemStack);
+                writer.WriteInt32Packed(instance.currSlot);
+                writer.WriteInt32Packed(instance.armorType);
+
+                writer.WriteStringPacked(instance.special);
+
+                writer.WriteBool(instance.isCraftable);
+                writer.WriteBool(instance.isHoldable);
+                writer.WriteBool(instance.isArmor);
+                writer.WriteBool(instance.isDragging);
+                writer.WriteBool(instance.showInInventory);
+            }
+        }, (Stream stream) =>
+        {
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
+            {
+                Item item = new Item();
+                item.itemID = reader.ReadInt32Packed();
+                item.itemStack = reader.ReadInt32Packed();
+                item.maxItemStack = reader.ReadInt32Packed();
+                item.currSlot = reader.ReadInt32Packed();
+                item.armorType = reader.ReadInt32Packed();
+
+                item.special = reader.ReadStringPacked().ToString();
+
+                item.isCraftable = reader.ReadBool();
+                item.isHoldable = reader.ReadBool();
+                item.isArmor = reader.ReadBool();
+                item.isDragging = reader.ReadBool();
+                item.showInInventory = reader.ReadBool();
+                return item;
+            }
+        });
     }
 
     #endregion
+
+
+
+    //Player lists
     public List<PlayerInfo> activePlayers;
     public List<PlayerInfo> inactivePlayers;
+
+    //Object lists
+    private List<GameObject> activeGameObjects;
+    private List<Resource> activeGameResources;
+
+    //Systems
     private PlayerInfoManager playerInfoManager;
     private ServerSaveData serverSaveData;
+    private InventorySystem inventorySystem;
+    private ClickableSystem clickableSystem;
+    //Item Datas
+    private ItemData[] allItems;
 
 
     private void Start()
     {
-        if (NetworkingManager.Singleton.IsServer) 
+        
+        if (NetworkingManager.Singleton.IsServer)
         {
             StartGameServer();
         }
+        
+
     }
 
     //-----------------------------------------------------------------//
@@ -48,29 +103,36 @@ public class GameServer : NetworkedBehaviour
         Debug.Log("Network - Server - Starting Game Server");
         activePlayers = new List<PlayerInfo>();
         inactivePlayers = new List<PlayerInfo>();
+        allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         serverSaveData = Resources.Load("Data/ServerSaveData") as ServerSaveData;
-        if (serverSaveData.playerData != null) 
+        if (serverSaveData.playerData != null)
         {
             inactivePlayers = serverSaveData.playerData;
+            activeGameObjects = serverSaveData.objData;
         }
+        activeGameResources = FindObjectsOfType<Resource>().ToList();
         playerInfoManager = PlayerInfoManager.singleton;
+        inventorySystem = GetComponent<InventorySystem>();
+        clickableSystem = GetComponent<ClickableSystem>();
+        LoadGameObjects();
     }
-    public void StopGameServer() 
+    public void StopGameServer()
     {
         inactivePlayers.Concat(activePlayers).ToList();
         if (serverSaveData != null)
         {
             serverSaveData.playerData = inactivePlayers;
+            serverSaveData.objData = activeGameObjects;
             NetworkingManager.Singleton.StopServer();
         }
     }
-    public void ActiveManage(PlayerInfo info, bool add) 
+    public void ActiveManage(PlayerInfo info, bool add)
     {
-        if (add) 
+        if (add)
         {
-            activePlayers.Add(info);    
+            activePlayers.Add(info);
         }
-        else 
+        else
         {
             activePlayers.Remove(info);
         }
@@ -94,31 +156,39 @@ public class GameServer : NetworkedBehaviour
     public void PlayerConnected_Player(ulong networkId)
     {
         Debug.Log("Network - Game - Connected to Server.");
-        InvokeServerRpc(HandoverNetworkId, PlayerPrefs.GetInt("id") , PlayerPrefs.GetString("authKey") , networkId);
+        InvokeServerRpc(HandoverNetworkId, PlayerPrefs.GetInt("id"), PlayerPrefs.GetString("authKey"), networkId);
     }
     [ServerRPC(RequireOwnership = false)]
     private void HandoverNetworkId(int id, string authKey, ulong networkId)
     {
-        GetActivePlayerByAuth(id, authKey).networkId = networkId;
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                activePlayers[i].networkId = networkId;
+                break;
+            }
+        }
     }
     public void PlayerDisconnected_Player(ulong obj)
     {
-        
+
     }
 
     //-----------------------------------------------------------------//
     //             SERVER SIDE TOOLS                                   //
     //-----------------------------------------------------------------//
 
-    private PlayerInfo GetActivePlayerByAuth(int id, string authKey) 
+    private PlayerInfo GetActivePlayerByAuth(int id, string authKey)
     {
         PlayerInfo info = null;
-        foreach (PlayerInfo player in activePlayers)
+        foreach (PlayerInfo player in activePlayers.ToList())
         {
-            if(player.id == id) 
+            if (player.id == id)
             {
-                if(player.authKey == authKey) 
+                if (player.authKey == authKey)
                 {
+                    activePlayers.Remove(player);
                     info = player;
                     break;
                 }
@@ -126,37 +196,312 @@ public class GameServer : NetworkedBehaviour
         }
         return info;
     }
-    private PlayerInfo GetActivePlayerById(ulong networkId)
+    public void MovePlayerToInactive(ulong clientId)
     {
-        PlayerInfo info = null;
-        foreach (PlayerInfo player in activePlayers)
+        for (int i = 0; i < activePlayers.Count; i++)
         {
-            if (player.networkId == networkId)
+            if (activePlayers[i].clientId == clientId)
             {
-                    info = player;
-                    break;
+                inactivePlayers.Add(activePlayers[i]);
+                activePlayers.Remove(activePlayers[i]);
+                break;
+            }
+            else
+            {
+                if (logActions)
+                {
+                    Debug.Log("Server - TOOL - Unable to Move Player To Inactive: " + clientId);
+                }
             }
         }
-        return info;
+        
     }
-    private PlayerInfo GetActivePlayerByClientId(ulong clientId)
+    private ItemData GetItemDataById(int id) 
     {
-        PlayerInfo info = null;
-        foreach (PlayerInfo player in activePlayers)
+        ItemData itemData = null;
+        foreach (ItemData data in allItems)
         {
-            if (player.clientId == clientId)
+            if (data.itemID == id)
             {
-                info = player;
+                itemData = data;
                 break;
             }
         }
-        return info;
+        return itemData;
     }
-    public void MovePlayerToInactive(ulong clientId) 
+    
+    //-----------------------------------------------------------------//
+    //             Server Action : Change Player Info                  //
+    //-----------------------------------------------------------------//
+
+    //Health
+    public void ServerSetHealth(ulong clientId, int amount) 
     {
-        PlayerInfo player = GetActivePlayerByClientId(clientId);
-        inactivePlayers.Add(player);
-        activePlayers.Remove(player);
+        if (logActions) 
+        {
+            Debug.Log("Server - Action - Set Health of Client: " + clientId);
+        }
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if(activePlayers[i].clientId == clientId) 
+            {
+                activePlayers[i].health += amount;
+                ForceRequestInfoById(clientId, 2);
+                break;
+            }
+            else 
+            {
+                if (logActions)
+                {
+                    Debug.Log("Server - Action - Unable to Set Health of Client: " + clientId);
+                }
+            }
+        }
+    }
+
+    //Inventory Items Add by ID
+    public void ServerAddNewItemToInventory(ulong clientId, int id, int amount) 
+    {
+        if (logActions)
+        {
+            Debug.Log("Server - Action - Add Item to Inventory of Client: " + clientId);
+        }
+        ItemData itemData = GetItemDataById(id);
+        if(itemData != null) 
+        {
+            if (amount <= itemData.maxItemStack)
+            {
+                Item item = new Item();
+                item.itemID = id;
+                item.itemStack = amount;
+                item.maxItemStack = itemData.maxItemStack;
+                item.currSlot = 44;
+                item.armorType = itemData.armorType;
+                item.isCraftable = itemData.isCraftable;
+                item.isHoldable = itemData.isHoldable;
+                item.isArmor = itemData.isArmor;
+                item.isDragging = itemData.isDragging;
+                item.showInInventory = itemData.showInInventory;
+                ServerAddItemToInventory(clientId, item);
+            }
+            else
+            {
+                amount -= itemData.maxItemStack;
+                Item item = new Item();
+                item.itemID = id;
+                item.itemStack = itemData.maxItemStack;
+                item.maxItemStack = itemData.maxItemStack;
+                item.currSlot = 44;
+                item.armorType = itemData.armorType;
+                item.isCraftable = itemData.isCraftable;
+                item.isHoldable = itemData.isHoldable;
+                item.isArmor = itemData.isArmor;
+                item.isDragging = itemData.isDragging;
+                item.showInInventory = itemData.showInInventory;
+                ServerAddItemToInventory(clientId, item);
+                if (amount >= itemData.maxItemStack)
+                {
+                    amount -= itemData.maxItemStack;
+                    Item nitem = new Item();
+                    nitem.itemID = id;
+                    nitem.itemStack = itemData.maxItemStack;
+                    nitem.maxItemStack = itemData.maxItemStack;
+                    nitem.currSlot = 44;
+                    nitem.armorType = itemData.armorType;
+                    nitem.isCraftable = itemData.isCraftable;
+                    nitem.isHoldable = itemData.isHoldable;
+                    nitem.isArmor = itemData.isArmor;
+                    nitem.isDragging = itemData.isDragging;
+                    nitem.showInInventory = itemData.showInInventory;
+                    ServerAddItemToInventory(clientId, nitem);
+                    if (amount > 0)
+                    {
+                        Item bitem = new Item();
+                        bitem.itemID = id;
+                        bitem.itemStack = amount;
+                        bitem.maxItemStack = itemData.maxItemStack;
+                        bitem.currSlot = 44;
+                        bitem.armorType = itemData.armorType;
+                        bitem.isCraftable = itemData.isCraftable;
+                        bitem.isHoldable = itemData.isHoldable;
+                        bitem.isArmor = itemData.isArmor;
+                        bitem.isDragging = itemData.isDragging;
+                        bitem.showInInventory = itemData.showInInventory;
+                        ServerAddItemToInventory(clientId, bitem);
+                    }
+                }
+                else
+                {
+                    amount -= itemData.maxItemStack;
+                    Item nitem = new Item();
+                    nitem.itemID = id;
+                    nitem.itemStack = amount;
+                    nitem.maxItemStack = itemData.maxItemStack;
+                    nitem.currSlot = 44;
+                    nitem.armorType = itemData.armorType;
+                    nitem.isCraftable = itemData.isCraftable;
+                    nitem.isHoldable = itemData.isHoldable;
+                    nitem.isArmor = itemData.isArmor;
+                    nitem.isDragging = itemData.isDragging;
+                    nitem.showInInventory = itemData.showInInventory;
+                    ServerAddItemToInventory(clientId, nitem);
+                }
+            }
+        }
+        else 
+        {
+            //ItemData returned null
+        }
+    }
+    
+    //Inventory Items Add by Item
+    public void ServerAddItemToInventory(ulong clientId, Item item)
+    {
+        if (logActions)
+        {
+            Debug.Log("Server - Action - Added Item to Inventory of Client: " + clientId);
+        }
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].clientId == clientId)
+            {
+                activePlayers[i].items = inventorySystem.AddItemToInventory(item, activePlayers[i].items);
+                ForceRequestInfoById(clientId, 5);
+                break;
+            }
+            else
+            {
+                if (logActions)
+                {
+                    Debug.Log("Server - Action - Unable to Add Item to Inventory of Client: " + clientId);
+                }
+            }
+        }
+    }
+    
+    //Inventory Items Remove
+    public void ServerRemoveItemFromInventory(ulong clientId, int itemId, int amount)
+    {
+        if (logActions)
+        {
+            Debug.Log("Server - Action - Removed Item from Inventory of Client: " + clientId);
+        }
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].clientId == clientId)
+            {
+                activePlayers[i].items = inventorySystem.RemoveItemFromInventory(itemId, amount, activePlayers[i].items);
+                ForceRequestInfoById(clientId, 5);
+                break;
+            }
+            else
+            {
+                if (logActions)
+                {
+                    Debug.Log("Server - Action - Unable to Add Item to Inventory of Client: " + clientId);
+                }
+            }
+        }
+    }
+    
+    //Inventory Blueprints Add
+    public void ServerAddBlueprint(ulong clientId, Item newBp)
+    {
+        if (logActions)
+        {
+            Debug.Log("Server - Action - Added Blueprint to Inventory of Client: " + clientId);
+        }
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].clientId == clientId)
+            {
+                activePlayers[i].blueprints = inventorySystem.AddBlueprintToBlueprints(newBp.itemID, activePlayers[i].blueprints);
+                ForceRequestInfoById(clientId, 7);
+                break;
+            }
+            else
+            {
+                if (logActions)
+                {
+                    Debug.Log("Server - Action - Unable to Add Blueprint to Inventory of Client: " + clientId);
+                }
+            }
+        }
+    }
+    
+    //Inventory Blueprints Whipe
+    public void ServerWipeBlueprints(ulong clientId)
+    {
+        if (logActions)
+        {
+            Debug.Log("Server - Action - Wiped the Blueprints of Client: " + clientId);
+        }
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].clientId == clientId)
+            {
+                activePlayers[i].blueprints = null;
+                ForceRequestInfoById(clientId, 7);
+                break;
+            }
+            else
+            {
+                if (logActions)
+                {
+                    Debug.Log("Server - Action - Unable to Wipe Blueprints of Client: " + clientId);
+                }
+            }
+        }
+    }
+
+
+    //-----------------------------------------------------------------//
+    //             Server Action : Handle GameObjs                     //
+    //-----------------------------------------------------------------//
+
+    private void LoadGameObjects() 
+    {
+        if(activeGameObjects != null) 
+        {
+            if (activeGameObjects.Count > 0)
+            {
+                foreach (GameObject obj in activeGameObjects)
+                {
+                    GameObject newObject = Instantiate(obj, obj.transform.position, obj.transform.rotation);
+                    Clickable clickable = newObject.GetComponent<Clickable>();
+                    Placeable placeable = newObject.GetComponent<Placeable>();
+                    if (clickable != null)
+                    {
+
+                    }
+                    else if (placeable != null)
+                    {
+
+                    }
+                }
+            }
+        }
+    }
+
+    private void DepleteResource(ulong clientId, GameObject obj) 
+    {
+        Resource resource = obj.GetComponent<Resource>();
+        if (resource != null) 
+        {
+            int amount = resource.gatherAmount;
+            int gather = resource.gatherPerAmount;
+
+            if (amount - gather <= 0)
+            {
+                
+            }
+            else 
+            {
+            //    resource.gatherAmount -= gather;
+            //    serverInventoryManager.AddItem(resource.gatherItem.itemID, gather);
+            }
+
+        }
     }
 
     //-----------------------------------------------------------------//
@@ -239,75 +584,84 @@ public class GameServer : NetworkedBehaviour
         return value;
     }
     //--Inventory items
-    public void GetPlayerInventoryItems(int id, Action<string> callback)
+    public void GetPlayerInventoryItems(int id, Action<Item[]> callback)
     {
         StartCoroutine(GetPlayerInventoryItems_Wait(id, returnValue => { callback(returnValue); }));
     }
-    private IEnumerator GetPlayerInventoryItems_Wait(int id, Action<string> callback)
+    private IEnumerator GetPlayerInventoryItems_Wait(int id, Action<Item[]> callback)
     {
-        RpcResponse<string> response = InvokeServerRpc(GetPlayerInventoryItems_Rpc, id);
+        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryItems_Rpc, id);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
     [ServerRPC(RequireOwnership = false)]
-    private string GetPlayerInventoryItems_Rpc(int id)
+    private Item[] GetPlayerInventoryItems_Rpc(int id)
     {
-        string value = "";
+        Item[] value = null;
         foreach (PlayerInfo player in activePlayers)
         {
             if (player.id == id)
             {
-                value = player.items;
+                if (player.items != null) 
+                {   
+                    value = player.items;
+                }
                 break;
             }
         }
         return value;
     }
     //--Inventory armor
-    public void GetPlayerInventoryArmor(int id, Action<string> callback)
+    public void GetPlayerInventoryArmor(int id, Action<Item[]> callback)
     {
         StartCoroutine(GetPlayerInventoryArmor_Wait(id, returnValue => { callback(returnValue); }));
     }
-    private IEnumerator GetPlayerInventoryArmor_Wait(int id, Action<string> callback)
+    private IEnumerator GetPlayerInventoryArmor_Wait(int id, Action<Item[]> callback)
     {
-        RpcResponse<string> response = InvokeServerRpc(GetPlayerInventoryArmor_Rpc, id);
+        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryArmor_Rpc, id);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
     [ServerRPC(RequireOwnership = false)]
-    private string GetPlayerInventoryArmor_Rpc(int id)
+    private Item[] GetPlayerInventoryArmor_Rpc(int id)
     {
-        string value = "";
+        Item[] value = null;
         foreach (PlayerInfo player in activePlayers)
         {
             if (player.id == id)
             {
-                value = player.armor;
+                if(player.armor != null) 
+                {
+                    value = player.armor;
+                }
                 break;
             }
         }
         return value;
     }
     //--Inventory blueprints
-    public void GetPlayerInventoryBlueprints(int id, Action<string> callback)
+    public void GetPlayerInventoryBlueprints(int id, Action<int[]> callback)
     {
         StartCoroutine(GetPlayerInventoryBlueprints_Wait(id, returnValue => { callback(returnValue); }));
     }
-    private IEnumerator GetPlayerInventoryBlueprints_Wait(int id, Action<string> callback)
+    private IEnumerator GetPlayerInventoryBlueprints_Wait(int id, Action<int[]> callback)
     {
-        RpcResponse<string> response = InvokeServerRpc(GetPlayerInventoryBlueprints_Rpc, id);
+        RpcResponse<int[]> response = InvokeServerRpc(GetPlayerInventoryBlueprints_Rpc, id);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
     [ServerRPC(RequireOwnership = false)]
-    private string GetPlayerInventoryBlueprints_Rpc(int id)
+    private int[] GetPlayerInventoryBlueprints_Rpc(int id)
     {
-        string value = "";
+        int[] value = null;
         foreach (PlayerInfo player in activePlayers)
         {
             if (player.id == id)
             {
-                value = player.blueprints;
+                if (player.blueprints != null)
+                {
+                    value = player.blueprints;
+                }
                 break;
             }
         }
@@ -327,9 +681,15 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void SetPlayerHealth_Rpc(int id, string authKey, int health) 
     {
-        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
-        GetActivePlayerByAuth(id, authKey).health += health;
-        ForceRequestInfoById(player.clientId, 2);
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                activePlayers[i].health += health;
+                ForceRequestInfoById(activePlayers[i].clientId, 2);
+                break;
+            }
+        }
     }
     //--Set Player Water
     public void SetPlayerWater(int id, string authKey, int water)
@@ -339,9 +699,15 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void SetPlayerWater_Rpc(int id, string authKey, int water)
     {
-        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
-        player.water +=water;
-        ForceRequestInfoById(player.clientId, 4);
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                activePlayers[i].water += water;
+                ForceRequestInfoById(activePlayers[i].clientId, 2);
+                break;
+            }
+        }
     }
     //--Set Player Food
     public void SetPlayerFood(int id, string authKey, int food)
@@ -351,45 +717,15 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void SetPlayerFood_Rpc(int id, string authKey, int food)
     {
-        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
-        player.food += food;
-        ForceRequestInfoById(player.clientId, 3);
-    }
-    //--Set Player Inventory Items
-    public void SetPlayerInventoryItems(int id, string authKey, string items)
-    {
-        InvokeServerRpc(SetPlayerInventoryItems_Rpc, id, authKey, items);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void SetPlayerInventoryItems_Rpc(int id, string authKey, string items)
-    {
-        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
-        player.items += items;
-        ForceRequestInfoById(player.clientId, 5);
-    }
-    //--Set Player Inventory Armor
-    public void SetPlayerInventoryArmor(int id, string authKey, string armor)
-    {
-        InvokeServerRpc(SetPlayerInventoryArmor_Rpc, id, authKey, armor);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void SetPlayerInventoryArmor_Rpc(int id, string authKey, string armor)
-    {
-        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
-        player.armor += armor;
-        ForceRequestInfoById(player.clientId, 6);
-    }
-    //--Set Player Inventory Blueprints
-    public void SetPlayerInventoryBlueprints(int id, string authKey, string blueprints)
-    {
-        InvokeServerRpc(SetPlayerInventoryBlueprints_Rpc, id, authKey, blueprints);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void SetPlayerInventoryBlueprints_Rpc(int id, string authKey, string blueprints)
-    {
-        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
-        player.blueprints += blueprints;
-        ForceRequestInfoById(player.clientId, 7);
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                activePlayers[i].food += food;
+                ForceRequestInfoById(activePlayers[i].clientId, 2);
+                break;
+            }
+        }
     }
     //--Set Player Location
     public void SetPlayerLocation(int id, string authKey, Vector3 location)
@@ -399,76 +735,176 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void SetPlayerLocation_Rpc(int id, string authKey, Vector3 location)
     {
-        PlayerInfo player = GetActivePlayerByAuth(id, authKey);
-        player.location += location;
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                activePlayers[i].location = location;
+                ForceRequestInfoById(activePlayers[i].clientId, 2);
+                break;
+            }
+        }
     }
+    
+    
+    //-----------------------------------------------------------------//
+    //         Player Request : Inventory Items Modification           //
+    //-----------------------------------------------------------------//
 
-
+    //--Move Player Inventory Item by Slot
+    public void MovePlayerItemBySlot(int id, string authKey, int curSlot, int newSlot)
+    {
+        if(curSlot > 33 || newSlot > 33) 
+        {
+            InvokeServerRpc(MovePlayerItemArmorBySlot_Rpc, id, authKey, curSlot, newSlot);
+        }
+        else 
+        {
+            InvokeServerRpc(MovePlayerItemBySlot_Rpc, id, authKey, curSlot, newSlot);
+        }
+        
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void MovePlayerItemBySlot_Rpc(int id, string authKey, int curSlot, int newSlot)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                activePlayers[i].items = inventorySystem.MoveItemInInventory(curSlot, newSlot, activePlayers[i].items);
+                ForceRequestInfoById(activePlayers[i].clientId, 5);
+                break;
+            }
+        }
+    }
+    private void MovePlayerItemArmorBySlot_Rpc(int id, string authKey, int curSlot, int newSlot)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                ItemArmorArrays arrays = inventorySystem.MoveArmorInInventory(curSlot, newSlot, activePlayers[i].items, activePlayers[i].armor);
+                activePlayers[i].items = arrays.items;
+                activePlayers[i].items = arrays.items;
+                ForceRequestInfoById(activePlayers[i].clientId);
+                break;
+            }
+        }
+    }
+    //--Remove Player Inventory Item by Slot
+    public void RemovePlayerItemBySlot(int id, string authKey, int curSlot)
+    {
+        InvokeServerRpc(RemovePlayerItemBySlot_Rpc, id, authKey, curSlot);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void RemovePlayerItemBySlot_Rpc(int id, string authKey, int curSlot)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                activePlayers[i].items = inventorySystem.RemoveItemFromInventoryBySlot(curSlot, activePlayers[i].items, returnValue =>
+                {
+                    if (returnValue != null)
+                    {
+                        Debug.Log("Instantiate Item ID: " + returnValue.itemID);
+                    }
+                });
+                ForceRequestInfoById(activePlayers[i].clientId, 5);
+                break;
+            }
+        }       
+    }
 
     //-----------------------------------------------------------------//
     //             Player Request : Raycast Hit                        //
     //-----------------------------------------------------------------//
-    public void PlayerRayCastHit(NetworkedObject player, int type) 
+
+    //public void PlayerRayCastHit(NetworkedObject player, int type) 
+    //{
+    //    InvokeServerRpc(PlayerRayCastHitRpc, player, type);
+    //}
+    //[ServerRPC(RequireOwnership = false)]
+    //private void PlayerRayCastHitRpc(NetworkedObject player, int type) 
+    //{
+
+    //    float distance = 1F;
+    //    int damage = 1;
+    //    if(type == 1) { distance = 2f; }
+    //    if (type == 2) { distance = 8f; }
+    //    if (type == 3) { distance = 30f; }
+    //    if (type == 4) { distance = 50f; }
+
+    //    Transform playerTransform = player.GetComponent<Transform>();
+    //    RaycastHit hit;
+    //    LagCompensationManager.Simulate(player.NetworkId, () => 
+    //    {
+    //        if (Physics.Raycast(playerTransform.position, -Vector3.up, out hit, distance))
+    //        {
+    //            GameObject hitObject = hit.collider.gameObject;
+    //            Vector3 hitPosition = hitObject.transform.position;
+    //            string tag = hitObject.tag;
+
+    //            if (tag == "Player") 
+    //            {
+    //                ulong playerId = hitObject.GetComponent<NetworkedObject>().NetworkId;
+    //                PlayerInfo playerInfo = GetActivePlayerById(playerId);
+    //                int health = playerInfo.health;
+    //                if(health - damage <= 0) 
+    //                {
+    //                    //Kill Player
+    //                }
+    //                else 
+    //                {
+    //                    health -= damage;
+    //                    ForceRequestInfoById(playerId, 2);
+    //                }
+    //            }
+    //            if (tag == "Enemy")
+    //            {
+
+    //            }
+    //            if (tag == "Friendly")
+    //            {
+
+    //            }
+    //            if (tag == "Tree")
+    //            {
+
+    //            }
+
+    //        }
+    //    });
+    //}
+
+
+    //-----------------------------------------------------------------//
+    //         Player Request : Inventory Items Modification           //
+    //-----------------------------------------------------------------//
+    //--Move Player Inventory Item by Slot
+    public void InteractWithClickable(int id, string authKey, string uniqueId)
     {
-        InvokeServerRpc(PlayerRayCastHitRpc, player, type);
+        InvokeServerRpc(InteractWithClickable_Rpc, id, authKey, uniqueId);
     }
     [ServerRPC(RequireOwnership = false)]
-    private void PlayerRayCastHitRpc(NetworkedObject player, int type) 
+    private void InteractWithClickable_Rpc(int id, string authKey, string uniqueId)
     {
-
-        float distance = 1F;
-        int damage = 1;
-        if(type == 1) { distance = 2f; }
-        if (type == 2) { distance = 8f; }
-        if (type == 3) { distance = 30f; }
-        if (type == 4) { distance = 50f; }
-
-        Transform playerTransform = player.GetComponent<Transform>();
-        RaycastHit hit;
-        LagCompensationManager.Simulate(player.NetworkId, () => 
+        for (int i = 0; i < activePlayers.Count; i++)
         {
-            if (Physics.Raycast(playerTransform.position, -Vector3.up, out hit, distance))
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                GameObject hitObject = hit.collider.gameObject;
-                Vector3 hitPosition = hitObject.transform.position;
-                string tag = hitObject.tag;
-
-                if (tag == "Player") 
-                {
-                    ulong playerId = hitObject.GetComponent<NetworkedObject>().NetworkId;
-                    PlayerInfo playerInfo = GetActivePlayerById(playerId);
-                    int health = playerInfo.health;
-                    if(health - damage <= 0) 
-                    {
-                        //Kill Player
-                    }
-                    else 
-                    {
-                        health -= damage;
-                        ForceRequestInfoById(playerId, 2);
-                    }
-                }
-                if (tag == "Enemy")
-                {
-
-                }
-                if (tag == "Friendly")
-                {
-
-                }
-                if (tag == "Tree")
-                {
-
-                }
-
+                clickableSystem.InteractWithClickable(activePlayers[i], uniqueId);
+                break;
             }
-        });
+        }
     }
+
+
 
     //-----------------------------------------------------------------//
     //             Client RPC : Force Request                          //
     //-----------------------------------------------------------------//
-    private void ForceRequestInfoById(ulong clientId, int infoDepth) 
+    private void ForceRequestInfoById(ulong clientId, int infoDepth=1) 
     {
         List<ulong> idList = new List<ulong>();
         idList.Add(clientId);
@@ -541,6 +977,9 @@ public class GameServer : NetworkedBehaviour
 }
 
 
+
+
+
 public class PlayerInfo 
 {
     public string name;
@@ -551,8 +990,9 @@ public class PlayerInfo
     public int water;
     public Vector3 location;
     public ulong networkId;
-    public string items;
-    public string armor;
-    public string blueprints;
+    public Item[] items;
+    public Item[] armor;
+    public int[] blueprints;
     public ulong clientId;
 }
+

@@ -85,7 +85,7 @@ using UnityStandardAssets.CrossPlatformInput;
 			{
 				m_VerticalVirtualAxis = new CrossPlatformInputManager.VirtualAxis(verticalAxisName);
 				CrossPlatformInputManager.RegisterVirtualAxis(m_VerticalVirtualAxis);
-			}
+            }
 		}
 
 		void UpdateVirtualAxes(Vector3 value)
@@ -99,7 +99,7 @@ using UnityStandardAssets.CrossPlatformInput;
 			if (m_UseY)
 			{
 				m_VerticalVirtualAxis.Update(value.y);
-			}
+            }
 		}
 
 

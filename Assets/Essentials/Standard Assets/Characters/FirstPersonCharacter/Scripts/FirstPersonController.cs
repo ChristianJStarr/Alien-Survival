@@ -27,7 +27,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private AudioClip[] m_FootstepSounds;    // an array of footstep sounds that will be randomly selected from.
         [SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
         [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
-
+        [SerializeField] private Transform cameraPivot;
 
         private Animator animator;
         private Camera m_Camera;
@@ -62,7 +62,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Crouching = false;
             m_Crouch = false;
             m_AudioSource = GetComponent<AudioSource>();
-            m_MouseLook.Init(transform, m_Camera.transform);
+            m_MouseLook.Init(transform, cameraPivot);
         }
 
 
@@ -98,8 +98,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void PlayLandingSound()
         {
-            m_AudioSource.clip = m_LandSound;
-            m_AudioSource.Play();
+           // m_AudioSource.clip = m_LandSound;
+            //m_AudioSource.Play();
             m_NextStep = m_StepCycle + .5f;
         }
 
@@ -306,7 +306,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void RotateView()
         {
-            m_MouseLook.LookRotation(transform, m_Camera.transform);
+            m_MouseLook.LookRotation(transform, cameraPivot);
         }
 
 
