@@ -18,10 +18,6 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     public Item item;
     public ItemData itemData;
     public InventoryGfx inventoryGfx;
-    public GameObject itemTooltip;
-    public GameObject itemToolcraft;
-    public GameObject toolTipSplit;
-    public Slider toolTipSlider;
     Vector3 iconPos;
     
 
@@ -29,7 +25,6 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     private void Start()
     {
         iconPos = icon.gameObject.transform.position;
-        itemTooltip.SetActive(false);
     }
 
 
@@ -80,8 +75,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
         if (item != null)
         {
             icon.gameObject.transform.position = Input.mousePosition;
-            item.isDragging = true;
-            //SetTooltip();
+            SetTooltip();
         }
     }
     public void OnEndDrag(PointerEventData eventData)
@@ -92,7 +86,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     {
         if (item != null)
         {
-            //SetTooltip();
+            SetTooltip();
         }
     }
     public void Toggle() 
@@ -118,26 +112,9 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     }
     public void SetTooltip() 
     {
-        if (inventoryGfx.invOpen) 
+        if(item != null) 
         {
-            itemTooltip.SetActive(true);
-            itemToolcraft.SetActive(false);
-            if (item.maxItemStack > 1)
-            {
-                toolTipSlider.minValue = 1;
-                toolTipSlider.maxValue = item.itemStack;
-                toolTipSlider.value = toolTipSlider.maxValue / 2;
-                toolTip_button.text = "SPLIT  " + toolTipSlider.value;
-                toolTipSplit.SetActive(true);
-            }
-            else
-            {
-                toolTipSplit.SetActive(false);
-            }
-            toolTipImage.sprite = icon.sprite;
-            toolTip_name.text = itemData.name;
-            toolTip_desc.text = itemData.description;
-            inventoryGfx.toolTipItem = item;
+            inventoryGfx.ActivateToolTip(item);
         }
     }
 }

@@ -14,12 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   icon: {fileID: 21300000, guid: 72d48c3275cb77148ab4e1c028a984e7, type: 3}
   itemID: 12
-  craftAmount: 0
-  name: Bandage
-  description: This is the description for this item
-  recipe: []
+  craftAmount: 1
   maxItemStack: 200
   armorType: 0
+  name: Bandage
+  description: This is the description for this item
+  recipe:
+  - 48-1
+  itemUse:
+  - 3-10
   isCraftable: 1
   isHoldable: 0
   isArmor: 0

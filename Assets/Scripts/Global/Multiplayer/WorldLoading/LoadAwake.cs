@@ -16,29 +16,43 @@ public class LoadAwake : MonoBehaviour
     private bool textOff = false;
     private ControlControl controls;
     private bool readyToWake = false;
+    private bool isClient = false;
+
 
     void Start()
     {
-        if (NetworkingManager.Singleton.IsClient) 
+        if(NetworkingManager.Singleton != null) 
         {
-            controls = GetComponent<ControlControl>();
-            loadScreen.SetActive(true);
-            image = loadScreen.GetComponent<Image>();
-            if (image == null)
+            if (NetworkingManager.Singleton.IsClient)
             {
-                return;
+                controls = GetComponent<ControlControl>();
+                loadScreen.SetActive(true);
+                image = loadScreen.GetComponent<Image>();
+                if (image == null)
+                {
+                    return;
+                }
+                targetAlpha = 1.0f;
+                text1Target = 1.0f;
+                text2Target = 0.0f;
+                controls.Hide();
+                Cursor.visible = true;
+                isClient = true;
             }
-            targetAlpha = 1.0f;
-            text1Target = 1.0f;
-            text2Target = 0.0f;
-            controls.Hide();
-            Cursor.visible = true;
+            else 
+            {
+                Destroy(this);
+            }
+        }
+        else 
+        {
+            Destroy(this);
         }
     }
     
     void Update()
     {
-        if (NetworkingManager.Singleton.IsClient) 
+        if (isClient) 
         {
             if (loadScreen.activeSelf)
             {

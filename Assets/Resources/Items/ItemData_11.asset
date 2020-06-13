@@ -15,11 +15,13 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: a3db2d3a718d3e048b4cb0dc2dec2047, type: 3}
   itemID: 11
   craftAmount: 0
+  maxItemStack: 200
+  armorType: 0
   name: First Aid Kit
   description: This is the description for this item
   recipe: []
-  maxItemStack: 200
-  armorType: 0
+  itemUse:
+  - 3-50
   isCraftable: 0
   isHoldable: 0
   isArmor: 0

@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   icon: {fileID: 21300000, guid: ac3802fe3962ad74982440c3a351cde5, type: 3}
   itemID: 10
-  craftAmount: 0
+  craftAmount: 15
   name: Shotgun Shell
   description: This is the description for this item
-  recipe: []
+  recipe:
+  - 39-1
+  - 49-2
   maxItemStack: 200
   armorType: 0
   isCraftable: 1

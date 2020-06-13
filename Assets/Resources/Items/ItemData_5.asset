@@ -12,15 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_5
   m_EditorClassIdentifier: 
-  icon: {fileID: 21300000, guid: 6bf9fdae30ff7f34ebb400a01c5119e0, type: 3}
+  icon: {fileID: 21300000, guid: b70861866dbc8c24b8eaa9592e6f64e5, type: 3}
   itemID: 5
-  craftAmount: 0
-  name: Pistol
-  description: This is the description for this item
-  recipe: []
+  craftAmount: 1
   maxItemStack: 1
   armorType: 0
-  isCraftable: 0
+  name: Pistol
+  description: This is the description for this item
+  recipe:
+  - 43-2
+  - 39-1
+  itemUse:
+  - 4-5
+  isCraftable: 1
   isHoldable: 1
   isArmor: 0
   isDragging: 0

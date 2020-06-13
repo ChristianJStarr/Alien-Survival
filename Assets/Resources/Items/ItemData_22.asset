@@ -15,11 +15,14 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 05c7216c78d4dd34ebe2bac9c1e274d7, type: 3}
   itemID: 22
   craftAmount: 1
-  name: Metal Pipe
-  description: This is an Pipe
-  recipe: []
   maxItemStack: 1
   armorType: 0
+  name: Metal Pipe
+  description: This is an Pipe
+  recipe:
+  - 39-2
+  itemUse:
+  - 4-15
   isCraftable: 1
   isHoldable: 1
   isArmor: 0

@@ -17,7 +17,8 @@ MonoBehaviour:
   craftAmount: 1
   name: Campfire
   description: This is a campfire
-  recipe: []
+  recipe:
+  - 40-4
   maxItemStack: 1
   armorType: 0
   isCraftable: 1

@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   icon: {fileID: 21300000, guid: 0bc01c43b2b18c04d8ed31dba31576fa, type: 3}
   itemID: 43
-  craftAmount: 1
+  craftAmount: 2
   name: Steel Sheet
   description: This is an Pipe
-  recipe: []
+  recipe:
+  - 42-1
   maxItemStack: 200
   armorType: 0
-  isCraftable: 0
+  isCraftable: 1
   isHoldable: 0
   isArmor: 0
   isDragging: 0

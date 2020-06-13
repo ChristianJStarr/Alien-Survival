@@ -12,14 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_1
   m_EditorClassIdentifier: 
-  icon: {fileID: 21300000, guid: 3aa01aea838c1284485d23e6d13f63cb, type: 3}
+  icon: {fileID: 21300000, guid: b9430832c22f495409d9eddeb29a4320, type: 3}
   itemID: 1
   craftAmount: 0
+  maxItemStack: 1
+  armorType: 0
   name: Spacegun Mk1
   description: This is the description for this item
   recipe: []
-  maxItemStack: 1
-  armorType: 0
+  itemUse:
+  - 4-5
   isCraftable: 0
   isHoldable: 1
   isArmor: 0

@@ -17,7 +17,8 @@ MonoBehaviour:
   craftAmount: 1
   name: Barrier
   description: This is a barrier
-  recipe: []
+  recipe:
+  - 45-6
   maxItemStack: 1
   armorType: 0
   isCraftable: 1

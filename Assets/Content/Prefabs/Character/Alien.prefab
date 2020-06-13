@@ -1713,6 +1713,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   handAnchor: {fileID: 1694906431}
+  playerCamera: {fileID: 1165399418}
 --- !u!205 &792593416563512355
 LODGroup:
   m_ObjectHideFlags: 0

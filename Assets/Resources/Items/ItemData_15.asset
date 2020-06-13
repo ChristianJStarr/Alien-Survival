@@ -15,11 +15,14 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 3277c6f52be2bbf4f82e5a1961196e62, type: 3}
   itemID: 15
   craftAmount: 0
+  maxItemStack: 200
+  armorType: 0
   name: Apple
   description: This is the description for this item
   recipe: []
-  maxItemStack: 200
-  armorType: 0
+  itemUse:
+  - 2-40
+  - 1-20
   isCraftable: 0
   isHoldable: 0
   isArmor: 0

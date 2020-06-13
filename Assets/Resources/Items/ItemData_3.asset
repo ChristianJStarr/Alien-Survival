@@ -15,11 +15,13 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: bfcabcb71fb832842a7b87d95bd5ee9b, type: 3}
   itemID: 3
   craftAmount: 0
+  maxItemStack: 1
+  armorType: 0
   name: HP Laser Rifle
   description: This is the description for this item
   recipe: []
-  maxItemStack: 1
-  armorType: 0
+  itemUse:
+  - 4-7
   isCraftable: 0
   isHoldable: 1
   isArmor: 0

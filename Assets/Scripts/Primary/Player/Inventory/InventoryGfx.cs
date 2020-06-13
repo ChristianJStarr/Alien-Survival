@@ -2,14 +2,12 @@
 using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
 using TMPro;
-using System.IO;
-using System;
 using System.Linq;
 
 public class InventoryGfx : MonoBehaviour
 {
-
-    public GameObject inventoryUI, inventoryBkg, playerMenu, toolTipMenu, craftMenu, bounds, bounds2, bounds3, hotBarButtons;
+    public TopToolTipHandler toolTipHandler;
+    public GameObject inventoryUI, inventoryBkg, playerMenu, craftMenu, bounds, bounds2, bounds3, hotBarButtons, tint;
     public ControlControl controls;
     public Transform itemsParent, armorSlotsContainer;
     public Slider splitSlider;
@@ -26,22 +24,139 @@ public class InventoryGfx : MonoBehaviour
     private int[] blueprints;
     private ItemData[] allItems;
 
+    private bool craftingActive;
+    private bool armorActive;
+
+    public RectTransform armorRect;
+    public RectTransform craftingRect;
+
+    private Vector2 armorTarget = new Vector3(-354F, -41.99303F);
+    private Vector2 craftingTarget = new Vector3(2997, -41.99601F);
+    private bool armorMove;
+    private bool craftingMove;
+
+    private void Update()
+    {
+        UpdateMenus();
+    }
+
+
     public void Incoming(PlayerInfo playerInfo)
     {
         items = playerInfo.items;
         armor = playerInfo.armor;
         blueprints = playerInfo.blueprints;
+        if(craftingMenu == null) 
+        {
+            craftingMenu = GetComponent<CraftingMenu>();
+        }
         craftingMenu.GetResources(items, blueprints);
         UpdateUI();
     }
 
+    public void ButtonCraftingMenu()
+    {
+        craftingActive = !craftingActive;
+        SlideMenu(true, craftingActive);
+        if (armorActive) 
+        {
+            armorActive = false;
+            SlideMenu(false, false);
+        }
+    }
+    public void ButtonArmorMenu() 
+    {
+        armorActive = !armorActive;
+        SlideMenu(false, armorActive);
+        if (craftingActive)
+        {
+            craftingActive = false;
+            SlideMenu(true, false);
+        }
+    }
+
+    private void UpdateMenus() 
+    {
+        if(armorMove) 
+        {
+            if (armorRect.anchoredPosition != armorTarget)
+            {
+                armorRect.anchoredPosition = Vector2.MoveTowards(armorRect.anchoredPosition, armorTarget, 6000 * Time.deltaTime);
+            }
+            else 
+            {
+                armorMove = false;
+                if (armorActive) 
+                {
+                    tint.SetActive(true);
+                }
+                else
+                {
+                    tint.SetActive(false);
+                }
+            }
+        }
+        if(craftingMove) 
+        {
+            if (craftingRect.anchoredPosition != craftingTarget)
+            {
+                craftingRect.anchoredPosition = Vector2.MoveTowards(craftingRect.anchoredPosition, craftingTarget, 6000 * Time.deltaTime);
+            }
+            else 
+            {
+                craftingMove = false;
+                if (craftingActive)
+                {
+                    tint.SetActive(true);
+                }
+                else 
+                {
+                    tint.SetActive(false);
+                }
+            }
+        }
+    }
+
+    private void SlideMenu(bool craftingMenu, bool state) 
+    {
+        if (craftingMenu) 
+        {
+            Vector2 target;
+            if (state) 
+            {
+                target = new Vector2(1943, -41.99601F);
+            }
+            else 
+            {
+                target = new Vector2(2997, -41.99601F);
+            }
+            craftingTarget = target;
+            craftingMove = true;
+        }
+        else 
+        {
+            Vector2 target;
+            if (state)
+            {
+                target = new Vector2(489.6F, -41.99303F);
+            }
+            else
+            {
+                target = new Vector2(-354F, -41.99303F);
+            }
+            armorTarget = target;
+            armorMove = true;
+        }
+    }
+
     void Start()
     {
+
         allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         craftingMenu = GetComponent<CraftingMenu>();
         itemSlots = itemsParent.GetComponentsInChildren<ItemSlot>(true);
         armorSlots = armorSlotsContainer.GetComponentsInChildren<ItemSlot>(true);
-        craftingMenu = GetComponent<CraftingMenu>();
+        
         for (int i = 0; i < itemSlots.Length; i++)
         {
             itemSlots[i].slotNumber = i + 1;
@@ -51,6 +166,22 @@ public class InventoryGfx : MonoBehaviour
             armorSlots[i].slotNumber = i + 34;
         }
     }
+
+
+
+    public void ActivateToolTip(Item item) 
+    {
+        if (!toolTipHandler.gameObject.activeSelf)
+        {
+            toolTipHandler.gameObject.SetActive(true);
+        }
+        toolTipHandler.SetData(FindItemData(item.itemID), item);
+    }
+
+
+
+
+
 
     public Item SelectSlot(int slot) 
     {
@@ -75,8 +206,8 @@ public class InventoryGfx : MonoBehaviour
         if (invOpen)
         {
             invOpen = false;
-            toolTipMenu.SetActive(false);
             controls.Show();
+            toolTipHandler.gameObject.SetActive(false);
         }
         else
         {

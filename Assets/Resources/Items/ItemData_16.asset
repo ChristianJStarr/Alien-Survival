@@ -15,11 +15,14 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: dba07a56d4a9ead40a560baac220ea6a, type: 3}
   itemID: 16
   craftAmount: 0
+  maxItemStack: 200
+  armorType: 0
   name: Can of Beans
   description: Description
   recipe: []
-  maxItemStack: 200
-  armorType: 0
+  itemUse:
+  - 2-50
+  - 1-20
   isCraftable: 0
   isHoldable: 0
   isArmor: 0

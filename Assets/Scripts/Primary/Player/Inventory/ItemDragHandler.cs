@@ -47,11 +47,20 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
                 {
                     if (obj.name == "Image")
                     {
-                        obj = obj.GetComponentInParent<ItemSlot>().gameObject;
+                        ItemSlot itemSlot = obj.GetComponentInParent<ItemSlot>();
+                        if(itemSlot != null) 
+                        {
+                            obj = itemSlot.gameObject;
+                        }
                     }
-                    int newSlot = obj.GetComponent<ItemSlot>().slotNumber;
-                    int curSlot = drop.GetComponent<ItemSlot>().slotNumber;
-                    playerInfoManager.MoveItemBySlots(curSlot, newSlot);
+                    ItemSlot objSlot = obj.GetComponent<ItemSlot>();
+                    ItemSlot dropSlot = drop.GetComponent<ItemSlot>();
+                    if (objSlot != null && dropSlot != null)
+                    {
+                        int newSlot = objSlot.slotNumber;
+                        int curSlot = dropSlot.slotNumber;
+                        playerInfoManager.MoveItemBySlots(curSlot, newSlot);
+                    }
                 }
             }
         }

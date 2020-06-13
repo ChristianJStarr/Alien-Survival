@@ -17,7 +17,9 @@ MonoBehaviour:
   craftAmount: 1
   name: Landmine
   description: This is a landmine.
-  recipe: []
+  recipe:
+  - 39-3
+  - 49-10
   maxItemStack: 1
   armorType: 0
   isCraftable: 1

@@ -17,7 +17,8 @@ MonoBehaviour:
   craftAmount: 1
   name: Storage Cabinet
   description: This is an Pipe
-  recipe: []
+  recipe:
+  - 39-10
   maxItemStack: 1
   armorType: 0
   isCraftable: 1

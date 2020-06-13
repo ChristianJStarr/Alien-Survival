@@ -17,7 +17,8 @@ MonoBehaviour:
   craftAmount: 1
   name: Lock Box
   description: This is an Pipe
-  recipe: []
+  recipe:
+  - 39-4
   maxItemStack: 1
   armorType: 0
   isCraftable: 1

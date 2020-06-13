@@ -9,15 +9,15 @@ public class Item
     public int maxItemStack = 0;
     public int currSlot = 0;
     public int armorType = 0;
-
+    
     public string special = "";
 
     public bool isCraftable = false;
     public bool isHoldable = false;
     public bool isArmor = false;
-    public bool isDragging = false;
     public bool showInInventory = true;
 
 }
 
 
+//i love you christian and im so proud of you for doing all this code and the game looks sooooo good

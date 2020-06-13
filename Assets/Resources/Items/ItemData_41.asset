@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   icon: {fileID: 21300000, guid: 153d2525eea23d14595d1379e5724324, type: 3}
   itemID: 41
-  craftAmount: 1
+  craftAmount: 4
   name: Wood Plank
   description: This is an Pipe
-  recipe: []
+  recipe:
+  - 40-1
   maxItemStack: 200
   armorType: 0
-  isCraftable: 0
+  isCraftable: 1
   isHoldable: 0
   isArmor: 0
   isDragging: 0

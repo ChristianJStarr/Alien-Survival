@@ -12,15 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_7
   m_EditorClassIdentifier: 
-  icon: {fileID: 21300000, guid: 0f736bba448a4ab48ae6ba2c26cadc50, type: 3}
+  icon: {fileID: 21300000, guid: fedceb60a61b14440913b1e09a5454db, type: 3}
   itemID: 7
-  craftAmount: 0
-  name: Shotgun
-  description: This is the description for this item
-  recipe: []
+  craftAmount: 1
   maxItemStack: 1
   armorType: 0
-  isCraftable: 0
+  name: Shotgun
+  description: This is the description for this item
+  recipe:
+  - 43-3
+  - 39-2
+  itemUse:
+  - 4-10
+  isCraftable: 1
   isHoldable: 1
   isArmor: 0
   isDragging: 0

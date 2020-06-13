@@ -158,6 +158,11 @@ public class PlayerInfoManager : MonoBehaviour
         gameServer.RemovePlayerItemBySlot(id, authKey, curSlot);
     }
 
+    public void CraftItemById(int itemId, int amount) 
+    {
+        gameServer.CraftItemById(id, authKey, itemId, amount);
+    }
+
     private IEnumerator FoodDepleteLoop() 
     {
         yield return new WaitForSeconds(10f);

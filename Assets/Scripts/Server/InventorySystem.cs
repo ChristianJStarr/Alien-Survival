@@ -7,20 +7,20 @@ using UnityEngine;
 public class InventorySystem : MonoBehaviour
 {
     [SerializeField] private bool show_Stopwatch = true;
-    private int space = 27;
+    private int space = 33;
 
     //-----------------------------------------------------------------//
     //                      Inventory Items                            //
     //-----------------------------------------------------------------//
 
     //Add Item to Inventory
-    public Item[] AddItemToInventory(Item item, Item[] inventory) 
+    public Item[] AddItemToInventory(Item item, Item[] inventory)
     {
         return SortItemSlotsInInventory(AddItemToInventoryTask(item, inventory));
     }
-    
+
     //Remove Item from Inventory
-    public Item[] RemoveItemFromInventory(int id, int amount, Item[] inventory) 
+    public Item[] RemoveItemFromInventory(int id, int amount, Item[] inventory)
     {
         return SortItemSlotsInInventory(RemoveItemFromInventoryTask(id, amount, inventory));
     }
@@ -30,11 +30,11 @@ public class InventorySystem : MonoBehaviour
     {
         foreach (Item item in inventory)
         {
-            if(item.currSlot == curSlot) 
+            if (item.currSlot == curSlot)
             {
                 item.currSlot = newSlot;
             }
-            else if(item.currSlot == newSlot) 
+            else if (item.currSlot == newSlot)
             {
                 item.currSlot = curSlot;
             }
@@ -43,23 +43,46 @@ public class InventorySystem : MonoBehaviour
     }
 
     //Remove Item From Inventory By Slot
-    public Item[] RemoveItemFromInventoryBySlot(int curSlot, Item[] inventory, Action<Item> callback) 
+    public Item[] RemoveItemFromInventoryBySlot(int curSlot, Item[] inventory, Action<Item> callback)
     {
 
         List<Item> newInventory = new List<Item>();
         foreach (Item item in inventory)
         {
-            if(item.currSlot != curSlot) 
+            if (item.currSlot != curSlot)
             {
                 newInventory.Add(item);
             }
-            else 
+            else
             {
                 callback(item);
             }
         }
         return newInventory.ToArray();
     }
+
+    //Remove Items by Recipe
+
+    public Item[] RemoveItemsByRecipe(string[] recipe, int amount, Item[] inventory, ItemData[] allItems) 
+    {
+        foreach (string recipeItem in recipe)
+        {
+            string[] recipeData = recipeItem.Split('-');
+            int itemId = Convert.ToInt32(recipeData[0]);
+            int itemAmount = Convert.ToInt32(recipeData[1]);
+
+            foreach (ItemData itemData in allItems)
+            {
+                if(itemData.itemID == itemId) 
+                {
+                    inventory = RemoveItemFromInventoryTask(itemData.itemID, itemAmount * amount, inventory);
+                    break;
+                }
+            }
+        }
+        return inventory;
+    }
+
 
     //-----------------------------------------------------------------//
     //                      Blueprint Items                            //

@@ -9,7 +9,7 @@ using BreadcrumbAi;
 public class PlayerManager : MonoBehaviour
 {
     public Transform handAnchor;
-
+    public GameObject playerCamera;
     private void Start()
     {
         if (NetworkingManager.Singleton != null)
@@ -17,8 +17,8 @@ public class PlayerManager : MonoBehaviour
             if (NetworkingManager.Singleton.IsClient)
             {
                 NetworkedObject networkedObject = GetComponent<NetworkedObject>();
-                FirstPersonController firstPerson = GetComponentInChildren<FirstPersonController>();
-                Breadcrumbs breadcrumb = GetComponentInChildren<Breadcrumbs>();
+                FirstPersonController firstPerson = GetComponent<FirstPersonController>();
+                Breadcrumbs breadcrumb = GetComponent<Breadcrumbs>();
                 SelectedItemHandler selectedItemHandler = FindObjectOfType<SelectedItemHandler>();
 
 
@@ -42,12 +42,18 @@ public class PlayerManager : MonoBehaviour
                         {
                             Destroy(firstPerson);
                         }
+                        Destroy(playerCamera);
                     }
                 }
             }
             else
             {
-                //Server Logic Player Start        
+                FirstPersonController firstPerson = GetComponent<FirstPersonController>();
+                if (firstPerson != null)
+                {
+                    Destroy(firstPerson);
+                }
+                Destroy(playerCamera);
             }
         }
         else 

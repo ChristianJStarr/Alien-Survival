@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   icon: {fileID: 21300000, guid: 8e764bee3407df049a49ad8579cfbbbb, type: 3}
   itemID: 47
-  craftAmount: 1
+  craftAmount: 20
   name: Thread
   description: This is an Pipe
-  recipe: []
+  recipe:
+  - 36-4
   maxItemStack: 200
   armorType: 0
-  isCraftable: 0
+  isCraftable: 1
   isHoldable: 0
   isArmor: 0
   isDragging: 0

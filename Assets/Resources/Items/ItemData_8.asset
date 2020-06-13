@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   icon: {fileID: 21300000, guid: 8e6a9ea9c4979fc4882da456b25d88e3, type: 3}
   itemID: 8
-  craftAmount: 0
+  craftAmount: 15
   name: 9mm Round
   description: This is the description for this item
-  recipe: []
+  recipe:
+  - 39-1
+  - 49-1
   maxItemStack: 200
   armorType: 0
   isCraftable: 1

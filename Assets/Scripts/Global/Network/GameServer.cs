@@ -36,7 +36,6 @@ public class GameServer : NetworkedBehaviour
                 writer.WriteBool(instance.isCraftable);
                 writer.WriteBool(instance.isHoldable);
                 writer.WriteBool(instance.isArmor);
-                writer.WriteBool(instance.isDragging);
                 writer.WriteBool(instance.showInInventory);
             }
         }, (Stream stream) =>
@@ -55,7 +54,6 @@ public class GameServer : NetworkedBehaviour
                 item.isCraftable = reader.ReadBool();
                 item.isHoldable = reader.ReadBool();
                 item.isArmor = reader.ReadBool();
-                item.isDragging = reader.ReadBool();
                 item.showInInventory = reader.ReadBool();
                 return item;
             }
@@ -259,6 +257,21 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+    private Item CreateItemFromData(ItemData itemData, int id, int amount) 
+    {
+        Item item = new Item();
+        item.itemID = id;
+        item.itemStack = amount;
+        item.maxItemStack = itemData.maxItemStack;
+        item.currSlot = 44;
+        item.armorType = itemData.armorType;
+        item.isCraftable = itemData.isCraftable;
+        item.isHoldable = itemData.isHoldable;
+        item.isArmor = itemData.isArmor;
+        item.showInInventory = itemData.showInInventory;
+        return item;
+    }
+
     //Inventory Items Add by ID
     public void ServerAddNewItemToInventory(ulong clientId, int id, int amount) 
     {
@@ -269,82 +282,17 @@ public class GameServer : NetworkedBehaviour
         ItemData itemData = GetItemDataById(id);
         if(itemData != null) 
         {
-            if (amount <= itemData.maxItemStack)
+            while (amount > 0)
             {
-                Item item = new Item();
-                item.itemID = id;
-                item.itemStack = amount;
-                item.maxItemStack = itemData.maxItemStack;
-                item.currSlot = 44;
-                item.armorType = itemData.armorType;
-                item.isCraftable = itemData.isCraftable;
-                item.isHoldable = itemData.isHoldable;
-                item.isArmor = itemData.isArmor;
-                item.isDragging = itemData.isDragging;
-                item.showInInventory = itemData.showInInventory;
-                ServerAddItemToInventory(clientId, item);
-            }
-            else
-            {
-                amount -= itemData.maxItemStack;
-                Item item = new Item();
-                item.itemID = id;
-                item.itemStack = itemData.maxItemStack;
-                item.maxItemStack = itemData.maxItemStack;
-                item.currSlot = 44;
-                item.armorType = itemData.armorType;
-                item.isCraftable = itemData.isCraftable;
-                item.isHoldable = itemData.isHoldable;
-                item.isArmor = itemData.isArmor;
-                item.isDragging = itemData.isDragging;
-                item.showInInventory = itemData.showInInventory;
-                ServerAddItemToInventory(clientId, item);
-                if (amount >= itemData.maxItemStack)
+                if(amount > itemData.maxItemStack) 
                 {
                     amount -= itemData.maxItemStack;
-                    Item nitem = new Item();
-                    nitem.itemID = id;
-                    nitem.itemStack = itemData.maxItemStack;
-                    nitem.maxItemStack = itemData.maxItemStack;
-                    nitem.currSlot = 44;
-                    nitem.armorType = itemData.armorType;
-                    nitem.isCraftable = itemData.isCraftable;
-                    nitem.isHoldable = itemData.isHoldable;
-                    nitem.isArmor = itemData.isArmor;
-                    nitem.isDragging = itemData.isDragging;
-                    nitem.showInInventory = itemData.showInInventory;
-                    ServerAddItemToInventory(clientId, nitem);
-                    if (amount > 0)
-                    {
-                        Item bitem = new Item();
-                        bitem.itemID = id;
-                        bitem.itemStack = amount;
-                        bitem.maxItemStack = itemData.maxItemStack;
-                        bitem.currSlot = 44;
-                        bitem.armorType = itemData.armorType;
-                        bitem.isCraftable = itemData.isCraftable;
-                        bitem.isHoldable = itemData.isHoldable;
-                        bitem.isArmor = itemData.isArmor;
-                        bitem.isDragging = itemData.isDragging;
-                        bitem.showInInventory = itemData.showInInventory;
-                        ServerAddItemToInventory(clientId, bitem);
-                    }
+                    ServerAddItemToInventory(clientId, CreateItemFromData(itemData, id, itemData.maxItemStack));
                 }
-                else
+                else 
                 {
-                    amount -= itemData.maxItemStack;
-                    Item nitem = new Item();
-                    nitem.itemID = id;
-                    nitem.itemStack = amount;
-                    nitem.maxItemStack = itemData.maxItemStack;
-                    nitem.currSlot = 44;
-                    nitem.armorType = itemData.armorType;
-                    nitem.isCraftable = itemData.isCraftable;
-                    nitem.isHoldable = itemData.isHoldable;
-                    nitem.isArmor = itemData.isArmor;
-                    nitem.isDragging = itemData.isDragging;
-                    nitem.showInInventory = itemData.showInInventory;
-                    ServerAddItemToInventory(clientId, nitem);
+                    ServerAddItemToInventory(clientId, CreateItemFromData(itemData, id, amount));
+                    break;
                 }
             }
         }
@@ -378,6 +326,54 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    //Inventory Items Add by Item
+    public void ServerCraftItemToInventory(ulong clientId, ItemData item, int amount)
+    {
+        if (logActions)
+        {
+            Debug.Log("Server - Action - Add Item to Inventory of Client: " + clientId);
+        }
+        if (item != null)
+        {
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                if (activePlayers[i].clientId == clientId)
+                {
+                    Item[] newInventory = activePlayers[i].items;
+                    while (amount > 0)
+                    {
+                        if (amount > item.maxItemStack)
+                        {
+                            amount -= item.maxItemStack;
+                            newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, item.maxItemStack), newInventory);
+                        }
+                        else
+                        {
+                            newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, amount), newInventory);
+                            break;
+                        }
+                    }
+                    activePlayers[i].items = inventorySystem.RemoveItemsByRecipe(item.recipe, amount, newInventory, allItems);
+                    ForceRequestInfoById(clientId, 5);
+                    break;
+                }
+                else
+                {
+                    if (logActions)
+                    {
+                        Debug.Log("Server - Action - Unable to Add Item to Inventory of Client: " + clientId);
+                    }
+                }
+            }
+        }
+        else
+        {
+            //ItemData returned null
+        }
+    }
+    
+   
+    
     
     //Inventory Items Remove
     public void ServerRemoveItemFromInventory(ulong clientId, int itemId, int amount)
@@ -814,6 +810,104 @@ public class GameServer : NetworkedBehaviour
                 break;
             }
         }       
+    }
+    //--Remove Player Craft Item by ID
+    public void CraftItemById(int id, string authKey, int itemId, int amount)
+    {
+        InvokeServerRpc(CraftItemById_Rpc, id, authKey, itemId, amount);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void CraftItemById_Rpc(int id, string authKey, int itemId, int amount)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                List<InventoryResource> invResource = new List<InventoryResource>();
+                foreach (Item itemRes in activePlayers[i].items)
+                {
+                    bool placed = false;
+                    foreach (InventoryResource invItem in invResource)
+                    {
+                        if (invItem.itemId == itemRes.itemID)
+                        {
+                            invItem.itemAmount += itemRes.itemStack;
+                            placed = true;
+                            break;
+                        }
+                        else
+                        {
+                            placed = false;
+                        }
+                    }
+                    if (!placed)
+                    {
+                        InventoryResource newRes = new InventoryResource();
+                        newRes.itemId = itemRes.itemID;
+                        newRes.itemAmount = itemRes.itemStack;
+                        invResource.Add(newRes);
+                    }
+                }
+                ItemData item = GetItemDataById(itemId);
+                int recipeAmount = item.recipe.Length;
+                int recipeAvail = 0;
+                foreach (string recipe in item.recipe)
+                {
+                    string[] data = recipe.Split('-');
+                    int itemd = Convert.ToInt32(data[0]);
+                    int itemAmount = Convert.ToInt32(data[1]);
+                    if (CraftItemByIdCheck(itemd, itemAmount, invResource))
+                    {
+                        recipeAvail++;
+                    }
+                }
+                if (recipeAvail == recipeAmount)
+                {
+                    Item[] newInventory = activePlayers[i].items;
+
+                    if(amount * item.craftAmount > item.maxItemStack) 
+                    {
+                        while (amount > 0)
+                        {
+                            if (amount > item.maxItemStack)
+                            {
+                                amount -= item.maxItemStack;
+                                newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, item.maxItemStack), newInventory);
+                            }
+                            else
+                            {
+                                newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, amount * item.craftAmount), newInventory);
+                                break;
+                            }
+                        }
+                    }
+                    else 
+                    {
+                        newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, amount * item.craftAmount), newInventory);
+                    }
+                    activePlayers[i].items = inventorySystem.RemoveItemsByRecipe(item.recipe, amount, newInventory, allItems);
+                    ForceRequestInfoById(activePlayers[i].clientId, 5);
+                }
+                else
+                {
+                    //Not enough?
+                }
+                break;
+            }
+        }
+    }
+    private bool CraftItemByIdCheck(int id, int amount, List<InventoryResource> invResource) 
+    {
+        bool hasItem = false;
+        foreach (InventoryResource item in invResource)
+        {
+            if (item.itemId == id && item.itemAmount >= amount)
+            {
+                hasItem = true;
+                break;
+            }
+        }
+        return hasItem;
     }
 
     //-----------------------------------------------------------------//

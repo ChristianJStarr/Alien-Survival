@@ -15,11 +15,13 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 547bc67d18a7741438bbd9979dbdba51, type: 3}
   itemID: 17
   craftAmount: 0
+  maxItemStack: 200
+  armorType: 0
   name: Water Bottle
   description: This is the description for this item
   recipe: []
-  maxItemStack: 200
-  armorType: 0
+  itemUse:
+  - 1-40
   isCraftable: 0
   isHoldable: 0
   isArmor: 0

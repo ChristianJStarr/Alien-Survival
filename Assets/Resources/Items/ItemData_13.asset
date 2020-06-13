@@ -15,11 +15,13 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 6d8a71dde9671ff4480721f7f8911ac5, type: 3}
   itemID: 13
   craftAmount: 0
+  maxItemStack: 200
+  armorType: 0
   name: Health Syringe
   description: This is the description for this item
   recipe: []
-  maxItemStack: 200
-  armorType: 0
+  itemUse:
+  - 3-25
   isCraftable: 0
   isHoldable: 0
   isArmor: 0

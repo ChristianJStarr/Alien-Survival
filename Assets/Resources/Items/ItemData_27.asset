@@ -17,7 +17,8 @@ MonoBehaviour:
   craftAmount: 1
   name: Furnace
   description: This is an Pipe
-  recipe: []
+  recipe:
+  - 45-5
   maxItemStack: 1
   armorType: 0
   isCraftable: 1

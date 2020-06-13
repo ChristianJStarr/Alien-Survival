@@ -6,7 +6,7 @@ public class ClickableSystem : MonoBehaviour
 {
 
     private GameServer gameServer;
-
+    int item = 1;
     private void Start()
     {
         gameServer = GetComponent<GameServer>();
@@ -19,7 +19,9 @@ public class ClickableSystem : MonoBehaviour
         //Pickup Object
         if(clickable.type == 1) 
         {
-            gameServer.ServerAddNewItemToInventory(player.clientId, clickable.itemId, clickable.maxAmount);
+            //gameServer.ServerAddNewItemToInventory(player.clientId, clickable.itemId, clickable.maxAmount);
+            gameServer.ServerAddNewItemToInventory(player.clientId, item, 1);
+            item++;
         }
     }
 

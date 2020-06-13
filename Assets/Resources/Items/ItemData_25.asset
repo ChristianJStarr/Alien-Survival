@@ -17,7 +17,8 @@ MonoBehaviour:
   craftAmount: 1
   name: Fence
   description: This is an Pipe
-  recipe: []
+  recipe:
+  - 41-3
   maxItemStack: 1
   armorType: 0
   isCraftable: 1
