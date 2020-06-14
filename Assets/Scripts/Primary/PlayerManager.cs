@@ -1,5 +1,4 @@
-﻿using Cinemachine;
-using MLAPI;
+﻿using MLAPI;
 using UnityEngine;
 using UnityStandardAssets.Characters.FirstPerson;
 using BreadcrumbAi;

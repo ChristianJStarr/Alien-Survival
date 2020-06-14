@@ -1,6 +1,7 @@
 ﻿using MLAPI;
 using MLAPI.LagCompensation;
 using MLAPI.Messaging;
+using MLAPI.Prototyping;
 using MLAPI.Serialization;
 using MLAPI.Serialization.Pooled;
 using System;
@@ -62,8 +63,6 @@ public class GameServer : NetworkedBehaviour
 
     #endregion
 
-
-
     //Player lists
     public List<PlayerInfo> activePlayers;
     public List<PlayerInfo> inactivePlayers;
@@ -88,8 +87,6 @@ public class GameServer : NetworkedBehaviour
         {
             StartGameServer();
         }
-        
-
     }
 
     //-----------------------------------------------------------------//
@@ -326,6 +323,7 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    
     //Inventory Items Add by Item
     public void ServerCraftItemToInventory(ulong clientId, ItemData item, int amount)
     {
@@ -371,10 +369,7 @@ public class GameServer : NetworkedBehaviour
             //ItemData returned null
         }
     }
-    
-   
-    
-    
+
     //Inventory Items Remove
     public void ServerRemoveItemFromInventory(ulong clientId, int itemId, int amount)
     {
