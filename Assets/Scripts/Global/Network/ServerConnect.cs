@@ -108,7 +108,7 @@ public class ServerConnect : MonoBehaviour
         {
             if (gs.inactivePlayers != null)
             {
-                foreach (PlayerInfo player in gs.inactivePlayers)
+                foreach (PlayerInfo player in gs.inactivePlayers.ToList())
                 {
                     if (player.id == id)
                     {

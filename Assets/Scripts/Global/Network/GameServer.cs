@@ -21,7 +21,6 @@ public class GameServer : NetworkedBehaviour
     void Awake()
     {
         singleton = this;
-        DontDestroyOnLoad(gameObject);
         SerializationManager.RegisterSerializationHandlers<Item>((Stream stream, Item instance) =>
         {
             using (PooledBitWriter writer = PooledBitWriter.Get(stream))

@@ -90,14 +90,14 @@ public class LoadSceneScript : MonoBehaviour
             else if(loadTime)
             {
                 loadTime = false;
-                loadProgress = 75;
+                loadProgress = 100;
                 int userId = PlayerPrefs.GetInt("userId");
                 string authKey = PlayerPrefs.GetString("authKey");
                 webServer.StatRequest(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), onRequestFinished =>
                 {
                     if (onRequestFinished != null)
                     {
-                        loadProgress = 100;
+                        loadProgress = 75;
                         playerStats = onRequestFinished;
                         op.allowSceneActivation = true;
                     }

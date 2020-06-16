@@ -40,9 +40,14 @@ public class MusicManager : MonoBehaviour
     /// <summary>
     /// Music Manager Start Function: Change() and remove if duplicate.
     /// </summary>
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+
     void Start()
     {
-        SceneManager.sceneLoaded += this.OnLoadCallback;
         DontDestroyOnLoad(this);
         Change();
         if(FindObjectsOfType<MusicManager>().Length > 1) 
@@ -65,7 +70,7 @@ public class MusicManager : MonoBehaviour
     /// OnLevelWasLoaded for handling which audio plays on what scene.
     /// </summary>
     /// <param name="level"></param>
-    void OnLoadCallback(Scene scene, LoadSceneMode sceneMode)
+    void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
     {
         int level = scene.buildIndex;
         if(level == 2) 
