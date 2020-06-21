@@ -28,11 +28,11 @@ public class SelectedItemHandler : MonoBehaviour
 
     public void Use() 
     {
-        if(selectedItem == null) 
+        if(selectedItem == null || selectedItem.itemID == 0) 
         {
             //Hand is Empty, safe to punch.
         }
-        else if(selectedItem.itemID == inventory.SelectSlot(curSlot).itemID)
+        else if(inventory != null && selectedItem.itemID == inventory.SelectSlot(curSlot).itemID)
         {
             Animator holdAnimator = holdItem.GetComponent<Animator>();
             if(holdAnimator != null) 

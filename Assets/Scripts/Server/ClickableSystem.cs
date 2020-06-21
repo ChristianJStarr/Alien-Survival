@@ -1,15 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ClickableSystem : MonoBehaviour
 {
 
     private GameServer gameServer;
-    int item = 1;
     private void Start()
     {
-        gameServer = GetComponent<GameServer>();
+        gameServer = GameServer.singleton;
     }
 
     public void InteractWithClickable(PlayerInfo player, string uniqueId) 
@@ -19,9 +16,10 @@ public class ClickableSystem : MonoBehaviour
         //Pickup Object
         if(clickable.type == 1) 
         {
-            //gameServer.ServerAddNewItemToInventory(player.clientId, clickable.itemId, clickable.maxAmount);
-            gameServer.ServerAddNewItemToInventory(player.clientId, item, 1);
-            item++;
+            if(gameServer != null) 
+            {
+                gameServer.ServerAddNewItemToInventory(player.clientId, clickable.itemId, clickable.maxAmount);
+            }
         }
     }
 
@@ -29,11 +27,11 @@ public class ClickableSystem : MonoBehaviour
     {
         Clickable clickable = null;
         Clickable[] clickables = FindObjectsOfType<Clickable>();
-        foreach (Clickable click in clickables)
+        for (int i = 0; i < clickables.Length; i++)
         {
-            if(click.unique == uniqueId) 
+            if (clickables[i].unique == uniqueId)
             {
-                clickable = click;
+                clickable = clickables[i];
                 break;
             }
         }

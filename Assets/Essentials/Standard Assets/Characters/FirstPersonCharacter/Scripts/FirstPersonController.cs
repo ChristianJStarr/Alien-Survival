@@ -103,6 +103,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_NextStep = m_StepCycle + .5f;
         }
 
+        public void Teleport(Vector3 location) 
+        {
+            //teleport player
+        }
 
         private void FixedUpdate()
         {

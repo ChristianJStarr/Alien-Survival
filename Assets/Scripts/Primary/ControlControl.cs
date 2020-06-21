@@ -7,31 +7,19 @@ public class ControlControl : MonoBehaviour
     //What: UI Controls Controller
     //Where: Primary Scene / Interface
 
-    public GameObject cover; //A transparent button cover.
+    public Image cover; //A transparent button cover.
     public GameObject leftScreen;//Left screen container.
     public GameObject rightScreen;//Right screen container.
     public Settings settings;//Current game settings.
 
-    private Image[] left; //All image components in leftScreen.
-    private Image[] right; //All image components in rightScreen.
     private int btn_opacity; //Button Opacity
     private int text_opacity; //Button Text Opacity
 
-    public Image JoyBkg;
-    public Image JoyStick;
-    public Image UseLeft;
-    public Image UseRight;
-    public Image Button1;
-    public Image Button2;
-    public Image Button3;
-    public Image Button4;
-    public Image Button5;
-
-
+    public Image JoyBkg, JoyStick, UseLeft, UseRight, Button1, Button2, Button3, Button4, Button5;
+    public TextMeshProUGUI useLeft_Text, useRight_Text, Button1_Text, Button2_Text, Button3_Text, Button4_Text, Button5_Text;
+    
     void Start() 
     {
-        left = leftScreen.GetComponentsInChildren<Image>(); //Get all Image components in leftScreen.
-        right = rightScreen.GetComponentsInChildren<Image>(); //Get all Image components in rightScreen.
         Change();
     }
 
@@ -56,7 +44,13 @@ public class ControlControl : MonoBehaviour
     }
     private void ChangeTextColor(Color color) 
     {
-    
+        useLeft_Text.color = color;
+        useRight_Text.color = color;
+        Button1_Text.color = color;
+        Button2_Text.color = color;
+        Button3_Text.color = color;
+        Button4_Text.color = color;
+        Button5_Text.color = color;
     }
 
     //Set opacity from int.
@@ -71,6 +65,10 @@ public class ControlControl : MonoBehaviour
             text_opacity = value * 2;
         }
         btn_opacity = value;
+        if(JoyBkg.color.a != 0) 
+        {
+            ToggleVisible(true);
+        }
     }
 
     //Hide controls.
@@ -101,6 +99,6 @@ public class ControlControl : MonoBehaviour
         }
         ChangeImageColor(color);
         ChangeTextColor(textColor);
-        cover.GetComponent<Image>().raycastTarget = !value;
+        cover.raycastTarget = !value;
     }
 }

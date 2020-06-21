@@ -4,6 +4,7 @@ using MLAPI.Serialization.Pooled;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityStandardAssets.Characters.FirstPerson;
 
 public class MovementManager : NetworkedBehaviour
 {
@@ -71,6 +72,8 @@ public class MovementManager : NetworkedBehaviour
     private float lastSendTime;
     private Vector3 lastSentPos;
     private Quaternion lastSentRot;
+
+    private CharacterController character;
 
     private float lastRecieveTime;
 
@@ -179,9 +182,13 @@ public class MovementManager : NetworkedBehaviour
                 lerpT += Time.unscaledDeltaTime / sendDelay;
 
                 if (ExtrapolatePosition && Time.unscaledTime - lastRecieveTime < sendDelay * MaxSendsToExtrapolate)
+                {
                     transform.position = Vector3.LerpUnclamped(lerpStartPos, lerpEndPos, lerpT);
+                }
                 else
+                {
                     transform.position = Vector3.Lerp(lerpStartPos, lerpEndPos, lerpT);
+                }
 
                 if (ExtrapolatePosition && Time.unscaledTime - lastRecieveTime < sendDelay * MaxSendsToExtrapolate)
                     transform.rotation = Quaternion.SlerpUnclamped(lerpStartRot, lerpEndRot, lerpT);
@@ -354,20 +361,55 @@ public class MovementManager : NetworkedBehaviour
         }
     }
 
+
+
+    public void TeleportClient(ulong clientId, Vector3 location)
+    {
+        if (IsServer) 
+        {
+            if (!enabled) return;
+            using (PooledBitStream writeStream = PooledBitStream.Get())
+            {
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteSinglePacked(location.x);
+                    writer.WriteSinglePacked(location.y);
+                    writer.WriteSinglePacked(location.z);
+
+                    InvokeClientRpcOnClientPerformance(TeleportClientRpc, clientId, writeStream);
+                }
+            }
+
+        }
+    }
+    
+
+    [ClientRPC]
+    private void TeleportClientRpc(ulong clientId, Stream stream) 
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            Teleport(new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked()));
+        }
+        
+    }
+
     /// <summary>
     /// Teleports the transform to the given position and rotation
     /// </summary>
     /// <param name="position">The position to teleport to</param>
     /// <param name="rotation">The rotation to teleport to</param>
-    public void Teleport(Vector3 position, Quaternion rotation)
+    private void Teleport(Vector3 position)
     {
-        if (InterpolateServer && IsServer || IsClient)
+        if (IsClient)
         {
-            lerpStartPos = position;
-            lerpStartRot = rotation;
-            lerpEndPos = position;
-            lerpEndRot = rotation;
-            lerpT = 0;
+            if(character == null) 
+            {
+                character = GetComponent<CharacterController>();
+            }
+            character.enabled = false;
+            transform.position = position;
+            character.enabled = true;
         }
     }
 }

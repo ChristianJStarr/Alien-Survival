@@ -14,9 +14,12 @@ public class InventorySystem : MonoBehaviour
     //-----------------------------------------------------------------//
 
     //Add Item to Inventory
-    public Item[] AddItemToInventory(Item item, Item[] inventory)
+    public Item[] AddItemToInventory(Item item, Item[] inventory, Action<bool> callback)
     {
-        return SortItemSlotsInInventory(AddItemToInventoryTask(item, inventory));
+        return SortItemSlotsInInventory(AddItemToInventoryTask(item, inventory, returnValue => 
+        {
+            callback(returnValue);
+        }));
     }
 
     //Remove Item from Inventory
@@ -123,7 +126,7 @@ public class InventorySystem : MonoBehaviour
                                 isPlaced = true;
                                 invItem.currSlot = curSlot;
                                 armorItem.currSlot = newSlot;
-                                Item[] newInventory = AddItemToInventory(armorItem, inventory);
+                                Item[] newInventory = AddItemToInventory(armorItem, inventory, returnValue => { });
                                 if (newInventory != null)
                                 {
                                     inventory = newInventory;
@@ -137,7 +140,7 @@ public class InventorySystem : MonoBehaviour
                             else
                             {
                                 //Cant hotswap so -- Place randomly
-                                Item[] newInventory = AddItemToInventory(armorItem, inventory);
+                                Item[] newInventory = AddItemToInventory(armorItem, inventory, returnValue => { });
                                 if(newInventory != null) 
                                 {
                                     //Item was placed successfully.
@@ -157,7 +160,7 @@ public class InventorySystem : MonoBehaviour
                             newArmor.Remove(armorItem);
                             armor = newArmor.ToArray();
                             armorItem.currSlot = newSlot;
-                            Item[] newInventory = AddItemToInventory(armorItem, inventory);
+                            Item[] newInventory = AddItemToInventory(armorItem, inventory, returnValue => { });
                             if(newInventory != null) 
                             {
                                 inventory = newInventory;
@@ -227,7 +230,7 @@ public class InventorySystem : MonoBehaviour
     //Tasks 
 
     //Add Item To Inventory
-    private Item[] AddItemToInventoryTask(Item item, Item[] inventory) 
+    private Item[] AddItemToInventoryTask(Item item, Item[] inventory, Action<bool> callback) 
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -312,6 +315,7 @@ public class InventorySystem : MonoBehaviour
             }
             stopwatch.Reset();
         }
+        callback(isPlaced);
         return items.ToArray();
     }
     

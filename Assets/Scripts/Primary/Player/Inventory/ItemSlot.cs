@@ -1,7 +1,6 @@
 ﻿
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using TMPro;
 
@@ -15,12 +14,14 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     public GameObject Hover;
     public int slotNumber = 0;
     public int armorType = 0;
+    public int dragType = 1;
     public Item item;
     public ItemData itemData;
     public InventoryGfx inventoryGfx;
     Vector3 iconPos;
-    
 
+
+    
 
     private void Start()
     {
@@ -75,12 +76,23 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
         if (item != null)
         {
             icon.gameObject.transform.position = Input.mousePosition;
-            SetTooltip();
+            if (dragType == 1)
+            {
+                SetTooltip();
+            }
+            if(dragType == 2) 
+            {
+                PlayerActionManager.singleton.DragStarted();
+            }
         }
     }
     public void OnEndDrag(PointerEventData eventData)
     {
         icon.gameObject.transform.position = iconPos;
+        if(dragType == 2) 
+        {
+            PlayerActionManager.singleton.DragEnded();
+        }
     }
     public void OnPointerClick(PointerEventData eventData)
     {

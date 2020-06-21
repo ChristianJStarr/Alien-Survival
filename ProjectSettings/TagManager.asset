@@ -12,6 +12,7 @@ TagManager:
   - Breadcrumb
   - RHandTarget
   - LHandTarget
+  - PlayerViewCamera
   layers:
   - Default
   - TransparentFX
@@ -25,7 +26,7 @@ TagManager:
   - MenuMapViewer
   - PlayerMenuRender
   - Clickable
-  - 
+  - DeathDrop
   - 
   - Player
   - Enemy

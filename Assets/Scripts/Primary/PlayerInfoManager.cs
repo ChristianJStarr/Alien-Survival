@@ -1,6 +1,7 @@
 ﻿using MLAPI;
 using System.Collections;
 using UnityEngine;
+using UnityStandardAssets.Characters.FirstPerson;
 
 public class PlayerInfoManager : MonoBehaviour
 {
@@ -22,30 +23,41 @@ public class PlayerInfoManager : MonoBehaviour
     private int id;
     private string authKey;
     private PlayerInfo storedPlayerInfo;
+    private GameObject player;
 
     private void Start()
     {
-        if (NetworkingManager.Singleton.IsClient) 
+        if(NetworkingManager.Singleton != null) 
         {
-            storedPlayerInfo = new PlayerInfo();
-            topbar = FindObjectOfType<Topbar>();
-            gameServer = FindObjectOfType<GameServer>();
-            id = PlayerPrefs.GetInt("id");
-            authKey = PlayerPrefs.GetString("authKey");
-            StartCoroutine(FoodDepleteLoop());
-            GetPlayer_AllInfo();
-        } 
+            if (NetworkingManager.Singleton.IsClient)
+            {
+                storedPlayerInfo = new PlayerInfo();
+                topbar = FindObjectOfType<Topbar>();
+                gameServer = FindObjectOfType<GameServer>();
+                id = PlayerPrefs.GetInt("userId");
+                authKey = PlayerPrefs.GetString("authKey");
+                StartCoroutine(FoodDepleteLoop());
+                GetPlayer_AllInfo();
+                player = FindObjectOfType<FirstPersonController>().gameObject;
+            }
+
+        }
+        else 
+        {
+            Debug.Log("[Client] InfoManager : Networking Manager Null.");
+        }
     }
 
     private void UpdateInventory()
     {
+        Debug.Log("[Client] InfoManager : Updating Inventory.");
         inventoryGfx.Incoming(storedPlayerInfo);
     }
     private void UpdateTopBar()
     {
+        Debug.Log("[Client] InfoManager : Updating Top Bar.");
         topbar.Incoming(storedPlayerInfo);
     }
-
 
     //-----------------------------------------------------------------//
     //             Player Request : Request Own Values                 //
@@ -140,6 +152,11 @@ public class PlayerInfoManager : MonoBehaviour
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
 
+
+    public void SetPlayer_Health(int value)
+    {
+        gameServer.SetPlayerHealth(id, authKey, value);
+    }
     public void SetPlayer_Food(int value) 
     {
         gameServer.SetPlayerFood(id, authKey, value);
@@ -163,13 +180,67 @@ public class PlayerInfoManager : MonoBehaviour
         gameServer.CraftItemById(id, authKey, itemId, amount);
     }
 
+    public void RequestToDie() 
+    {
+        Debug.Log(player.transform.localPosition);
+        SetPlayer_Health(-100);
+        gameServer.RequestToDie(id, authKey);
+    }
+
+    //-----------------------------------------------------------------//
+    //                      Client Side Loops                          //
+    //-----------------------------------------------------------------//
+
+
     private IEnumerator FoodDepleteLoop() 
     {
         yield return new WaitForSeconds(10f);
+        
         if (storedPlayerInfo != null) 
         {
-            SetPlayer_Food(-1);
-            SetPlayer_Water(-1);
+            int intensity = 1;
+            int remove = 0;
+            int healthDeplete = 0;
+            if (storedPlayerInfo.health < 100)
+            {
+                remove++;
+                intensity = 3;
+            }
+
+            if (storedPlayerInfo.food != 0 && (storedPlayerInfo.food + (-1 * intensity)) >= 0) 
+            {
+                SetPlayer_Food(-1 * intensity);
+                remove++;
+            }
+
+            if(storedPlayerInfo.water != 0 && (storedPlayerInfo.water + (-1 * intensity)) >= 0) 
+            {
+                SetPlayer_Water(-1 * intensity);
+                remove++;
+            }
+
+            if(remove == 3) 
+            {
+                SetPlayer_Health(1);
+            }
+
+            if(storedPlayerInfo.food == 0) 
+            {
+                healthDeplete++;
+            }
+
+            if (storedPlayerInfo.water == 0) 
+            {
+                healthDeplete++;
+            }
+
+            if(healthDeplete > 0) 
+            {
+                if(storedPlayerInfo.health > 0) 
+                {
+                    SetPlayer_Health(-1 * healthDeplete);
+                }
+            }
         }
         StartCoroutine(FoodDepleteLoop());
     }

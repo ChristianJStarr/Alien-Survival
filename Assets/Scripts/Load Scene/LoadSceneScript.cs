@@ -199,10 +199,10 @@ public class LoadSceneScript : MonoBehaviour
         }
         else
         {
-            string random = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+            string random = RandomUserCode(30);
             string username = "Guest-" + random.Substring(1,8); //Create a guest name.
             string password = random.Substring(8, 15); //Create guest password.
-            string authKey = random.Substring(22, 15); //Create guest username.
+            string authKey = random.Substring(15, 22); //Create guest username.
             webServer.SignupRequest(username, password, authKey, onRequestFinished =>
             {
                 if (onRequestFinished)

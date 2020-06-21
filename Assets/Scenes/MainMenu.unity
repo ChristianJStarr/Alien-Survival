@@ -10416,6 +10416,9 @@ MonoBehaviour:
     - Prefab: {fileID: 1096455853139250988, guid: 9c92271d1a6f29f4e8aa695761f23f2f,
         type: 3}
       PlayerPrefab: 0
+    - Prefab: {fileID: 6662505981159552416, guid: a45daec78718b35408f5029db3f830e8,
+        type: 3}
+      PlayerPrefab: 0
     PlayerPrefabHash:
       Value: 16337668262389913170
     CreatePlayerPrefab: 1
@@ -10470,6 +10473,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devServer: 0
+  logLevel: 3
 --- !u!4 &1022403220 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4216859302048453862, guid: 9c7897129ec31c54cbdb025af31ef60f,

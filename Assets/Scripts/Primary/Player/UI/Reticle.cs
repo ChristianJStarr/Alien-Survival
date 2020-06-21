@@ -14,13 +14,14 @@ public class Reticle : MonoBehaviour
     private Camera cam;
     private GameObject currentObj;
     private SelectedItemHandler selectedItemHandler;
-
+    private PlayerActionManager playerActionManager;
     private void Start()
     {
         if (NetworkingManager.Singleton.IsClient) 
         {
+            playerActionManager = PlayerActionManager.singleton;
             lookLoop = true;
-            layerMask = LayerMask.GetMask("Clickable");
+            layerMask = LayerMask.GetMask("Clickable", "DeathDrop");
             reticle = GetComponent<RectTransform>();
             pos = new Vector3(0.063f, 0.063f, 0.063F);
             pos2 = new Vector3(0.08f, 0.08f, 0.08f);
@@ -61,7 +62,19 @@ public class Reticle : MonoBehaviour
     {
         if(currentObj != null) 
         {
-            PlayerActionManager.singleton.InteractWithClickable(currentObj.GetComponent<Clickable>().unique);
+            if(playerActionManager != null) 
+            {
+                Clickable clickable = currentObj.GetComponent<Clickable>();
+                if(clickable != null) 
+                {
+                    playerActionManager.InteractWithClickable(clickable.unique);
+                }
+                DeathDrop deathDrop = currentObj.GetComponent<DeathDrop>();
+                if(deathDrop != null) 
+                {
+                    playerActionManager.InteractWithDeathDrop(deathDrop.unique, deathDrop.dropItems.ToArray());
+                }
+            }
         }
         else 
         {
@@ -70,7 +83,10 @@ public class Reticle : MonoBehaviour
                 selectedItemHandler = FindObjectOfType<SelectedItemHandler>();
                 
             }
-            selectedItemHandler.Use();
+            if (selectedItemHandler != null)
+            {
+                selectedItemHandler.Use();
+            }
         }
     }
 
@@ -78,9 +94,19 @@ public class Reticle : MonoBehaviour
     private void ShowTip()
     {
         Clickable clickable = currentObj.GetComponent<Clickable>();
-        if(clickable != null) 
+        if (clickable != null)
         {
             string toolTip = clickable.toolTip;
+            if (toolTip.Length > 0)
+            {
+                reticleTip.SetActive(true);
+                reticleText.text = toolTip;
+            }
+        }
+        DeathDrop deathDrop = currentObj.GetComponent<DeathDrop>();
+        if (deathDrop != null)
+        {
+            string toolTip = deathDrop.toolTip;
             if (toolTip.Length > 0)
             {
                 reticleTip.SetActive(true);

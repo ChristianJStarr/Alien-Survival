@@ -3,13 +3,14 @@ using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
 using TMPro;
 using System.Linq;
+using System.Collections.Generic;
 
 public class InventoryGfx : MonoBehaviour
 {
     public TopToolTipHandler toolTipHandler;
-    public GameObject inventoryUI, inventoryBkg, playerMenu, craftMenu, bounds, bounds2, bounds3, hotBarButtons, tint;
+    public GameObject inventoryUI, inventoryBkg, playerMenu, craftMenu, bounds, bounds2, bounds3, hotBarButtons, tint, playerViewCamera;
     public ControlControl controls;
-    public Transform itemsParent, armorSlotsContainer;
+    public Transform itemsParent, armorSlotsContainer, hotBarParent;
     public Slider splitSlider;
     public TextMeshProUGUI splitText;
     public Item toolTipItem;
@@ -18,6 +19,7 @@ public class InventoryGfx : MonoBehaviour
     FirstPersonController fps;
     CraftingMenu craftingMenu;
     Transform[] holds;
+
 
     private Item[] items;
     private Item[] armor;
@@ -32,6 +34,7 @@ public class InventoryGfx : MonoBehaviour
 
     private Vector2 armorTarget = new Vector3(-354F, -41.99303F);
     private Vector2 craftingTarget = new Vector3(2997, -41.99601F);
+
     private bool armorMove;
     private bool craftingMove;
 
@@ -151,12 +154,17 @@ public class InventoryGfx : MonoBehaviour
 
     void Start()
     {
-
+        
         allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         craftingMenu = GetComponent<CraftingMenu>();
-        itemSlots = itemsParent.GetComponentsInChildren<ItemSlot>(true);
+        ItemSlot[] itemSlotsTemp = itemsParent.GetComponentsInChildren<ItemSlot>(true);
+        List<ItemSlot> hotBarSlotsTemp = hotBarParent.GetComponentsInChildren<ItemSlot>(true).ToList();
         armorSlots = armorSlotsContainer.GetComponentsInChildren<ItemSlot>(true);
-        
+        foreach (ItemSlot slot in itemSlotsTemp)
+        {
+            hotBarSlotsTemp.Add(slot);
+        }
+        itemSlots = hotBarSlotsTemp.ToArray();
         for (int i = 0; i < itemSlots.Length; i++)
         {
             itemSlots[i].slotNumber = i + 1;
@@ -177,10 +185,6 @@ public class InventoryGfx : MonoBehaviour
         }
         toolTipHandler.SetData(FindItemData(item.itemID), item);
     }
-
-
-
-
 
 
     public Item SelectSlot(int slot) 
@@ -208,11 +212,21 @@ public class InventoryGfx : MonoBehaviour
             invOpen = false;
             controls.Show();
             toolTipHandler.gameObject.SetActive(false);
+            
+            if(playerViewCamera != null) 
+            {
+                playerViewCamera.SetActive(false);
+            }
         }
         else
         {
             controls.Hide();
             invOpen = true;
+            
+            if (playerViewCamera != null)
+            {
+                playerViewCamera.SetActive(true);
+            }
         }
         hotBarButtons.SetActive(!invOpen);
         inventoryBkg.SetActive(invOpen);
