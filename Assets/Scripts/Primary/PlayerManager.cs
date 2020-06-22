@@ -10,6 +10,9 @@ public class PlayerManager : MonoBehaviour
     public Transform handAnchor;
     public GameObject playerCamera;
     public GameObject playerViewCamera;
+
+
+
     private void Start()
     {
         if (NetworkingManager.Singleton != null)

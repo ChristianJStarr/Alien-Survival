@@ -6,7 +6,7 @@ using MLAPI;
 
 public class LoadAwake : MonoBehaviour
 {
-    public GameObject loadScreen;
+    public GameObject loadScreen, topBar, inventory;
     public TextMeshProUGUI loadScreenText, loadScreenText2;
     public float FadeRate = 0.2F;
     public float FadeRate2 = 3F;
@@ -27,6 +27,8 @@ public class LoadAwake : MonoBehaviour
             {
                 controls = GetComponent<ControlControl>();
                 loadScreen.SetActive(true);
+                inventory.SetActive(false);
+                topBar.SetActive(false);
                 image = loadScreen.GetComponent<Image>();
                 if (image == null)
                 {
@@ -52,44 +54,38 @@ public class LoadAwake : MonoBehaviour
     
     void Update()
     {
-        if (isClient) 
+        if (isClient && loadScreen.activeSelf) 
         {
-            if (loadScreen.activeSelf)
-            {
-                ColorFade();
-            }
-            if (Input.anyKeyDown)
-            {
-                if (readyToWake)
-                {
-                    WakeUp();
-                }
-                else
-                {
-                    ReadyWake();
-                }
-            }
+            ColorFade();
         } 
     }
     
     public void ReadyWake() 
     {
-        readyToWake = true;
-        targetAlpha = 0.8f;
-        text2Target = 1;
-        text1Target = 1f;
-        loadScreen.GetComponent<Button>().interactable = true;
+        if (!readyToWake)
+        {
+            readyToWake = true;
+            targetAlpha = .8f;
+            text2Target = 1;
+            text1Target = 1f;
+            loadScreen.GetComponent<Button>().interactable = true;
+        }
     }
 
     public void WakeUp() 
     {
-        FadeOut();
-        if(animator == null) 
+        if (readyToWake)
         {
-            animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
+            FadeOut();
+            if (animator == null)
+            {
+                animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
+            }
+            animator.SetTrigger("Wake");
+            controls.Show();
+            topBar.SetActive(true);
+            inventory.SetActive(true);
         }
-        animator.SetTrigger("Wake");
-        controls.Show();
     }
 
     private void FadeOut()

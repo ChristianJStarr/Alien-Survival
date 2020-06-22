@@ -464,6 +464,7 @@ public class GameServer : NetworkedBehaviour
                 Transform spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform;
                 MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
                 movement.TeleportClient(clientId, spawnpoint.position);
+                activePlayers[i].location = spawnpoint.position;
                 ServerUIDeathScreen(clientId);
                 ForceRequestInfoById(clientId);
                 
@@ -896,23 +897,37 @@ public class GameServer : NetworkedBehaviour
     //--Set Player Location
     public void SetPlayerLocation(int id, string authKey, Vector3 location)
     {
-        DebugMessage("Requesting to Modify Saved Location.", 2);
-        InvokeServerRpc(SetPlayerLocation_Rpc, id, authKey, location);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void SetPlayerLocation_Rpc(int id, string authKey, Vector3 location)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
+        using (PooledBitStream writeStream = PooledBitStream.Get())
         {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
-                activePlayers[i].location = location;
-                DebugMessage("Setting Location of Player '" + activePlayers[i].name + "'.", 2);
-                break;
+                writer.WriteInt32Packed(id);
+                writer.WriteStringPacked(authKey);
+                writer.WriteSinglePacked(location.x);
+                writer.WriteSinglePacked(location.y);
+                writer.WriteSinglePacked(location.z);
+                InvokeServerRpcPerformance(SetPlayerLocation_Rpc, writeStream);
             }
         }
     }
+
+    [ServerRPC(RequireOwnership = false)]
+    private void SetPlayerLocation_Rpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                if (activePlayers[i].id == reader.ReadInt32Packed() && activePlayers[i].authKey == reader.ReadStringPacked().ToString())
+                {
+                    activePlayers[i].location = new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked());
+                    DebugMessage("Setting Location of Player '" + activePlayers[i].name + "'.", 3);
+                    break;
+                }
+            }
+        }
+    }
+
 
     //--Request To Die
     public void RequestToDie(int id, string authKey)

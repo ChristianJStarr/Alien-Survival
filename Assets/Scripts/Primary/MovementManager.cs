@@ -72,7 +72,10 @@ public class MovementManager : NetworkedBehaviour
     private float lastSendTime;
     private Vector3 lastSentPos;
     private Quaternion lastSentRot;
-
+    [SerializeField]
+    private Transform cameraRig;
+    [SerializeField]
+    private Transform cameraRigTarget;
     private CharacterController character;
 
     private float lastRecieveTime;
@@ -137,10 +140,16 @@ public class MovementManager : NetworkedBehaviour
         lerpEndRot = transform.rotation;
     }
 
+
     private void Update()
     {
         if (IsOwner)
         {
+            if(cameraRig.position.y != cameraRigTarget.position.y) 
+            {
+                cameraRig.position = Vector3.MoveTowards(cameraRig.position, new Vector3(cameraRig.position.x, cameraRigTarget.position.y, cameraRig.position.z), 3 * Time.deltaTime);
+            }
+
             if (NetworkingManager.Singleton.NetworkTime - lastSendTime >= (1f / FixedSendsPerSecond) && (Vector3.Distance(transform.position, lastSentPos) > MinMeters || Quaternion.Angle(transform.rotation, lastSentRot) > MinDegrees))
             {
                 lastSendTime = NetworkingManager.Singleton.NetworkTime;

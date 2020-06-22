@@ -36,16 +36,19 @@ public class ApplySettings : MonoBehaviour
         }
         //Change camera in current scene to correct settings.
         int set_3 = settings.postpro; //Settings Post Processing
-        var cameraData = Camera.main.GetUniversalAdditionalCameraData();
-        if (set_3 == 1)
+        if(Camera.main != null) 
         {
-            //Turn off post processing.
-            cameraData.renderPostProcessing = false;
-        }
-        else
-        {
-            //Turn off post processing.
-            cameraData.renderPostProcessing = true;
+            var cameraData = Camera.main.GetUniversalAdditionalCameraData();
+            if (set_3 == 1)
+            {
+                //Turn off post processing.
+                cameraData.renderPostProcessing = false;
+            }
+            else
+            {
+                //Turn off post processing.
+                cameraData.renderPostProcessing = true;
+            }
         }
     }
     /// <summary>

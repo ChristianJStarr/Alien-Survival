@@ -16,14 +16,24 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
     #endregion
-
+    //Inventory Gfx
     public InventoryGfx inventoryGfx;
+    //Load Awake
+    public LoadAwake loadAwake;
+    //TopBar
     private Topbar topbar;
+    //Game Server
     private GameServer gameServer;
+    //User ID
     private int id;
+    //User AuthKey
     private string authKey;
+    //Stored Player Info
     private PlayerInfo storedPlayerInfo;
+    //Player Object
     private GameObject player;
+    //FirstRequest Bool
+    private bool firstRequest = true;
 
     private void Start()
     {
@@ -36,7 +46,7 @@ public class PlayerInfoManager : MonoBehaviour
                 gameServer = FindObjectOfType<GameServer>();
                 id = PlayerPrefs.GetInt("userId");
                 authKey = PlayerPrefs.GetString("authKey");
-                StartCoroutine(FoodDepleteLoop());
+                StartCoroutine(MainPlayerLoop());
                 GetPlayer_AllInfo();
                 player = FindObjectOfType<FirstPersonController>().gameObject;
             }
@@ -48,11 +58,14 @@ public class PlayerInfoManager : MonoBehaviour
         }
     }
 
+    //-------Update Inventory
     private void UpdateInventory()
     {
         Debug.Log("[Client] InfoManager : Updating Inventory.");
         inventoryGfx.Incoming(storedPlayerInfo);
     }
+
+    //-------Update Top Bar
     private void UpdateTopBar()
     {
         Debug.Log("[Client] InfoManager : Updating Top Bar.");
@@ -86,6 +99,11 @@ public class PlayerInfoManager : MonoBehaviour
                                 storedPlayerInfo.water = returnValue6;
                                 UpdateTopBar();
                                 UpdateInventory();
+                                if (firstRequest && loadAwake != null) 
+                                {
+                                    loadAwake.ReadyWake();
+                                    firstRequest = false;
+                                }
                             });
                         });
                     });
@@ -93,6 +111,7 @@ public class PlayerInfoManager : MonoBehaviour
             });
         });
     }
+    
     //-------Get Player Inventory Items
     public void GetPlayer_InventoryItems() 
     {
@@ -102,6 +121,7 @@ public class PlayerInfoManager : MonoBehaviour
             UpdateInventory();
         });
     }
+    
     //-------Get Player Inventory Armor
     public void GetPlayer_InventoryArmor()
         {
@@ -111,6 +131,7 @@ public class PlayerInfoManager : MonoBehaviour
                 UpdateInventory();
             });
         }
+    
     //-------Get Player Inventory Blueprints
     public void GetPlayer_InventoryBlueprints()
         {
@@ -120,6 +141,7 @@ public class PlayerInfoManager : MonoBehaviour
                 UpdateInventory();
             });
         }
+    
     //-------Get Player Health
     public void GetPlayer_Health()
         {
@@ -129,6 +151,7 @@ public class PlayerInfoManager : MonoBehaviour
                 UpdateTopBar();
             });
         }
+    
     //-------Get Player Inventory Items
     public void GetPlayer_Food()
         {
@@ -138,6 +161,7 @@ public class PlayerInfoManager : MonoBehaviour
                 UpdateTopBar();
             });
         }
+    
     //-------Get Player Inventory Items
     public void GetPlayer_Water()
     {
@@ -152,34 +176,49 @@ public class PlayerInfoManager : MonoBehaviour
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
 
-
+    //-------Set Player Health
     public void SetPlayer_Health(int value)
     {
         gameServer.SetPlayerHealth(id, authKey, value);
     }
+
+    //-------Set Player Food
     public void SetPlayer_Food(int value) 
     {
         gameServer.SetPlayerFood(id, authKey, value);
     }
+
+    //-------Set Player Water
     public void SetPlayer_Water(int value) 
     {
         gameServer.SetPlayerWater(id, authKey, value);
     }
 
+    //-------Set Player Location
+    public void SetPlayer_Location(Vector3 location) 
+    {
+        gameServer.SetPlayerLocation(id, authKey, location);
+    }
+
+    //-------Move Item by Slot
     public void MoveItemBySlots(int curSlot, int newSlot) 
     {
         gameServer.MovePlayerItemBySlot(id, authKey, curSlot, newSlot);
     }
+
+    //-------Remove Item by Slot
     public void RemoveItemBySlot(int curSlot) 
     {
         gameServer.RemovePlayerItemBySlot(id, authKey, curSlot);
     }
 
+    //-------Craft Item by Id
     public void CraftItemById(int itemId, int amount) 
     {
         gameServer.CraftItemById(id, authKey, itemId, amount);
     }
 
+    //-------Request to Die
     public void RequestToDie() 
     {
         Debug.Log(player.transform.localPosition);
@@ -191,12 +230,22 @@ public class PlayerInfoManager : MonoBehaviour
     //                      Client Side Loops                          //
     //-----------------------------------------------------------------//
 
-
-    private IEnumerator FoodDepleteLoop() 
+    
+    //-------Main Player Loop
+    private IEnumerator MainPlayerLoop() 
     {
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(5f);
+
+        DepleteFoodWaterHealth();
+        StorePlayerLocation();
         
-        if (storedPlayerInfo != null) 
+        StartCoroutine(MainPlayerLoop());
+    }
+
+    //-------Food & Water Deplete
+    private void DepleteFoodWaterHealth()
+    {
+        if (storedPlayerInfo != null)
         {
             int intensity = 1;
             int remove = 0;
@@ -207,42 +256,54 @@ public class PlayerInfoManager : MonoBehaviour
                 intensity = 3;
             }
 
-            if (storedPlayerInfo.food != 0 && (storedPlayerInfo.food + (-1 * intensity)) >= 0) 
+            if (storedPlayerInfo.food != 0 && (storedPlayerInfo.food + (-1 * intensity)) >= 0)
             {
                 SetPlayer_Food(-1 * intensity);
                 remove++;
             }
 
-            if(storedPlayerInfo.water != 0 && (storedPlayerInfo.water + (-1 * intensity)) >= 0) 
+            if (storedPlayerInfo.water != 0 && (storedPlayerInfo.water + (-1 * intensity)) >= 0)
             {
                 SetPlayer_Water(-1 * intensity);
                 remove++;
             }
 
-            if(remove == 3) 
+            if (remove == 3)
             {
                 SetPlayer_Health(1);
             }
 
-            if(storedPlayerInfo.food == 0) 
+            if (storedPlayerInfo.food == 0)
             {
                 healthDeplete++;
             }
 
-            if (storedPlayerInfo.water == 0) 
+            if (storedPlayerInfo.water == 0)
             {
                 healthDeplete++;
             }
 
-            if(healthDeplete > 0) 
+            if (healthDeplete > 0)
             {
-                if(storedPlayerInfo.health > 0) 
+                if (storedPlayerInfo.health > 0)
                 {
                     SetPlayer_Health(-1 * healthDeplete);
                 }
             }
         }
-        StartCoroutine(FoodDepleteLoop());
     }
 
+
+    //-------Store Location
+    private void StorePlayerLocation()
+    {
+        if (player != null)
+        {
+            SetPlayer_Location(player.transform.position);
+        }
+        else 
+        {
+            player = FindObjectOfType<FirstPersonController>().gameObject;
+        }
+    }
 }

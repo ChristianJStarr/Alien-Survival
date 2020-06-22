@@ -10473,7 +10473,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devServer: 0
-  logLevel: 3
+  logLevel: 0
 --- !u!4 &1022403220 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4216859302048453862, guid: 9c7897129ec31c54cbdb025af31ef60f,
