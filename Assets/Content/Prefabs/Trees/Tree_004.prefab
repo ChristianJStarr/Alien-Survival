@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5620924264716967909}
   - component: {fileID: 5773978961119824587}
   - component: {fileID: 7939230241730186753}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Tree_004_LOD1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56,7 +56,6 @@ MeshRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -82,7 +81,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!193 &7939230241730186753
 Tree:
   m_ObjectHideFlags: 0
@@ -103,7 +101,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8837559688476112703}
   - component: {fileID: 8088480509338811306}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: CollisionObject1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -150,7 +148,9 @@ GameObject:
   - component: {fileID: 1773066662964706008}
   - component: {fileID: 398770383878113088}
   - component: {fileID: 6006986977765245914}
-  m_Layer: 0
+  - component: {fileID: 236905937055191897}
+  - component: {fileID: 3070863356195280236}
+  m_Layer: 13
   m_Name: Tree_004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -237,6 +237,39 @@ CapsuleCollider:
   m_Height: 5.6
   m_Direction: 1
   m_Center: {x: 0, y: 2.59, z: 0}
+--- !u!114 &236905937055191897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2788843017803783695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0742a8ff63f89b4d9aa3394c0230789, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unique: 
+  gatherItemId: 40
+  gatherAmount: 200
+  gatherPerAmount: 10
+--- !u!114 &3070863356195280236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2788843017803783695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 209037615, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NetworkedInstanceId: 0
+  PrefabHash: 14705812276341894720
+  PrefabHashGenerator: Tree_004
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
 --- !u!1 &4364490605862341097
 GameObject:
   m_ObjectHideFlags: 0
@@ -249,7 +282,7 @@ GameObject:
   - component: {fileID: 8472859879748461949}
   - component: {fileID: 1539896984183495391}
   - component: {fileID: 2091733508383241103}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Tree_004_LOD0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -293,7 +326,6 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -319,7 +351,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!193 &2091733508383241103
 Tree:
   m_ObjectHideFlags: 0
@@ -342,7 +373,7 @@ GameObject:
   - component: {fileID: 3251147902458369460}
   - component: {fileID: 871353921173587371}
   - component: {fileID: 8197444520197225420}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Tree_004_LOD2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -386,7 +417,6 @@ MeshRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -412,7 +442,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!193 &8197444520197225420
 Tree:
   m_ObjectHideFlags: 0
@@ -435,7 +464,7 @@ GameObject:
   - component: {fileID: 7248453641387994977}
   - component: {fileID: 5907371788634889784}
   - component: {fileID: 5887013741626407435}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Tree_004_LOD3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -479,7 +508,6 @@ MeshRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -504,7 +532,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!193 &5887013741626407435
 Tree:
   m_ObjectHideFlags: 0

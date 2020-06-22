@@ -27,7 +27,7 @@ TagManager:
   - PlayerMenuRender
   - Clickable
   - DeathDrop
-  - 
+  - Resource
   - Player
   - Enemy
   - Breadcrumb

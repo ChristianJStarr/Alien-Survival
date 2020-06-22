@@ -15,8 +15,8 @@ public class ControlControl : MonoBehaviour
     private int btn_opacity; //Button Opacity
     private int text_opacity; //Button Text Opacity
 
-    public Image JoyBkg, JoyStick, UseLeft, UseRight, Button1, Button2, Button3, Button4, Button5;
-    public TextMeshProUGUI useLeft_Text, useRight_Text, Button1_Text, Button2_Text, Button3_Text, Button4_Text, Button5_Text;
+    public Image JoyBkg, JoyStick, UseLeft, UseRight, Button1, Button2, Button3, Button4;
+    public Image useLeft_Icon, useRight_Icon, Button1_Icon, Button2_Icon, Button3_Icon, Button4_Icon;
     
     void Start() 
     {
@@ -40,17 +40,15 @@ public class ControlControl : MonoBehaviour
         Button2.color = color;
         Button3.color = color;
         Button4.color = color;
-        Button5.color = color;
     }
-    private void ChangeTextColor(Color color) 
+    private void ChangeIconColor(Color color) 
     {
-        useLeft_Text.color = color;
-        useRight_Text.color = color;
-        Button1_Text.color = color;
-        Button2_Text.color = color;
-        Button3_Text.color = color;
-        Button4_Text.color = color;
-        Button5_Text.color = color;
+        useLeft_Icon.color = color;
+        useRight_Icon.color = color;
+        Button1_Icon.color = color;
+        Button2_Icon.color = color;
+        Button3_Icon.color = color;
+        Button4_Icon.color = color;
     }
 
     //Set opacity from int.
@@ -98,7 +96,7 @@ public class ControlControl : MonoBehaviour
             textColor = new Color32(255, 255, 255, 0);
         }
         ChangeImageColor(color);
-        ChangeTextColor(textColor);
+        ChangeIconColor(textColor);
         cover.raycastTarget = !value;
     }
 }

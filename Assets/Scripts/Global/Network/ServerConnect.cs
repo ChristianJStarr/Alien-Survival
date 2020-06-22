@@ -7,6 +7,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
 public class ServerConnect : MonoBehaviour
 {
 
@@ -115,8 +116,7 @@ public class ServerConnect : MonoBehaviour
         string authKey = connectDataSplit[1].ToString();
         string username = connectDataSplit[2].ToString();
         GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-        Vector3 spawnPoint = new Vector3(0,0,0);
-        //Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
+        Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
         if(gameServer == null) 
         {
             gameServer = GameServer.singleton;

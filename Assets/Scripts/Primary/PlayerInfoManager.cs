@@ -62,14 +62,20 @@ public class PlayerInfoManager : MonoBehaviour
     private void UpdateInventory()
     {
         Debug.Log("[Client] InfoManager : Updating Inventory.");
-        inventoryGfx.Incoming(storedPlayerInfo);
+        if (inventoryGfx != null && storedPlayerInfo != null)
+        {
+            inventoryGfx.Incoming(storedPlayerInfo);
+        }
     }
 
     //-------Update Top Bar
     private void UpdateTopBar()
     {
         Debug.Log("[Client] InfoManager : Updating Top Bar.");
-        topbar.Incoming(storedPlayerInfo);
+        if (topbar != null && storedPlayerInfo != null)
+        {
+            topbar.Incoming(storedPlayerInfo);
+        }
     }
 
     //-----------------------------------------------------------------//

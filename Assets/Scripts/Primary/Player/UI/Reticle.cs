@@ -21,7 +21,7 @@ public class Reticle : MonoBehaviour
         {
             playerActionManager = PlayerActionManager.singleton;
             lookLoop = true;
-            layerMask = LayerMask.GetMask("Clickable", "DeathDrop");
+            layerMask = LayerMask.GetMask("Clickable", "DeathDrop", "Resource");
             reticle = GetComponent<RectTransform>();
             pos = new Vector3(0.063f, 0.063f, 0.063F);
             pos2 = new Vector3(0.08f, 0.08f, 0.08f);
@@ -44,6 +44,7 @@ public class Reticle : MonoBehaviour
             {
                 if (hit.collider != null)
                 {
+                    Debug.Log("Hit tree");
                     currentObj = hit.collider.gameObject;
                     reticle.localScale = pos2;
                     ShowTip();
@@ -68,11 +69,19 @@ public class Reticle : MonoBehaviour
                 if(clickable != null) 
                 {
                     playerActionManager.InteractWithClickable(clickable.unique);
+                    return;
                 }
                 DeathDrop deathDrop = currentObj.GetComponent<DeathDrop>();
                 if(deathDrop != null) 
                 {
                     playerActionManager.InteractWithDeathDrop(deathDrop.unique, deathDrop.dropItems.ToArray());
+                    return;
+                }
+                Resource resource = currentObj.GetComponent<Resource>();
+                if (resource != null)
+                {
+                    playerActionManager.InteractWithResource(resource.unique);
+                    return;
                 }
             }
         }

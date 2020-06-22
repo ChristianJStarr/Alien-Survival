@@ -54,6 +54,15 @@ public class PlayerActionManager : MonoBehaviour
     }
 
 
+    //Interact with Resource
+    public void InteractWithResource(string uniqueId)
+    {
+        if (gameServer != null)
+        {
+            gameServer.InteractWithResource(id, authKey, uniqueId);
+        }
+    }
+
 
     //Interact with DeathDrop
     public void InteractWithDeathDrop(string uniqueId, Item[] drops) 

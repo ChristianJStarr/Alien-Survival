@@ -94,7 +94,7 @@ public class GameServer : NetworkedBehaviour
 
     //Object lists
     private List<GameObject> activeGameObjects;
-    private List<Resource> activeGameResources;
+    private List<Resource> activeResources;
 
     //Systems
     private PlayerInfoManager playerInfoManager;
@@ -136,7 +136,7 @@ public class GameServer : NetworkedBehaviour
             inactivePlayers = serverSaveData.playerData;
             activeGameObjects = serverSaveData.objData;
         }
-        activeGameResources = FindObjectsOfType<Resource>().ToList();
+        activeResources = FindObjectsOfType<Resource>().ToList();
         inventorySystem = GetComponent<InventorySystem>();
         clickableSystem = GetComponent<ClickableSystem>();
         LoadGameObjects();
@@ -297,8 +297,9 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Inventory Items Add by ID
-    public void ServerAddNewItemToInventory(ulong clientId, int id, int amount)
+    public bool ServerAddNewItemToInventory(ulong clientId, int id, int amount)
     {
+        bool returnValue = false;
         DebugMessage("Adding Item(s) to Player '" + clientId + "'.", 2);
         ItemData itemData = GetItemDataById(id);
         if (itemData != null)
@@ -312,11 +313,12 @@ public class GameServer : NetworkedBehaviour
                 }
                 else
                 {
-                    ServerAddItemToInventory(clientId, CreateItemFromData(itemData, id, amount));
+                    returnValue = ServerAddItemToInventory(clientId, CreateItemFromData(itemData, id, amount));
                     break;
                 }
             }
         }
+        return returnValue;
     }
 
     //Inventory Items Add by Item
@@ -511,6 +513,30 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+    //Server Deplete Resource
+    private void ServerDepleteResource(ulong clientId, string unique)
+    {
+        for (int i = 0; i < activeResources.Count; i++)
+        {
+            if(activeResources[i].unique == unique) 
+            {
+                int amountLeft = activeResources[i].gatherAmount - activeResources[i].gatherPerAmount;
+                if (amountLeft >= 0) 
+                {
+                    if (ServerAddNewItemToInventory(clientId, activeResources[i].gatherItemId, activeResources[i].gatherPerAmount)) 
+                    {
+                        if (amountLeft == 0)
+                        {
+                            //Destroy Resource
+                            Destroy(activeResources[i].gameObject);
+                            break;
+                        }
+                        activeResources[i].gatherAmount -= activeResources[i].gatherPerAmount;
+                    }
+                }
+            }
+        }
+    }
     //-----------------------------------------------------------------//
     //             Server Action : User Interface                      //
     //-----------------------------------------------------------------//
@@ -556,30 +582,6 @@ public class GameServer : NetworkedBehaviour
                     }
                 }
             }
-        }
-    }
-
-
-    //Deplete Resource by Client ID
-    private void DepleteResource(ulong clientId, GameObject obj)
-    {
-        DebugMessage("Depleting Resource(" + obj.name + ") for Player '" + clientId + "'.", 3);
-        Resource resource = obj.GetComponent<Resource>();
-        if (resource != null)
-        {
-            int amount = resource.gatherAmount;
-            int gather = resource.gatherPerAmount;
-
-            if (amount - gather <= 0)
-            {
-
-            }
-            else
-            {
-                //    resource.gatherAmount -= gather;
-                //    serverInventoryManager.AddItem(resource.gatherItem.itemID, gather);
-            }
-
         }
     }
 
@@ -1199,7 +1201,7 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
 
 
-    //--Move Player Inventory Item by Slot
+    //--Interact with Clickable
     public void InteractWithClickable(int id, string authKey, string uniqueId)
     {
         DebugMessage("Requesting to Interact with Clickable.", 2);
@@ -1220,7 +1222,29 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-    //--Move Player Inventory Item by Slot
+    //--Interact with Resource
+    public void InteractWithResource(int id, string authKey, string uniqueId)
+    {
+        DebugMessage("Requesting to Interact with Resource.", 2);
+        InvokeServerRpc(InteractWithResource_Rpc, id, authKey, uniqueId);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private void InteractWithResource_Rpc(int id, string authKey, string uniqueId)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                ServerDepleteResource(activePlayers[i].clientId, uniqueId);
+                DebugMessage("Player '" + activePlayers[i].name + "' Interacting with Resource: " + uniqueId + ".", 2);
+                break;
+            }
+        }
+    }
+
+
+    //--Interact With Death Drop
     public void InteractWithDeathDrop(int id, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback)
     {
         DebugMessage("Requesting to Interact with DeathDrop.", 2);
