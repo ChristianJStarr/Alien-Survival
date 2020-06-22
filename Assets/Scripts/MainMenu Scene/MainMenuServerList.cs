@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using System.Collections;
 /// <summary>
 /// Main Menu Server List Handler. 
 /// </summary>
@@ -61,6 +62,35 @@ public class MainMenuServerList : MonoBehaviour
         }
         foreach (Server server in servers)
         {
+            Validate(server);
+        }
+    }
+
+    private void Validate(Server server) 
+    {
+        StartCoroutine(StartPing(server));
+    }
+    private IEnumerator StartPing(Server server) 
+    {
+        bool offline = false;
+        int count = 0;
+        WaitForSeconds f = new WaitForSeconds(0.05F);
+        Ping ping = new Ping(server.serverIP);
+        while (!ping.isDone ) 
+        {
+            if(count >= 10) 
+            {
+                offline = true;
+                break;
+            }
+            count++;
+            yield return f;
+            
+        }
+        
+        if(!offline) 
+        {
+            server.ping = ping.time;
             MainMenuServerSlide slide = Instantiate(serverItem, listContainer).GetComponent<MainMenuServerSlide>();
             slide.RefreshValues(server);
         }
