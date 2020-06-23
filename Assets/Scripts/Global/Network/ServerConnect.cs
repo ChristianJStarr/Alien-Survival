@@ -25,6 +25,7 @@ public class ServerConnect : MonoBehaviour
     private NetworkingManager networkManager;
     private GameServer gameServer;
     private WebServer webServer;
+    public GameObject connectingScreen;
 
     public bool devServer = false;
     private ServerProperties storedProperties;
@@ -54,6 +55,7 @@ public class ServerConnect : MonoBehaviour
     //-----------------------------------------------------------------//
     public void ConnectToServer(string ip, ushort port)
     {
+        connectingScreen.SetActive(true);
         DebugMessage("Connecting to Server.", 1);
         networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
         networkManager.GetComponent<UnetTransport>().ConnectAddress = ip;
@@ -69,8 +71,20 @@ public class ServerConnect : MonoBehaviour
     private void PlayerDisconnected_Player(ulong id)
     {
         DebugMessage("Disconnected from Server.", 1);
-        GameServer.singleton.PlayerDisconnected_Player(id);
-        SceneManager.LoadScene(1);
+        
+        if(SceneManager.GetActiveScene().name != "MainMenu") 
+        {
+            if(GameServer.singleton != null) 
+            {
+                GameServer.singleton.PlayerDisconnected_Player(id);
+            }
+            SceneManager.LoadScene(1);
+        }
+        else 
+        {
+            connectingScreen.SetActive(false);
+        }
+        
     }
 
     //-----------------------------------------------------------------//

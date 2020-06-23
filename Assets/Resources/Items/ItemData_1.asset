@@ -17,11 +17,15 @@ MonoBehaviour:
   craftAmount: 0
   maxItemStack: 1
   armorType: 0
+  useType: 1
+  useRange: 10
+  useParticleId: 1
+  useRequire: 50-1
+  itemUse:
+  - 4-5
   name: Spacegun Mk1
   description: This is the description for this item
   recipe: []
-  itemUse:
-  - 4-5
   isCraftable: 0
   isHoldable: 1
   isArmor: 0

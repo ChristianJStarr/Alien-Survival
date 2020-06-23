@@ -16,11 +16,12 @@ MonoBehaviour:
   musicVolume: 0.5
   ambientVolume: 0.5
   effectsVolume: 0.5
-  textureQuality: 2
-  shadowQuality: 2
-  reflectionQuality: 2
-  objectQuality: 3
-  xSensitivity: 1
-  ySensitivity: 1
+  quality: 3
+  shadow: 3
+  aliasing: 3
+  postpro: 2
   terrainDistance: 1
   objectDistance: 1
+  gameControlsOpacity: 90
+  xSensitivity: 1
+  ySensitivity: 1

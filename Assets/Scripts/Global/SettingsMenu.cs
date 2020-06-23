@@ -103,6 +103,12 @@ public class SettingsMenu : MonoBehaviour
             touch.Change();
         }
 
+        ControlControl controlControl = FindObjectOfType<ControlControl>(); //Find controls, if any.
+        if (controlControl != null) //If control control exists in scene, update its settings.
+        {
+            controlControl.Change();
+        }
+
         //Change render pipeline asset.
         RenderPipelineAsset newAsset = GetAsset();
         if (GraphicsSettings.renderPipelineAsset != newAsset)

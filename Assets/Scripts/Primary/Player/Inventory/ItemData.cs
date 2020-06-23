@@ -10,11 +10,17 @@ public class ItemData : ScriptableObject
     public int craftAmount = 0;
     public int maxItemStack = 200;
     public int armorType;
-
+    
+    //Use
+    public int useType = 0;
+    public int useRange = 10;
+    public int useParticleId = 1;
+    public string useRequire = "";
+    public string[] itemUse;
+    
     public string name = "New Item";
     public string description = "This is the description for this item";
     public string[] recipe;
-    public string[] itemUse;
 
     public bool isCraftable = false;
     public bool isHoldable = false;

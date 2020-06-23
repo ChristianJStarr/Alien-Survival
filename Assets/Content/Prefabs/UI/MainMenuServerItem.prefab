@@ -390,7 +390,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 938.3, y: -0.0012207}
+  m_AnchoredPosition: {x: 953.03, y: -0.0012207}
   m_SizeDelta: {x: 335.29688, y: 42.539955}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &45546762269300953
@@ -1196,12 +1196,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c0b4c4b6c107744288cd803cc09de97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serverName: 
-  serverAddress: 
-  serverPing: 
-  serverType: 
-  serverMode: 
-  serverProtocol: 
   slideName: {fileID: 6185534662752096582}
   slidePing: {fileID: 2552482878121086394}
   slideType: {fileID: 743496655}
@@ -1281,7 +1275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.4433962, g: 0.4433962, b: 0.4433962, a: 0.50980395}
+  m_Color: {r: 0.2830189, g: 0.2830189, b: 0.2830189, a: 0.50980395}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:

@@ -87,6 +87,9 @@ public class GameServer : NetworkedBehaviour
 
     #endregion
     public GameObject deathDropPrefab;
+    public GameObject[] particlePrefabs;
+    public GameObject serverInterface;
+    public GameObject serverCamera;
 
     //Player lists
     public List<PlayerInfo> activePlayers;
@@ -126,6 +129,8 @@ public class GameServer : NetworkedBehaviour
 
     private void StartGameServer()
     {
+        serverInterface.SetActive(true);
+        serverCamera.SetActive(true);
         DebugMessage("Starting Game Server.", 1);
         activePlayers = new List<PlayerInfo>();
         inactivePlayers = new List<PlayerInfo>();
@@ -386,8 +391,12 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].clientId == clientId)
             {
-                activePlayers[i].items = inventorySystem.RemoveItemFromInventory(itemId, amount, activePlayers[i].items);
-                ForceRequestInfoById(clientId, 5);
+                Item[] newInventory = inventorySystem.RemoveItemFromInventory(itemId, amount, activePlayers[i].items);
+                if(newInventory != null) 
+                {
+                    activePlayers[i].items = newInventory;
+                    ForceRequestInfoById(clientId, 5);
+                }
                 break;
             }
             else
@@ -537,6 +546,71 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+
+    //Server Raycast Request
+    private void ServerRaycastRequest(Vector3 aimPos, Vector3 aimRot, GameObject particlePrefab, int range, string[] itemUse)
+    {
+        RaycastHit hit;
+        LagCompensationManager.Simulate(1, () =>
+        {
+            if (Physics.Raycast(aimPos, aimRot, out hit, range))
+            {
+                if (hit.collider != null)
+                {
+                    GameObject hitObject = hit.collider.gameObject;
+                    Vector3 hitPosition = hitObject.transform.position;
+                    string tag = hitObject.tag;
+                    ServerSpawnParticle(particlePrefab, hitPosition);
+                    if (hitObject.GetComponent<NetworkedObject>() != null)
+                    {
+                        int amount = 0;
+                        if (itemUse != null)
+                        {
+                            foreach (string item in itemUse)
+                            {
+                                string[] type = item.Split('-');
+                                int item_type = Convert.ToInt32(type[0]);
+                                int type_amount = Convert.ToInt32(type[1]);
+                                if (item_type == 4)
+                                {
+                                    amount = type_amount;
+                                    break;
+                                }
+                            }
+                        }
+                        ServerDamageNetworkedObject(hitObject.GetComponent<NetworkedObject>().NetworkId, amount);
+                    }
+                }
+            }
+        });
+    }
+
+    //Server Spawn Particle
+    private void ServerSpawnParticle(GameObject particle, Vector3 pos)
+    {
+        GameObject newObject = Instantiate(particle, pos, Quaternion.identity);
+        newObject.GetComponent<NetworkedObject>().Spawn();
+    }
+
+    //Server Damage Networked Object
+    private void ServerDamageNetworkedObject(ulong networkId, int amount)
+    {
+        bool damaged = false;
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].networkId == networkId)
+            {
+                ServerSetHealth(activePlayers[i].clientId, -1 * amount);
+                damaged = true;
+                break;
+            }
+        }
+        if (!damaged)
+        {
+            //Damage AI through AI Controller by NetworkID
+        }
+    }
+
     //-----------------------------------------------------------------//
     //             Server Action : User Interface                      //
     //-----------------------------------------------------------------//
@@ -812,6 +886,43 @@ public class GameServer : NetworkedBehaviour
             DebugMessage("Unable to Get Blueprints of Player ID: " + id, 1);
         }
         return value;
+    }
+
+
+    //--Request if have enough
+    public void GetIfEnoughItems(int id, int itemId, int amount, Action<bool> callback)
+    {
+        DebugMessage("Requesting If Enough Items", 2);
+        StartCoroutine(GetIfEnoughItems_Wait(id, itemId, amount, returnValue => { callback(returnValue); }));
+    }
+
+    private IEnumerator GetIfEnoughItems_Wait(int id, int itemId, int amount, Action<bool> callback)
+    {
+        RpcResponse<bool> response = InvokeServerRpc(GetIfEnoughItems_Rpc, id, itemId, amount);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private bool GetIfEnoughItems_Rpc(int id, int itemId, int amount)
+    {
+        bool enough = true;
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id)
+            {
+                if(inventorySystem.RemoveItemFromInventory(itemId, amount, activePlayers[i].items) == null)
+                {
+                    enough = false;
+                }
+                break;
+            }
+        }
+        if (enough)
+        {
+            DebugMessage("Player has Enough Items. ID: " + id, 1);
+        }
+        return enough;
     }
 
 
@@ -1133,69 +1244,74 @@ public class GameServer : NetworkedBehaviour
     }
 
     //-----------------------------------------------------------------//
-    //             Player Request : Raycast Hit                        //
+    //             Player Request : Use Selected Item                  //
     //-----------------------------------------------------------------//
 
-    //Raycast Hit Request by rayType
-    public void PlayerRayCastHit(NetworkedObject player, int type)
+    //Use Selected Item
+    public void UseSelectedItem(int id, string authKey, int itemId, Transform aim) 
     {
-        InvokeServerRpc(PlayerRayCastHitRpc, player, type);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void PlayerRayCastHitRpc(NetworkedObject player, int type)
-    {
-
-        float distance = 1F;
-        int damage = 1;
-        if (type == 1) { distance = 2f; }
-        if (type == 2) { distance = 8f; }
-        if (type == 3) { distance = 30f; }
-        if (type == 4) { distance = 50f; }
-
-        Transform playerTransform = player.GetComponent<Transform>();
-        RaycastHit hit;
-        LagCompensationManager.Simulate(player.NetworkId, () =>
+        Vector3 rot = aim.TransformDirection(Vector3.forward);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
         {
-            if (Physics.Raycast(playerTransform.position, -Vector3.up, out hit, distance))
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
-                GameObject hitObject = hit.collider.gameObject;
-                Vector3 hitPosition = hitObject.transform.position;
-                string tag = hitObject.tag;
-
-                if (tag == "Player")
-                {
-                        //ulong playerId = hitObject.GetComponent<NetworkedObject>().NetworkId;
-                        //PlayerInfo playerInfo = GetActivePlayerById(playerId);
-                        //int health = playerInfo.health;
-                        //if (health - damage <= 0)
-                        //{
-                        //    //Kill Player
-                        //}
-                        //else
-                        //{
-                        //    health -= damage;
-                        //    ForceRequestInfoById(playerId, 2);
-                        //}
-                    }
-                if (tag == "Enemy")
-                {
-
-                }
-                if (tag == "Friendly")
-                {
-
-                }
-                if (tag == "Tree")
-                {
-
-                }
-
+                writer.WriteInt32Packed(id);
+                writer.WriteStringPacked(authKey);
+                writer.WriteInt32Packed(itemId);
+                writer.WriteSinglePacked(aim.position.x);
+                writer.WriteSinglePacked(aim.position.y);
+                writer.WriteSinglePacked(aim.position.z);
+                writer.WriteSinglePacked(rot.x);
+                writer.WriteSinglePacked(rot.y);
+                writer.WriteSinglePacked(rot.z);
+                InvokeServerRpcPerformance(UseSelectedItem_Rpc, writeStream);
             }
-        });
+        }
     }
 
+    //Use Selected Item RPC
+    [ServerRPC(RequireOwnership = false)]
+    private void UseSelectedItem_Rpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            int id = reader.ReadInt32Packed();
+            string authKey = reader.ReadStringPacked().ToString();
+            int itemId = reader.ReadInt32Packed();
+            float xPos = reader.ReadSinglePacked();
+            float yPos = reader.ReadSinglePacked();
+            float zPos = reader.ReadSinglePacked();
+            float xRot = reader.ReadSinglePacked();
+            float yRot = reader.ReadSinglePacked();
+            float zRot = reader.ReadSinglePacked();
+          
+            Vector3 aimPos = new Vector3(xPos, yPos, zPos);
+            Vector3 aimRot = new Vector3(xRot, yRot, zRot);
 
+            ItemData data = GetItemDataById(itemId);
+            if (data.useRequire.Length > 0)
+            {
+                string[] strings = data.useRequire.Split('-');
+                int useItemId = Convert.ToInt32(strings[0]);
+                int useItemAmount = Convert.ToInt32(strings[1]);
+                if (itemId > 0 && useItemAmount > 0)
+                {
+                    ServerRemoveItemFromInventory(clientId, useItemId, useItemAmount);
+                }
+            }
+
+            int range = data.useRange;
+            if(range > 0 && data.useParticleId > 0) 
+            {
+                if(particlePrefabs.Length > 0) 
+                {
+                    ServerRaycastRequest(aimPos, aimRot, particlePrefabs[data.useParticleId - 1], range, data.itemUse);
+                }
+            }
+        }
+    }
+    
+   
     //-----------------------------------------------------------------//
     //         Player Request : World Interactions                     //
     //-----------------------------------------------------------------//

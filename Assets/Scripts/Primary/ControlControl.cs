@@ -17,7 +17,10 @@ public class ControlControl : MonoBehaviour
 
     public Image JoyBkg, JoyStick, UseLeft, UseRight, Button1, Button2, Button3, Button4;
     public Image useLeft_Icon, useRight_Icon, Button1_Icon, Button2_Icon, Button3_Icon, Button4_Icon;
-    
+
+    public Sprite handSprite;
+    public Sprite shootSprite;
+
     void Start() 
     {
         Change();
@@ -28,6 +31,22 @@ public class ControlControl : MonoBehaviour
     {
         //Set opacity to stored settings. 0-255.
         SetOpacity(settings.gameControlsOpacity); 
+    }
+
+    public void SwapUse(int useType)
+    {
+        //Hand
+        if (useType == 0)
+        {
+            useLeft_Icon.sprite = handSprite;
+            useRight_Icon.sprite = handSprite;
+        }
+        //Shoot
+        else if (useType == 1) 
+        {
+            useLeft_Icon.sprite = shootSprite;
+            useRight_Icon.sprite = shootSprite;
+        }
     }
 
     private void ChangeImageColor(Color color) 

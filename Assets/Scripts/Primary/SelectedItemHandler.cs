@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,18 +13,25 @@ public class SelectedItemHandler : MonoBehaviour
     private GameObject holdItem;
     private List<GameObject> holdItemCache;
 
+    public Transform aimTransform;
     public Animator animator;
     public Transform handAnchor;
     private GameObject rightHand;
     private GameObject leftHand;
     private bool ikActive = false;
-    
-    
+    private ControlControl controls;
+    private GameServer gameServer;
+    private PlayerActionManager actionManager;
+    private PlayerInfoManager infoManager;
+
     private void Start()
     {
+        actionManager = PlayerActionManager.singleton;
+        infoManager = PlayerInfoManager.singleton;
+        gameServer = GameServer.singleton;
         holdItemCache = new List<GameObject>();
         inventory = FindObjectOfType<InventoryGfx>();
-        
+        controls = inventory.GetComponent<ControlControl>();
     }
 
     public void Use() 
@@ -34,11 +42,35 @@ public class SelectedItemHandler : MonoBehaviour
         }
         else if(inventory != null && selectedItem.itemID == inventory.SelectSlot(curSlot).itemID)
         {
+
             Animator holdAnimator = holdItem.GetComponent<Animator>();
-            if(holdAnimator != null) 
+            ItemData data = gameServer.GetItemDataById(selectedItem.itemID);
+            if (data.useRequire.Length > 0)
             {
-                Debug.Log("fired weapon");
-                holdAnimator.SetTrigger("Use");
+                string[] strings = data.useRequire.Split('-');
+                int itemId = Convert.ToInt32(strings[0]);
+                int itemAmount = Convert.ToInt32(strings[1]);
+                if (itemId > 0 && itemAmount > 0)
+                {
+                    infoManager.GetIfEnoughItems(itemId, itemAmount, returnValue =>
+                    {
+                        if (returnValue) 
+                        {
+                            if (holdAnimator != null)
+                            {
+                                holdAnimator.SetTrigger("Use");
+                                actionManager.UseSelectedItem(data, aimTransform);
+                            }
+                        }
+                    });
+                }
+            }
+            else 
+            {
+                if (holdAnimator != null)
+                {
+                    holdAnimator.SetTrigger("Use");
+                }
             }
         }
     }
@@ -72,17 +104,17 @@ public class SelectedItemHandler : MonoBehaviour
             }
             else 
             {
+                
+                if(controls != null) 
+                {
+                    controls.SwapUse(0);
+                }
                 if (holdItem != null)
                 {
                     holdItem.SetActive(false);
                     holdItemCache.Add(holdItem);
                     leftHand = null;
                     rightHand = null;
-                    Debug.Log("1");
-                }
-                else 
-                {
-                    Debug.Log("2");
                 }
             }
         }
@@ -98,6 +130,10 @@ public class SelectedItemHandler : MonoBehaviour
             rightHand = null;
         }
         selectedItemData = inventory.FindItemData(selectedItem.itemID);
+        if(controls != null) 
+        {
+            controls.SwapUse(selectedItemData.useType);
+        }
         bool selected = false;
         foreach (GameObject obj in holdItemCache)
         {

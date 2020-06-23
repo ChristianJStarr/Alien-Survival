@@ -165,6 +165,12 @@ public class PlayerActionManager : MonoBehaviour
         dragButtonText.text = "Inventory";
     }
 
+    //Use Selected Item
+    public void UseSelectedItem(ItemData data, Transform aim) 
+    {
+        gameServer.UseSelectedItem(id, authKey, data.itemID, aim);
+    }
+
 
     public void ShowDeathScreen() 
     {

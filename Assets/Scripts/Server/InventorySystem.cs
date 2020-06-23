@@ -322,6 +322,10 @@ public class InventorySystem : MonoBehaviour
     //Sort Item Slots in Inventory
     private Item[] SortItemSlotsInInventory(Item[] inventory) 
     {
+        if(inventory == null) 
+        {
+            return null;
+        }
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
         List<Item> unassigned = new List<Item>();

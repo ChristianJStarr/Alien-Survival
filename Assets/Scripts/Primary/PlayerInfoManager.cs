@@ -232,6 +232,13 @@ public class PlayerInfoManager : MonoBehaviour
         gameServer.RequestToDie(id, authKey);
     }
 
+
+    public void GetIfEnoughItems(int itemId, int amount, System.Action<bool> callback) 
+    {
+        gameServer.GetIfEnoughItems(id, itemId, amount, returnValue => { callback(returnValue); });
+    }
+
+
     //-----------------------------------------------------------------//
     //                      Client Side Loops                          //
     //-----------------------------------------------------------------//

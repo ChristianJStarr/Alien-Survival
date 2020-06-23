@@ -1679,6 +1679,7 @@ GameObject:
   m_Component:
   - component: {fileID: 183597642278683367}
   - component: {fileID: 3063521734100083474}
+  - component: {fileID: -6095836722985112236}
   - component: {fileID: 3310272661755385071}
   - component: {fileID: 7783986884845924253}
   - component: {fileID: 792593416563512355}
@@ -1767,6 +1768,28 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-6095836722985112236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3807543680349778164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 623367494, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EnableProximity: 0
+  ProximityRange: 50
+  _animator: {fileID: 7783986884845924253}
+  parameterSendBits: 31
+  param0: 
+  param1: 
+  param2: 
+  param3: 
+  param4: 
+  param5: 
 --- !u!114 &3310272661755385071
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2125,6 +2148,7 @@ MonoBehaviour:
     isArmor: 0
     showInInventory: 1
   selectedItemData: {fileID: 0}
+  aimTransform: {fileID: 1165399421}
   animator: {fileID: 7783986884845924253}
   handAnchor: {fileID: 1694906431}
 --- !u!114 &8814597626916148460

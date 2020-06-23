@@ -5,7 +5,6 @@ public class MainMenuServerSlide : MonoBehaviour
     //What: The individual slide in the server list.
     //Where: Main Menu Scene / Server Menu
     
-    public string serverName,serverAddress,serverPing,serverType,serverMode,serverProtocol;
     public TextMeshProUGUI slideName, slidePing, slideType, slideMode, slidePlayers;
     public int serverPlayers, serverMaxPlayers;
     public ushort serverPort;
@@ -15,7 +14,7 @@ public class MainMenuServerSlide : MonoBehaviour
     public void RefreshValues(Server server) 
     {
         slideName.text = server.name;
-        slidePing.text = server.ping.ToString();
+        slidePing.text = server.ping + "ms";
         slideType.text = server.description;
         slideMode.text = server.mode;
         slidePlayers.text = "(" + server.player + "/" + server.maxPlayer + ")";
