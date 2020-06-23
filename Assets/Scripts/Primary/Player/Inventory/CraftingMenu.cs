@@ -40,6 +40,7 @@ public class CraftingMenu : MonoBehaviour
                 slideCache.Add(slide);
             }
         }
+        ShowTooltip(slideCache.First().item);
     }
 
 
@@ -190,17 +191,18 @@ public class CraftingMenu : MonoBehaviour
         availableCraft = lowest;
         if (lowest > 1)
         {
-            craftSingleButton_b.gameObject.SetActive(true);
-            craftMaxButton_b.gameObject.SetActive(true);
+            craftSingleButton_b.interactable = true;
+            craftMaxButton_b.interactable = true;
             craftMaxButton.text = "CRAFT " + lowest * item.craftAmount;
         }
         else
         {
-            craftSingleButton_b.gameObject.SetActive(true);
-            craftMaxButton_b.gameObject.SetActive(false);
-            if(lowest == 0) 
+            craftMaxButton.text = "CRAFT MAX";
+            craftSingleButton_b.interactable = true;
+            craftMaxButton_b.interactable = false;
+            if (lowest == 0) 
             {
-                craftSingleButton_b.gameObject.SetActive(false);
+                craftSingleButton_b.interactable = false;
             }
         }
     }

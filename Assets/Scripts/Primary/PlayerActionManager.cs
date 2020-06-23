@@ -172,6 +172,17 @@ public class PlayerActionManager : MonoBehaviour
     }
 
 
+    //Request to Teleport
+    public void RequestToTeleport(ulong targetClient) 
+    {
+        gameServer.RequestToTeleport(id, authKey, targetClient);
+    }
+    //Request to Cheat Item
+    public void RequestToCheatItem(int itemId) 
+    {
+        gameServer.RequestToCheatItem(id, authKey, itemId);
+    }
+
     public void ShowDeathScreen() 
     {
         deathScreen.SetActive(true);

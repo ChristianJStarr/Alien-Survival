@@ -3,13 +3,15 @@ using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
 using TMPro;
 using MLAPI;
+using UnityEngine.Rendering;
 
 public class LoadAwake : MonoBehaviour
 {
     public GameObject loadScreen, topBar, inventory;
+    public Volume volume;
     public TextMeshProUGUI loadScreenText, loadScreenText2;
-    public float FadeRate = 0.2F;
-    public float FadeRate2 = 3F;
+    public float FadeRate = 0.1F;
+    public float FadeRate2 = 2F;
     private Image image;
     private float targetAlpha, text1Target, text2Target;
     private Animator animator;
@@ -65,9 +67,9 @@ public class LoadAwake : MonoBehaviour
         if (!readyToWake)
         {
             readyToWake = true;
-            targetAlpha = .8f;
-            text2Target = 1;
-            text1Target = 1f;
+            targetAlpha = .3f;
+            text2Target = .73f;
+            text1Target = .73f;
             loadScreen.GetComponent<Button>().interactable = true;
         }
     }
@@ -82,9 +84,7 @@ public class LoadAwake : MonoBehaviour
                 animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
             }
             animator.SetTrigger("Wake");
-            controls.Show();
-            topBar.SetActive(true);
-            inventory.SetActive(true);
+            
         }
     }
 
@@ -98,6 +98,12 @@ public class LoadAwake : MonoBehaviour
     
     private void ColorFade() 
     {
+        if(targetAlpha == 0.0f) 
+        {
+            FadeRate = 3F;
+            FadeRate2 = 3F;
+        }
+
         if (image != null)
         {
             Color curColor = image.color;
@@ -106,11 +112,15 @@ public class LoadAwake : MonoBehaviour
             {
                 curColor.a = Mathf.Lerp(curColor.a, targetAlpha, FadeRate * Time.deltaTime);
                 image.color = curColor;
+                
             }
             if (alphaDiff < 0.1f && targetAlpha == 0.0f)
             {
                 loadScreen.SetActive(false);
-
+                volume.weight = 0;
+                controls.Show();
+                topBar.SetActive(true);
+                inventory.SetActive(true);
                 Destroy(this);
             }
         }

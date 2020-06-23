@@ -263,6 +263,19 @@ public class GameServer : NetworkedBehaviour
         return item;
     }
 
+    //Get All ItemData
+    public ItemData[] GetAllItemData() 
+    {
+        if(allItems != null && allItems.Length > 0) 
+        {
+            return allItems;
+        }
+        else 
+        {
+            return null;
+        }
+    }
+
 
     //Generate UniqueID
     public string GenerateUnique()
@@ -926,6 +939,36 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+    //--Request Player Name by Client Id
+    public void GetNameByClientId(ulong clientId, Action<string> callback)
+    {
+        DebugMessage("Requesting Name of Client Id", 2);
+        StartCoroutine(GetNameByClientId_Wait(clientId, returnValue => { callback(returnValue); }));
+    }
+
+    private IEnumerator GetNameByClientId_Wait(ulong clientId, Action<string> callback)
+    {
+        RpcResponse<string> response = InvokeServerRpc(GetNameByClientId_Rpc, clientId);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private string GetNameByClientId_Rpc(ulong clientId)
+    {
+        string name = "";
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].clientId == clientId)
+            {
+                name = activePlayers[i].name;
+                break;
+            }
+        }
+        return name;
+    }
+
+
     //-----------------------------------------------------------------//
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
@@ -1041,8 +1084,7 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-
-    //--Request To Die
+    //--Request To Teleport
     public void RequestToDie(int id, string authKey)
     {
         DebugMessage("Requesting to Modify Food.", 2);
@@ -1061,6 +1103,57 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+
+
+
+    //-----------------------------------------------------------------//
+    //         Player Request : Debug Menu                             //
+    //-----------------------------------------------------------------//
+
+
+    //--Request To Telport
+    public void RequestToTeleport(int id, string authKey, ulong targetClientId)
+    {
+        DebugMessage("Requesting to Teleport.", 2);
+        InvokeServerRpc(RequestToTeleport_Rpc, id, authKey, targetClientId);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private void RequestToTeleport_Rpc(int id, string authKey, ulong targetClientId)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                MovementManager movement = NetworkingManager.Singleton.ConnectedClients[activePlayers[i].clientId].PlayerObject.GetComponent<MovementManager>();
+                if(movement != null) 
+                {
+                    movement.TeleportClient(activePlayers[i].clientId, NetworkingManager.Singleton.ConnectedClients[targetClientId].PlayerObject.transform.position);
+                }
+                break;
+            }
+        }
+    }
+
+    //--Request To Cheat Item
+    public void RequestToCheatItem(int id, string authKey, int itemId)
+    {
+        DebugMessage("Requesting to Cheat Item.", 2);
+        InvokeServerRpc(RequestToCheatItem_Rpc, id, authKey, itemId);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private void RequestToCheatItem_Rpc(int id, string authKey, int itemId)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                ServerAddNewItemToInventory(activePlayers[i].clientId, itemId, 1);
+            }
+        }
+    }
+
 
     //-----------------------------------------------------------------//
     //         Player Request : Inventory Items Modification           //

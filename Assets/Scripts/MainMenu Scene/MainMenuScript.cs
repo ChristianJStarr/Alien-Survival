@@ -81,7 +81,20 @@ public class MainMenuScript : MonoBehaviour
             cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
         }
     }
-    
+
+    public void LoadingScreen(bool value) 
+    {
+        if (value) 
+        {
+            LoadGame();
+        }
+        else 
+        {
+           CloseMenu();
+        }
+    }
+
+
     /// <summary>
     /// Activate Menu: Play Menu
     /// </summary>
@@ -122,6 +135,7 @@ public class MainMenuScript : MonoBehaviour
     {
         onlineMenu.SetActive(false);
         profileMenu.SetActive(false);
+        loadScreen.SetActive(false);
         settingsMenu.SetActive(false); 
         mainScreen.SetActive(true);
         camTargetposition = resetTargetCord;
@@ -140,7 +154,6 @@ public class MainMenuScript : MonoBehaviour
         loadScreen.SetActive(true);
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
-        StartCoroutine(LoadRoutine());
     }
     
     /// <summary>

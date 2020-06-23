@@ -3,6 +3,7 @@ using MLAPI.SceneManagement;
 using MLAPI.Spawning;
 using MLAPI.Transports.UNET;
 using System;
+using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -25,7 +26,7 @@ public class ServerConnect : MonoBehaviour
     private NetworkingManager networkManager;
     private GameServer gameServer;
     private WebServer webServer;
-    public GameObject connectingScreen;
+    public MainMenuScript mainMenu;
 
     public bool devServer = false;
     private ServerProperties storedProperties;
@@ -55,8 +56,18 @@ public class ServerConnect : MonoBehaviour
     //-----------------------------------------------------------------//
     public void ConnectToServer(string ip, ushort port)
     {
-        connectingScreen.SetActive(true);
+        if(mainMenu == null) 
+        {
+            mainMenu = FindObjectOfType<MainMenuScript>();
+        }
+        mainMenu.LoadingScreen(true);
         DebugMessage("Connecting to Server.", 1);
+        StartCoroutine(ConnectionWait(ip, port));
+    }
+
+    private IEnumerator ConnectionWait(string ip, ushort port) 
+    {
+        yield return new WaitForSeconds(5f);
         networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
         networkManager.GetComponent<UnetTransport>().ConnectAddress = ip;
         networkManager.GetComponent<UnetTransport>().ConnectPort = port;
@@ -64,6 +75,7 @@ public class ServerConnect : MonoBehaviour
         networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
         networkManager.StartClient();
     }
+
     private void PlayerConnected_Player(ulong id) 
     {
         GameServer.singleton.PlayerConnected_Player(id);
@@ -82,7 +94,11 @@ public class ServerConnect : MonoBehaviour
         }
         else 
         {
-            connectingScreen.SetActive(false);
+            if (mainMenu == null)
+            {
+                mainMenu = FindObjectOfType<MainMenuScript>();
+            }
+            mainMenu.LoadingScreen(false);
         }
         
     }
