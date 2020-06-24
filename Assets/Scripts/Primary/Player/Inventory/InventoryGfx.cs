@@ -20,6 +20,7 @@ public class InventoryGfx : MonoBehaviour
     CraftingMenu craftingMenu;
     Transform[] holds;
 
+    private SelectedItemHandler selectedHandler;
 
     private Item[] items;
     private Item[] armor;
@@ -46,6 +47,7 @@ public class InventoryGfx : MonoBehaviour
 
     public void Incoming(PlayerInfo playerInfo)
     {
+        
         items = playerInfo.items;
         armor = playerInfo.armor;
         blueprints = playerInfo.blueprints;
@@ -55,6 +57,10 @@ public class InventoryGfx : MonoBehaviour
         }
         craftingMenu.GetResources(items, blueprints);
         UpdateUI();
+        if (selectedHandler != null)
+        {
+            selectedHandler.UpdateSelectedSlot();
+        }
     }
 
     public void ButtonCraftingMenu()
@@ -76,6 +82,11 @@ public class InventoryGfx : MonoBehaviour
             craftingActive = false;
             SlideMenu(true, false);
         }
+    }
+
+    public void SelectedItemHandover(SelectedItemHandler handler) 
+    {
+        selectedHandler = handler;
     }
 
     private void UpdateMenus() 
@@ -176,7 +187,6 @@ public class InventoryGfx : MonoBehaviour
     }
 
 
-
     public void ActivateToolTip(Item item) 
     {
         if (!toolTipHandler.gameObject.activeSelf)
@@ -207,6 +217,8 @@ public class InventoryGfx : MonoBehaviour
 
     public void InvButton() 
     {
+        
+
         if (invOpen)
         {
             invOpen = false;

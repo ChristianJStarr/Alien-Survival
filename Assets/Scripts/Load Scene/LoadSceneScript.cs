@@ -8,16 +8,24 @@ public class LoadSceneScript : MonoBehaviour
 {
     //What: Load Scene Script. Does Login/Signup/Stats & Loading into main menu.
     //Where: The Load Scene.
+    public string[] loadTips;
+    
     public bool devServer = false;
     public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting; //Each screen layer.
-    public Slider loadSlider; //Slider for load screen.
-    public TextMeshProUGUI loginNotify, signupNotify; //Notify text field for login and signup screen.
+
+    public TextMeshProUGUI loginNotify, signupNotify, loadTip; //Notify text field for login and signup screen.
     public TMP_InputField usernameText, passwordText, regUsernameText, regPassText; //Input fields for login and signup.
     public Button loginButton, signupButton; //Login and signup screen buttons.
     public PlayerStats playerStats; //Player Statistics data object.
     public WebServer webServer; //Web Server Handler.
     private int loadProgress, lastLoadProgress = 0; //Loading bar values.
     private bool singleAttempt = true; //A single attempt for retrying guest login.
+
+
+    public RawImage background;
+
+    public Texture blurTexture;
+    public Texture regTexture;
 
     void Start() 
     {
@@ -63,6 +71,10 @@ public class LoadSceneScript : MonoBehaviour
         loginScreen.SetActive(false);
         signupScreen.SetActive(false);
         mainScreen.SetActive(true);
+        if(background.texture != regTexture) 
+        {
+            background.texture = regTexture;
+        }
     }
     //Load MainMenu scene. Called if a login or signup was successful.
     private void LoadGame()
@@ -72,6 +84,8 @@ public class LoadSceneScript : MonoBehaviour
         signupScreen.SetActive(false);
         userReporting.SetActive(false);
         loadScreen.SetActive(true);
+        background.texture = blurTexture;
+        loadTip.text = GetLoadTip();
         StartCoroutine(LoadRoutine());//Start loading the MainMenu scene.
     }
     
@@ -108,10 +122,9 @@ public class LoadSceneScript : MonoBehaviour
                     }
                 });
             }
-            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; loadSlider.value = loadProgress; }
+            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress;  }
             yield return null;
         }
-        loadSlider.value = loadProgress = 75;
     }
 
     //Login with stored PlayerPrefs.
@@ -201,8 +214,8 @@ public class LoadSceneScript : MonoBehaviour
         {
             string random = RandomUserCode(30);
             string username = "Guest-" + random.Substring(1,8); //Create a guest name.
-            string password = random.Substring(8, 15); //Create guest password.
-            string authKey = random.Substring(15, 22); //Create guest username.
+            string password = random.Substring(9, 10); //Create guest password.
+            string authKey = random.Substring(19, 10); //Create guest username.
             webServer.SignupRequest(username, password, authKey, onRequestFinished =>
             {
                 if (onRequestFinished)
@@ -268,6 +281,12 @@ public class LoadSceneScript : MonoBehaviour
         byte[] bytes = encoding.GetBytes(str);
         var sha = new System.Security.Cryptography.MD5CryptoServiceProvider();
         return System.BitConverter.ToString(sha.ComputeHash(bytes));
+    }
+
+    //Get Load Screen Tip Text
+    private string GetLoadTip()
+    {
+        return loadTips[Random.Range(0, loadTips.Length - 1)];
     }
 
 }

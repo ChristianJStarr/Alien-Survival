@@ -33,7 +33,8 @@ public class MainMenuServerList : MonoBehaviour
     private int pings = 0;
 
     private bool isRefreshing = false;
-    
+    private bool isDemoLoad = false;
+
     Vector2 refreshOriginal;
     Vector2 bottomTarget;
     RectTransform serverCountRect;
@@ -59,11 +60,11 @@ public class MainMenuServerList : MonoBehaviour
             ToggleVisibility();
         }
 
-        if((pings > 0 || isRefreshing) && !refreshing.gameObject.activeSelf) 
+        if((pings > 0 || isRefreshing || isDemoLoad) && !refreshing.gameObject.activeSelf) 
         {
             bottomTarget = new Vector3(-256, -29);
         }
-        else if(pings == 0 && isRefreshing == false && refreshing.gameObject.activeSelf == true) 
+        else if(!isDemoLoad && pings == 0 && !isRefreshing && refreshing.gameObject.activeSelf) 
         {
             bottomTarget = refreshOriginal;
         }
@@ -118,25 +119,30 @@ public class MainMenuServerList : MonoBehaviour
     //List Functions
     public void GetServers() 
     {
-        isRefreshing = true;
-        webServer.ServerListRequest(onRequestFinished =>
+        if (!isDemoLoad) 
         {
-            if (onRequestFinished != null) 
+            isRefreshing = true;
+            isDemoLoad = true;
+            StartCoroutine(DemoLoadDelay());
+            webServer.ServerListRequest(onRequestFinished =>
             {
-                isRefreshing = false;
-                UpdateList(onRequestFinished.servers);
-            }
-            else 
-            {
-                isRefreshing = false;
-                serverCount.text = "SERVERS (0/0)";
-                for (int i = 0; i < slides.Count; i++)
+                if (onRequestFinished != null)
                 {
-                    Destroy(slides[i].gameObject);
+                    isRefreshing = false;
+                    UpdateList(onRequestFinished.servers);
                 }
-                slides.Clear();
-            }
-        });
+                else
+                {
+                    isRefreshing = false;
+                    serverCount.text = "SERVERS (0/0)";
+                    for (int i = 0; i < slides.Count; i++)
+                    {
+                        Destroy(slides[i].gameObject);
+                    }
+                    slides.Clear();
+                }
+            });
+        }
     }
 
     private void UpdateList(Server[] servers) 
@@ -251,6 +257,12 @@ public class MainMenuServerList : MonoBehaviour
             ToggleVisibility();
         }
         pings--;
+    }
+
+    private IEnumerator DemoLoadDelay() 
+    {
+        yield return new WaitForSeconds(4f);
+        isDemoLoad = false;
     }
 }
         

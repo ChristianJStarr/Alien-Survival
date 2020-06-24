@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class SelectedItemHandler : MonoBehaviour
 {
-    public int curSlot = 0;
     public Item selectedItem;
     public ItemData selectedItemData;
     private InventoryGfx inventory;
@@ -24,6 +23,10 @@ public class SelectedItemHandler : MonoBehaviour
     private PlayerActionManager actionManager;
     private PlayerInfoManager infoManager;
 
+    private int selectedSlot = 1;
+
+    private bool isHoldingUse = false;
+
     private void Start()
     {
         actionManager = PlayerActionManager.singleton;
@@ -32,15 +35,35 @@ public class SelectedItemHandler : MonoBehaviour
         holdItemCache = new List<GameObject>();
         inventory = FindObjectOfType<InventoryGfx>();
         controls = inventory.GetComponent<ControlControl>();
+
+    }
+
+
+    private void Update()
+    {
+        if (Input.GetButtonDown("Use")) 
+        {
+            Use();
+            isHoldingUse = true;
+        }
+        if (Input.GetButtonUp("Use"))
+        {
+            isHoldingUse = false;
+        }
+    }
+
+    public void UpdateSelectedSlot() 
+    {
+        SelectSlot(selectedSlot);
     }
 
     public void Use() 
     {
-        if(selectedItem == null || selectedItem.itemID == 0) 
+        if (selectedItem == null || selectedItem.itemID == 0)
         {
-            //Hand is Empty, safe to punch.
+            animator.SetTrigger("Punch");
         }
-        else if(inventory != null && selectedItem.itemID == inventory.SelectSlot(curSlot).itemID)
+        else if (inventory != null && selectedItem.itemID == inventory.SelectSlot(selectedSlot).itemID)
         {
 
             Animator holdAnimator = holdItem.GetComponent<Animator>();
@@ -77,13 +100,15 @@ public class SelectedItemHandler : MonoBehaviour
 
     public void SelectSlot(int slot)
     {
+
         if(inventory == null) 
         {
             inventory = FindObjectOfType<InventoryGfx>();
         }
-        if (curSlot != slot) 
+        if (selectedSlot != slot) 
         {
-            curSlot = slot;
+            inventory.SelectedItemHandover(this);
+            selectedSlot = slot;
             selectedItem = inventory.SelectSlot(slot);
             if(selectedItem != null) 
             {
@@ -106,6 +131,41 @@ public class SelectedItemHandler : MonoBehaviour
             {
                 
                 if(controls != null) 
+                {
+                    controls.SwapUse(0);
+                }
+                if (holdItem != null)
+                {
+                    holdItem.SetActive(false);
+                    holdItemCache.Add(holdItem);
+                    leftHand = null;
+                    rightHand = null;
+                }
+            }
+        }
+        else 
+        {
+            if (selectedItem != null)
+            {
+                if (selectedItem.isHoldable)
+                {
+                    HoldItem();
+                }
+                else
+                {
+                    if (holdItem != null)
+                    {
+                        holdItem.SetActive(false);
+                        holdItemCache.Add(holdItem);
+                        leftHand = null;
+                        rightHand = null;
+                    }
+                }
+            }
+            else
+            {
+
+                if (controls != null)
                 {
                     controls.SwapUse(0);
                 }
