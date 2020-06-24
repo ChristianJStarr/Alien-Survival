@@ -48,6 +48,13 @@ public class MusicManager : MonoBehaviour
 
     void Start()
     {
+#if UNITY_SERVER
+        musicAudio.Stop();
+        ambientAudio.Stop();
+        uiAudio.Stop();
+        return;
+#endif
+
         DontDestroyOnLoad(this);
         Change();
         if(FindObjectsOfType<MusicManager>().Length > 1) 
@@ -72,6 +79,10 @@ public class MusicManager : MonoBehaviour
     /// <param name="level"></param>
     void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
     {
+#if UNITY_SERVER
+        return;
+#endif
+
         int level = scene.buildIndex;
         if(level == 2) 
         {
