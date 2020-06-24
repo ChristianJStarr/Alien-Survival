@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -21,6 +22,10 @@ public class MainMenuScript : MonoBehaviour
     public Camera cam; //Scene Camera.
     public GameObject easterEggBeam;
     static Transform camReset; //Camera default positon to reset to.
+
+    public TextMeshProUGUI loadTip;
+    public string[] loadTips;
+
 
     //Camera locations for switching screens effect.
     public Vector3 playTargetCord;
@@ -152,6 +157,7 @@ public class MainMenuScript : MonoBehaviour
         profileMenu.SetActive(false);
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
+        loadTip.text = LoadText();
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
     }
@@ -194,6 +200,7 @@ public class MainMenuScript : MonoBehaviour
         profileMenu.SetActive(false);
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
+        loadTip.text = LoadText();
         StartCoroutine(LogOutRoutine());
     }
     
@@ -233,5 +240,10 @@ public class MainMenuScript : MonoBehaviour
     {
         yield return new WaitForSeconds(5f);
         easterEggBeam.SetActive(true);
+    }
+
+    private string LoadText() 
+    {
+        return loadTips[Random.Range(0, loadTips.Length -1)];
     }
 }

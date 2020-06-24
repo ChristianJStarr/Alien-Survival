@@ -8350,7 +8350,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alienAnimator: {fileID: 3570865384072128192}
-  playerStats: {fileID: 0}
+  playerStats: {fileID: 11400000, guid: 0fa82ddbb9514ce4f8efb449490936da, type: 2}
   mainScreen: {fileID: 1658349266}
   loadScreen: {fileID: 1578978463}
   profileMenu: {fileID: 2050273268}
@@ -8359,6 +8359,13 @@ MonoBehaviour:
   loadSlider: {fileID: 1282331708}
   cam: {fileID: 963194227}
   easterEggBeam: {fileID: 815405738}
+  loadTip: {fileID: 997504536}
+  loadTips:
+  - If you're experiencing performance issues, try reducing your game quality in
+    the settings.
+  - Your connection to the server may be unstable when not using wifi.
+  - Found a bug? Submit a report and we'll fix it as soon as possible.
+  - Have a suggestion? Submit a report, detailed suggestion, and we'll consider it.
   playTargetCord: {x: -9.36, y: 6.968846, z: -15.53908}
   playTargetRot: {x: 0, y: 0.13, z: 0, w: 1}
   profTargetCord: {x: -9.36, y: 6.968846, z: -15.53908}

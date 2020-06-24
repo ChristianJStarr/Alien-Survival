@@ -1987,7 +1987,7 @@ MonoBehaviour:
   m_WalkSpeed: 8
   m_RunSpeed: 8
   m_RunstepLenghten: 0.166
-  m_JumpSpeed: 2
+  m_JumpSpeed: 6
   m_StickToGroundForce: 3
   m_GravityMultiplier: 1
   m_MouseLook:
