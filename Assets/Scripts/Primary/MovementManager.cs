@@ -4,7 +4,6 @@ using MLAPI.Serialization.Pooled;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityStandardAssets.Characters.FirstPerson;
 
 public class MovementManager : NetworkedBehaviour
 {

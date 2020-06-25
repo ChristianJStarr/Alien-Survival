@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,14 +16,13 @@ public class SelectedItemHandler : MonoBehaviour
     public Transform handAnchor;
     private GameObject rightHand;
     private GameObject leftHand;
-    private bool ikActive = false;
     private ControlControl controls;
     private GameServer gameServer;
     private PlayerActionManager actionManager;
     private PlayerInfoManager infoManager;
 
+    private bool ikActive = false;
     private int selectedSlot = 1;
-
     private bool isHoldingUse = false;
 
     private void Start()
@@ -37,8 +35,6 @@ public class SelectedItemHandler : MonoBehaviour
         controls = inventory.GetComponent<ControlControl>();
 
     }
-
-
     private void Update()
     {
         if (Input.GetButtonDown("Use")) 
@@ -52,11 +48,14 @@ public class SelectedItemHandler : MonoBehaviour
         }
     }
 
+
+    //Update the Selected Slot
     public void UpdateSelectedSlot() 
     {
         SelectSlot(selectedSlot);
     }
 
+    //Use Selected Item
     public void Use() 
     {
         if (selectedItem == null || selectedItem.itemID == 0)
@@ -98,6 +97,7 @@ public class SelectedItemHandler : MonoBehaviour
         }
     }
 
+    //Select a Slot (int)
     public void SelectSlot(int slot)
     {
 
@@ -180,6 +180,7 @@ public class SelectedItemHandler : MonoBehaviour
         }
     }
 
+    //Hold Item Function
     private void HoldItem() 
     {
         if (holdItem != null)
@@ -214,12 +215,15 @@ public class SelectedItemHandler : MonoBehaviour
         }
     }
 
+    //Update Animator Targets
     private void UpdateTargets()
     {
         leftHand = GameObject.FindGameObjectWithTag("LHandTarget");
         rightHand = GameObject.FindGameObjectWithTag("RHandTarget");
         ikActive = true;
     }
+    
+    //On Animator Ik
     void OnAnimatorIK(int index)
     {
         if (index == 2) 

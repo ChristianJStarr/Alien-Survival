@@ -7,9 +7,6 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
-    //What: Settings Menu Controller.
-    //Where: MainMenu Scene / UI / SettingsMenu  
-    //Where: Primary Scene / Interface / PauseMenu / Settings Menu
 
     public Settings settings; // Game Settings data.
     public Slider ui, menu, ambient, effects, xSense, ySense, opacity, terrainDis, objectDis; //All settings sliders
@@ -64,7 +61,9 @@ public class SettingsMenu : MonoBehaviour
             objectDis.value = terrainDis.value;
         }
     }
+    
 
+    //Apply Settings Values
     public void ApplySettings() 
     {
     //Store settings menu items in settings scriptable object.

@@ -10,34 +10,24 @@ public class MainMenuServerList : MonoBehaviour
 {
 
     public TMP_InputField searchField;
-
     public TMP_Dropdown sortDropdown;
-
     private WebServer webServer;
-
     public TextMeshProUGUI serverCount;
-
     public Transform listContainer;
-
     public GameObject serverItem;
-
     public RectTransform refreshing;
-
     private List<MainMenuServerSlide> slides;
-
-    private string searchString = "";
-
     private TouchScreenKeyboard mobileKeys;
 
+    private string searchString = "";
     private int sortValue = 0;
     private int pings = 0;
-
     private bool isRefreshing = false;
     private bool isDemoLoad = false;
 
-    Vector2 refreshOriginal;
-    Vector2 bottomTarget;
-    RectTransform serverCountRect;
+    private Vector2 refreshOriginal;
+    private Vector2 bottomTarget;
+    private RectTransform serverCountRect;
     
     
     
@@ -51,8 +41,6 @@ public class MainMenuServerList : MonoBehaviour
         serverCount.text = "SERVERS (0/0)";
         GetServers();
     }
-
-
     private void Update()
     {
         if(mobileKeys != null && mobileKeys.status == TouchScreenKeyboard.Status.Done) 

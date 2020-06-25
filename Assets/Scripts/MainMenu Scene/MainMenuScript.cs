@@ -42,9 +42,7 @@ public class MainMenuScript : MonoBehaviour
     //Touch Phase
     private TouchPhase touchPhase = TouchPhase.Ended;
 
-    /// <summary>
-    /// Main Menu Start Function. Set camera transforms.
-    /// </summary>
+
     void Start() 
     {
         camReset = cam.transform;
@@ -53,10 +51,6 @@ public class MainMenuScript : MonoBehaviour
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
     }
-    
-    /// <summary>
-    /// Main Menu Update Function. Keep up with camera targets.
-    /// </summary>
     void Update()
     {
         //Detect double click for easter egg.
@@ -87,6 +81,8 @@ public class MainMenuScript : MonoBehaviour
         }
     }
 
+
+    //Toggle the Loading Screen
     public void LoadingScreen(bool value) 
     {
         if (value) 
@@ -99,10 +95,7 @@ public class MainMenuScript : MonoBehaviour
         }
     }
 
-
-    /// <summary>
-    /// Activate Menu: Play Menu
-    /// </summary>
+    //Open Server Menu
     public void PlayMenu() 
     {
         mainScreen.SetActive(false);
@@ -111,9 +104,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetrotation = playTargetRot;
     }
     
-    /// <summary>
-    /// Activate Menu: Profile Menu
-    /// </summary>
+    //Open Profile Menu
     public void ProfileMenu() 
     {
         mainScreen.SetActive(false);
@@ -122,9 +113,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetrotation = profTargetRot;
     }
     
-    /// <summary>
-    /// Activate Menu: Settings Menu
-    /// </summary>
+    //Open Settings Menu
     public void SettingsMenu() 
     {
         mainScreen.SetActive(false);
@@ -133,9 +122,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetrotation = profTargetRot;
     }
     
-    /// <summary>
-    /// Close Menus. Display Main Menu.
-    /// </summary>
+    //Close all Menus
     public void CloseMenu() 
     {
         onlineMenu.SetActive(false);
@@ -147,9 +134,7 @@ public class MainMenuScript : MonoBehaviour
         camTargetrotation = resetTargetRot;
     }
     
-    /// <summary>
-    /// Show loading screen. Load the Primary Scene
-    /// </summary>
+    //Load the Game Function
     public void LoadGame() 
     {
         mainScreen.SetActive(false);
@@ -161,31 +146,9 @@ public class MainMenuScript : MonoBehaviour
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
     }
-    
-    /// <summary>
-    /// Preform the load routine. 
-    /// </summary>
-    /// <returns>Coroutine</returns>
-    private IEnumerator LoadRoutine()
-    {
-        int loadProgress = 0;
-        int lastLoadProgress = 0;
-        for (loadProgress = 0; loadProgress < 500; loadProgress++)
-        {
-            lastLoadProgress = loadProgress;
-            loadProgress++;
-            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; loadSlider.value = loadProgress / 5; }
-            yield return null;
-        }
 
-        loadProgress = 100;
-        loadSlider.value = loadProgress;
-    }
-    
-    /// <summary>
-    /// Log Player Out. Return to Load Scene.
-    /// </summary>
-    public void LogOut() 
+    //Log Out Function
+    public void LogOut()
     {
         //Remove Stored PlayerPrefs
         PlayerPrefs.DeleteKey("username");
@@ -203,11 +166,25 @@ public class MainMenuScript : MonoBehaviour
         loadTip.text = LoadText();
         StartCoroutine(LogOutRoutine());
     }
-    
-    /// <summary>
-    /// Preform the log out routine.
-    /// </summary>
-    /// <returns>Coroutine</returns>
+
+    //Load Routine
+    private IEnumerator LoadRoutine()
+    {
+        int loadProgress = 0;
+        int lastLoadProgress = 0;
+        for (loadProgress = 0; loadProgress < 500; loadProgress++)
+        {
+            lastLoadProgress = loadProgress;
+            loadProgress++;
+            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; loadSlider.value = loadProgress / 5; }
+            yield return null;
+        }
+
+        loadProgress = 100;
+        loadSlider.value = loadProgress;
+    }
+     
+    //Log Out Routine
     private IEnumerator LogOutRoutine()
     {
         int loadProgress = 0;
@@ -232,16 +209,14 @@ public class MainMenuScript : MonoBehaviour
         loadSlider.value = loadProgress;
     }
     
-    /// <summary>
-    /// Start the Main Menu Easter Egg
-    /// </summary>
-    /// <returns>Coroutine</returns>
+    //Easter Egg Start
     private IEnumerator EasterEggStart() 
     {
         yield return new WaitForSeconds(5f);
         easterEggBeam.SetActive(true);
     }
 
+    //Loading Text Randomizer
     private string LoadText() 
     {
         return loadTips[Random.Range(0, loadTips.Length -1)];

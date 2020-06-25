@@ -1,9 +1,6 @@
 ﻿using MLAPI;
-using MLAPI.Connection;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class DebugMenu : MonoBehaviour
@@ -42,7 +39,6 @@ public class DebugMenu : MonoBehaviour
         UpdateItems();
     }
 
-
     public void UpdatePlayers() 
     {
         foreach (DebugMenuSlide item in slides)
@@ -50,23 +46,27 @@ public class DebugMenu : MonoBehaviour
             Destroy(item.gameObject);
         }
 
-        ulong[] clients = NetworkingManager.Singleton.ConnectedClients.Keys.ToArray();
-
-        foreach (ulong client in clients)
+        gameServer.GetAllConnectedClients(returnValue => 
         {
-            if(gameServer != null) 
+            if(returnValue != null) 
             {
-                gameServer.GetNameByClientId(client, returnValue => 
+                foreach (ulong client in returnValue)
                 {
-                    if(returnValue.Length > 0) 
+                    if (gameServer != null)
                     {
-                        DebugMenuSlide slide = Instantiate(playerListPefab, playerListContainer).GetComponent<DebugMenuSlide>();
-                        slide.UpdateValues(returnValue, (int)client, this);
-                        slides.Add(slide);
+                        gameServer.GetNameByClientId(client, returnClient =>
+                        {
+                            if (returnClient.Length > 0)
+                            {
+                                DebugMenuSlide slide = Instantiate(playerListPefab, playerListContainer).GetComponent<DebugMenuSlide>();
+                                slide.UpdateValues(returnClient, (int)client, this);
+                                slides.Add(slide);
+                            }
+                        });
                     }
-                });
+                }
             }
-        }
+        });
     }
 
     private void UpdateItems() 
@@ -92,6 +92,7 @@ public class DebugMenu : MonoBehaviour
         }
         selectedPlayer = Convert.ToUInt64(player);
     }
+    
     public void SelectItem(int item) 
     {
         foreach(DebugMenuSlide slide in items) 
@@ -108,6 +109,7 @@ public class DebugMenu : MonoBehaviour
             PlayerActionManager.singleton.RequestToCheatItem(selectedItem);
         }
     }
+    
     public void TeleportPlayer() 
     {
         if(selectedPlayer != 999999) 

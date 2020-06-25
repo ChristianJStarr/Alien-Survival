@@ -16,23 +16,15 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
     #endregion
-    //Inventory Gfx
     public InventoryGfx inventoryGfx;
-    //Load Awake
     public LoadAwake loadAwake;
-    //TopBar
     private Topbar topbar;
-    //Game Server
     private GameServer gameServer;
-    //User ID
-    private int id;
-    //User AuthKey
-    private string authKey;
-    //Stored Player Info
     private PlayerInfo storedPlayerInfo;
-    //Player Object
     private GameObject player;
-    //FirstRequest Bool
+
+    private int id;
+    private string authKey;
     private bool firstRequest = true;
 
     private void Start()

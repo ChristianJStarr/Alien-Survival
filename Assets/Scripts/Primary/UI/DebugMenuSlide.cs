@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 public class DebugMenuSlide : MonoBehaviour
@@ -12,6 +10,8 @@ public class DebugMenuSlide : MonoBehaviour
     public string playerName;
     public bool isItem = false;
 
+
+    //Update Slide Values
     public void UpdateValues(string name, int newId, DebugMenu menu) 
     {
         debugMenu = menu;
@@ -20,6 +20,8 @@ public class DebugMenuSlide : MonoBehaviour
         mainText.text = id + " - " + name;
     }
 
+
+    //Slide Clicked
     public void ButtonClick()
     {
         if (!isItem)
@@ -32,6 +34,7 @@ public class DebugMenuSlide : MonoBehaviour
         }
     }
 
+    //Select Slide
     public void Selected(bool value)
     {
         if(selection != null)

@@ -16,12 +16,6 @@ public class MainMenuRecentNews : MonoBehaviour
     {
         StartCoroutine(GetNews());
     }
-
-
-    /// <summary>
-    /// Get the news and instantiate slides.
-    /// </summary>
-    /// <returns>Coroutine</returns>
     public IEnumerator GetNews() 
     {
         WWWForm form = new WWWForm();

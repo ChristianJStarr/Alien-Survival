@@ -43,7 +43,7 @@ public class CraftingMenu : MonoBehaviour
         ShowTooltip(slideCache.First().item);
     }
 
-
+    //Get Resources
     public void GetResources(Item[] inventory, int[] blueprints)
     {
         
@@ -114,7 +114,7 @@ public class CraftingMenu : MonoBehaviour
         }
     }
 
-
+    //Find a Slide and Set
     private void FindSlideAndSet(bool value, ItemData itemData) 
     {
         foreach (CraftSlide slide in slideCache)
@@ -127,7 +127,7 @@ public class CraftingMenu : MonoBehaviour
         }
     }
 
-
+    //Check if has item
     public bool HasItem(int itemId, int itemAmount, List<InventoryResource> inv)
     {
         bool hasItem = false;
@@ -142,7 +142,7 @@ public class CraftingMenu : MonoBehaviour
         return hasItem;
     }
 
-
+    //Show craft tip
     public void ShowTooltip(ItemData item)
     {
         int lowest = 6000;
@@ -207,6 +207,7 @@ public class CraftingMenu : MonoBehaviour
         }
     }
 
+    //Update slot
     public void UpdateSlot(int pos, int itemId, int itemAmount, bool isCraftable)
     {
 
@@ -272,7 +273,7 @@ public class CraftingMenu : MonoBehaviour
         }
     }
 
-
+    //Get item Image by ID
     public Sprite GetImage(int id)
     {
         Sprite image = null;
@@ -287,7 +288,7 @@ public class CraftingMenu : MonoBehaviour
         return image;
     }
     
-
+    //How many Items
     public int HowManyItem(int itemId, int itemAmount)
     {
         int howMany = 0;
@@ -302,6 +303,7 @@ public class CraftingMenu : MonoBehaviour
         return howMany;
     }
 
+    //Build Item Types
     private void BuildTypes(string[] types)
     {
         if (typeCache != null)
@@ -330,11 +332,13 @@ public class CraftingMenu : MonoBehaviour
 
     }
 
+    //Button: Craft Max
     public void CraftMax()
     {
         PlayerInfoManager.singleton.CraftItemById(currentCraftItem.itemID, availableCraft);
     }
 
+    //Button: Craft Single
     public void CraftOne()
     {
         PlayerInfoManager.singleton.CraftItemById(currentCraftItem.itemID, 1);

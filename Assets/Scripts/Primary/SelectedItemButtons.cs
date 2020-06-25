@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SelectedItemButtons : MonoBehaviour
 {
@@ -11,6 +9,7 @@ public class SelectedItemButtons : MonoBehaviour
         selectedItemHandler = FindObjectOfType<SelectedItemHandler>();
     }
 
+    //Select Slot
     public void SelectSlot(int id)
     {
         if(selectedItemHandler == null) 

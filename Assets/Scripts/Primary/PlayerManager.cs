@@ -2,16 +2,12 @@
 using UnityEngine;
 using UnityStandardAssets.Characters.FirstPerson;
 using BreadcrumbAi;
-/// <summary>
-/// Player Manager Script for Primary Scene. 
-/// </summary>
+
 public class PlayerManager : MonoBehaviour
 {
     public Transform handAnchor;
     public GameObject playerCamera;
     public GameObject playerViewCamera;
-
-
 
     private void Start()
     {

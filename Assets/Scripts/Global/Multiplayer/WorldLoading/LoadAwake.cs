@@ -53,7 +53,6 @@ public class LoadAwake : MonoBehaviour
             Destroy(this);
         }
     }
-    
     void Update()
     {
         if (isClient && loadScreen.activeSelf) 
@@ -62,6 +61,8 @@ public class LoadAwake : MonoBehaviour
         } 
     }
     
+
+    //Ready to Wakeup Function
     public void ReadyWake() 
     {
         if (!readyToWake)
@@ -74,6 +75,7 @@ public class LoadAwake : MonoBehaviour
         }
     }
 
+    //Wake up Function
     public void WakeUp() 
     {
         if (readyToWake)
@@ -88,6 +90,7 @@ public class LoadAwake : MonoBehaviour
         }
     }
 
+    //Fade out overlay
     private void FadeOut()
     {
         textOff = true;
@@ -96,6 +99,7 @@ public class LoadAwake : MonoBehaviour
         text2Target = 0.0f;
     }
     
+    //Color fade updater
     private void ColorFade() 
     {
         if(targetAlpha == 0.0f) 

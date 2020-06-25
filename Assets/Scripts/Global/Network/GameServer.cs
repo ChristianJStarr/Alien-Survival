@@ -969,6 +969,34 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+    //--Request Player Name by Client Id
+    public void GetAllConnectedClients(Action<ulong[]> callback)
+    {
+        DebugMessage("Requesting a List of All Clients.", 2);
+        StartCoroutine(GetAllConnectedClients_Wait(returnValue => { callback(returnValue); }));
+    }
+
+    private IEnumerator GetAllConnectedClients_Wait(Action<ulong[]> callback)
+    {
+        RpcResponse<ulong[]> response = InvokeServerRpc(GetAllConnectedClients_Rpc);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private ulong[] GetAllConnectedClients_Rpc()
+    {
+        if(NetworkingManager.Singleton != null) 
+        {
+            return NetworkingManager.Singleton.ConnectedClients.Keys.ToArray();
+        }
+        else 
+        {
+            return null;
+        }
+    }
+
+
     //-----------------------------------------------------------------//
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
@@ -1593,7 +1621,7 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-
+    //Auto Save Loop
     private IEnumerator AutoSaveLoop()
     {
         int interval = storedProperties.autoSaveInterval;
@@ -1623,7 +1651,7 @@ public class GameServer : NetworkedBehaviour
         StartCoroutine(AutoSaveLoop());
     }
 
-
+    //Debug Message Function
     private void DebugMessage(string message, int level)
     {
         if (level <= logLevel)
@@ -1661,3 +1689,4 @@ public class PlayerInfo
 }
 
 //1156 6/20/20
+//1692 6/25/20

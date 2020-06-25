@@ -11,6 +11,8 @@ public class MainMenuServerSlide : MonoBehaviour
     public CoinManager coinManager;
     public GameObject roomNotify;
     public Server storedServer;
+
+    //Update Values of this Slide
     public void RefreshValues(Server server) 
     {
         slideName.text = server.name;
@@ -21,6 +23,7 @@ public class MainMenuServerSlide : MonoBehaviour
         storedServer = server;
     }
 
+    //Button: Join this Room
     public void JoinThisRoom() 
     {
         ClickSound();
@@ -30,6 +33,8 @@ public class MainMenuServerSlide : MonoBehaviour
             serverConnect.ConnectToServer(storedServer.serverIP, storedServer.serverPort);
         }
     }
+    
+    //Play UI Click Sound
     private void ClickSound() 
     {
         MusicManager sounds = FindObjectOfType<MusicManager>();

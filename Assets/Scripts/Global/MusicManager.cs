@@ -1,51 +1,23 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-/// <summary>
-/// Master Music Manager Script
-/// </summary>
+
 public class MusicManager : MonoBehaviour
 {
-    /// <summary>
-    /// Audio Source for Music
-    /// </summary>
     public AudioSource musicAudio;
-    /// <summary>
-    /// Audio Source for Ambient Sounds
-    /// </summary>
     public AudioSource ambientAudio;
-    /// <summary>
-    /// Audio Source for UI Clicks
-    /// </summary>
     public AudioSource uiAudio;
-    /// <summary>
-    /// Reference to Game Settings
-    /// </summary>
     public Settings settings;
-    /// <summary>
-    /// Game Music Clip. Primary Scene
-    /// </summary>
     public AudioClip gameClip;
-    /// <summary>
-    /// Main Menu Music Clip. MainMenu Scene
-    /// </summary>
     public AudioClip menuClip;
-    /// <summary>
-    /// Ambient Sounds Clip. Primary Scene
-    /// </summary>
     public AudioClip ambientClip;
     private float musicInc;
     private float ambientInc;
 
-    /// <summary>
-    /// Music Manager Start Function: Change() and remove if duplicate.
-    /// </summary>
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
-
-
     void Start()
     {
 #if UNITY_SERVER
@@ -62,9 +34,8 @@ public class MusicManager : MonoBehaviour
             Destroy(this.gameObject);
         }
     }
-    /// <summary>
-    /// Change sound volume to stored settings.
-    /// </summary>
+   
+    //Update Values to Settings
     public void Change() 
     {
         musicAudio.volume = settings.musicVolume;
@@ -73,10 +44,8 @@ public class MusicManager : MonoBehaviour
         ambientInc = settings.ambientVolume / 20;
         uiAudio.volume = settings.uiVolume;
     }
-    /// <summary>
-    /// OnLevelWasLoaded for handling which audio plays on what scene.
-    /// </summary>
-    /// <param name="level"></param>
+    
+    //On Scene Loaded
     void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
     {
 #if UNITY_SERVER
@@ -105,19 +74,14 @@ public class MusicManager : MonoBehaviour
         }
 
     }
-    /// <summary>
-    /// Play Button Click Sound Effect.
-    /// </summary>
+
+    //Button Click, Player UI Sound
     public void ButtonClick() 
     {
         uiAudio.Play();
     }
-    /// <summary>
-    /// Fade sound clips. Used for scene switching.
-    /// </summary>
-    /// <param name="audioClip">New Audio Clip for Music</param>
-    /// <param name="audioClip2">New Audio Clip for Ambient</param>
-    /// <returns></returns>
+
+    //Fade Sound Volume9
     private IEnumerator FadeSound(AudioClip audioClip, AudioClip audioClip2)
     {
         yield return new WaitForSeconds(0.2F);

@@ -19,6 +19,7 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
         playerInfoManager = PlayerInfoManager.singleton;
     }
 
+    //On Item Drop
     public void OnDrop(PointerEventData eventData)
     {
         GameObject drop = eventData.pointerDrag;

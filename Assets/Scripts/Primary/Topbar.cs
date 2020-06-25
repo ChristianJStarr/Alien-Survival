@@ -10,7 +10,7 @@ public class Topbar : MonoBehaviour
     public RawImage pingImage;
     public bool showPing = false;
 
-
+    //Update player info
     public void Incoming(PlayerInfo playerInfo) 
     {
         userHealth = playerInfo.health;
@@ -20,6 +20,7 @@ public class Topbar : MonoBehaviour
         UpdateTopbar();
     }
 
+    //Update TopBar UI
     private void UpdateTopbar() 
     {
         int level = GetLevel(userExp);
@@ -30,6 +31,8 @@ public class Topbar : MonoBehaviour
         userExp_text.text = "LEVEL " + level;
         userHealth_text.text = "HP " + userHealth;
     }
+    
+    //Get Level EXP
     private int GetLevel(int value)
     {
         value = value / 1000;

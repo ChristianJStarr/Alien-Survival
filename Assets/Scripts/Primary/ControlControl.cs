@@ -1,5 +1,4 @@
-﻿using TMPro;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class ControlControl : MonoBehaviour
@@ -33,6 +32,7 @@ public class ControlControl : MonoBehaviour
         SetOpacity(settings.gameControlsOpacity); 
     }
 
+    //Swap Use Icons
     public void SwapUse(int useType)
     {
         //Hand
@@ -49,6 +49,7 @@ public class ControlControl : MonoBehaviour
         }
     }
 
+    //Change Color of Bkg Image
     private void ChangeImageColor(Color color) 
     {
         JoyBkg.color = color;
@@ -60,6 +61,8 @@ public class ControlControl : MonoBehaviour
         Button3.color = color;
         Button4.color = color;
     }
+    
+    //Change Color of Icon Image
     private void ChangeIconColor(Color color) 
     {
         useLeft_Icon.color = color;
@@ -93,11 +96,13 @@ public class ControlControl : MonoBehaviour
     {
         ToggleVisible(false);
     }
+    
     //Show controls.
     public void Show() 
     {
         ToggleVisible(true);
     }
+    
     //Change opacity of buttons.
     private void ToggleVisible(bool value)
     {

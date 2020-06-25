@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityStandardAssets.Utility;
@@ -47,7 +46,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private AudioSource m_AudioSource;
 
 
-        // Use this for initialization
         private void Start()
         {
             animator = GetComponent<Animator>();
@@ -64,9 +62,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_AudioSource = GetComponent<AudioSource>();
             m_MouseLook.Init(transform, cameraPivot);
         }
-
-
-        // Update is called once per frame
         private void Update()
         {
             RotateView();
@@ -94,20 +89,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
         }
-
-
-        private void PlayLandingSound()
-        {
-           // m_AudioSource.clip = m_LandSound;
-            //m_AudioSource.Play();
-            m_NextStep = m_StepCycle + .5f;
-        }
-
-        public void Teleport(Vector3 location) 
-        {
-            //teleport player
-        }
-
         private void FixedUpdate()
         {
             float speed;
@@ -199,6 +180,45 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
 
 
+        //Sound: Landing Sound
+        private void PlayLandingSound()
+        {
+           // m_AudioSource.clip = m_LandSound;
+            //m_AudioSource.Play();
+            m_NextStep = m_StepCycle + .5f;
+        }
+        
+        //Sound: Jump Sound
+        private void PlayJumpSound()
+        {
+            m_AudioSource.clip = m_JumpSound;
+            m_AudioSource.Play();
+        }
+
+        //Sound: FootStep Sound
+        private void PlayFootStepAudio()
+        {
+            if (!m_CharacterController.isGrounded)
+            {
+                return;
+            }
+            // pick & play a random footstep sound from the array,
+            // excluding sound at index 0
+            int n = Random.Range(1, m_FootstepSounds.Length);
+            m_AudioSource.clip = m_FootstepSounds[n];
+            m_AudioSource.PlayOneShot(m_AudioSource.clip);
+            // move picked sound to index 0 so it's not picked next time
+            m_FootstepSounds[n] = m_FootstepSounds[0];
+            m_FootstepSounds[0] = m_AudioSource.clip;
+        }
+
+        //Teleport Player
+        public void Teleport(Vector3 location) 
+        {
+            //teleport player
+        }
+
+        //Set Crouch
         private void SetCrouch()
         {
             Debug.Log("Set Crouch " + m_Crouching);
@@ -206,13 +226,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             //Set height of collider.
         }
 
-        private void PlayJumpSound()
-        {
-            m_AudioSource.clip = m_JumpSound;
-            m_AudioSource.Play();
-        }
-
-
+        //Step Cycle (speed)
         private void ProgressStepCycle(float speed)
         {
             if (m_CharacterController.velocity.sqrMagnitude > 0 && (m_Input.x != 0 || m_Input.y != 0))
@@ -231,24 +245,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             PlayFootStepAudio();
         }
 
-
-        private void PlayFootStepAudio()
-        {
-            if (!m_CharacterController.isGrounded)
-            {
-                return;
-            }
-            // pick & play a random footstep sound from the array,
-            // excluding sound at index 0
-            int n = Random.Range(1, m_FootstepSounds.Length);
-            m_AudioSource.clip = m_FootstepSounds[n];
-            m_AudioSource.PlayOneShot(m_AudioSource.clip);
-            // move picked sound to index 0 so it's not picked next time
-            m_FootstepSounds[n] = m_FootstepSounds[0];
-            m_FootstepSounds[0] = m_AudioSource.clip;
-        }
-
-
+        //Update Camera Position
         private void UpdateCameraPosition(float speed)
         {
             Vector3 newCameraPosition;
@@ -272,7 +269,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Camera.transform.localPosition = newCameraPosition;
         }
 
-
+        //Get Player Input
         private void GetInput(out float speed)
         {
             // Read input
@@ -307,13 +304,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
         }
 
-
+        //Rotate View
         private void RotateView()
         {
             m_MouseLook.LookRotation(transform, cameraPivot);
         }
 
-
+        //On Controller Collider Hit
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {
             Rigidbody body = hit.collider.attachedRigidbody;

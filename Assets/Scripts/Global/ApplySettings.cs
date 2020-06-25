@@ -7,13 +7,8 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class ApplySettings : MonoBehaviour
 {
-    /// <summary>
-    /// Reference to Game Settings
-    /// </summary>
     public Settings settings;
-    /// <summary>
-    /// Apply Settings Start Function: Apply Settings if in first scene.
-    /// </summary>
+
     private void Start()
     {
         string sceneName = SceneManager.GetActiveScene().name; //Get current scene.
@@ -51,10 +46,9 @@ public class ApplySettings : MonoBehaviour
             }
         }
     }
-    /// <summary>
-    /// Get render pipeline asset that coresponds to stored settings.
-    /// </summary>
-    /// <returns>Render Pipeline Asset</returns>
+    
+
+    //Get RenderPipeline Asset
     public RenderPipelineAsset GetAsset()
     {
         //Get current stored settings.

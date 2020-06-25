@@ -6,7 +6,6 @@ using MLAPI.Serialization.Pooled;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
 
 public class DeathDrop : NetworkedBehaviour
 {
@@ -17,6 +16,8 @@ public class DeathDrop : NetworkedBehaviour
 
     public List<Item> dropItems;
     private bool isStarted = false;
+    
+    
     private void Awake()
     {
         //Serialization for <Item> Object. 
@@ -59,9 +60,7 @@ public class DeathDrop : NetworkedBehaviour
         });
     }
 
-
-
-
+    //On Start
     public override void NetworkStart()
     {
         if (IsServer) 
@@ -70,6 +69,8 @@ public class DeathDrop : NetworkedBehaviour
             InvokeClientRpcOnEveryone(UpdateItemList, dropItems.ToArray());
         }
     }
+    
+    //Update Item List
     public void UpdateDropItems(List<Item> items = null)
     {
         if(items == null) 
@@ -105,6 +106,7 @@ public class DeathDrop : NetworkedBehaviour
         }
     }
 
+    //Update List RPC
     [ClientRPC]
     private void UpdateItemList(Item[] items) 
     {

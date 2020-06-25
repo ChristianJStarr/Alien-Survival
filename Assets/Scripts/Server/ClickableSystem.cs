@@ -2,13 +2,16 @@
 
 public class ClickableSystem : MonoBehaviour
 {
-
     private GameServer gameServer;
+    
+    
     private void Start()
     {
         gameServer = GameServer.singleton;
     }
 
+
+    //Interact with Clickable
     public void InteractWithClickable(PlayerInfo player, string uniqueId) 
     {
         Clickable clickable = FindClickableById(uniqueId);
@@ -23,6 +26,7 @@ public class ClickableSystem : MonoBehaviour
         }
     }
 
+    //Find Clickable by ID
     private Clickable FindClickableById(string uniqueId) 
     {
         Clickable clickable = null;

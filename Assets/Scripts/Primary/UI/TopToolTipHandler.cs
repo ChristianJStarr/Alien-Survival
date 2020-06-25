@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -31,7 +30,6 @@ public class TopToolTipHandler : MonoBehaviour
             HandleItem(item);
         }
     }
-
     private void HandleData(ItemData data) 
     {
         item_title.text = data.name;

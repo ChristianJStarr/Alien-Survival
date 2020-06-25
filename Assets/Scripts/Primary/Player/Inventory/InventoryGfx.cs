@@ -38,13 +38,37 @@ public class InventoryGfx : MonoBehaviour
 
     private bool armorMove;
     private bool craftingMove;
+    
+    
+    private void Start()
+    {
 
+        allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
+        craftingMenu = GetComponent<CraftingMenu>();
+        ItemSlot[] itemSlotsTemp = itemsParent.GetComponentsInChildren<ItemSlot>(true);
+        List<ItemSlot> hotBarSlotsTemp = hotBarParent.GetComponentsInChildren<ItemSlot>(true).ToList();
+        armorSlots = armorSlotsContainer.GetComponentsInChildren<ItemSlot>(true);
+        foreach (ItemSlot slot in itemSlotsTemp)
+        {
+            hotBarSlotsTemp.Add(slot);
+        }
+        itemSlots = hotBarSlotsTemp.ToArray();
+        for (int i = 0; i < itemSlots.Length; i++)
+        {
+            itemSlots[i].slotNumber = i + 1;
+        }
+        for (int i = 0; i < armorSlots.Length; i++)
+        {
+            armorSlots[i].slotNumber = i + 34;
+        }
+    }
     private void Update()
     {
         UpdateMenus();
     }
 
 
+    //Update Player Info
     public void Incoming(PlayerInfo playerInfo)
     {
         
@@ -63,6 +87,7 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Button: Crafting Menu
     public void ButtonCraftingMenu()
     {
         craftingActive = !craftingActive;
@@ -73,6 +98,8 @@ public class InventoryGfx : MonoBehaviour
             SlideMenu(false, false);
         }
     }
+    
+    //Button: Armor Menu
     public void ButtonArmorMenu() 
     {
         armorActive = !armorActive;
@@ -84,11 +111,13 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Handover Selected Item
     public void SelectedItemHandover(SelectedItemHandler handler) 
     {
         selectedHandler = handler;
     }
 
+    //Update Menu Positions
     private void UpdateMenus() 
     {
         if(armorMove) 
@@ -131,6 +160,7 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Slide Menus 
     private void SlideMenu(bool craftingMenu, bool state) 
     {
         if (craftingMenu) 
@@ -163,30 +193,7 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        
-        allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
-        craftingMenu = GetComponent<CraftingMenu>();
-        ItemSlot[] itemSlotsTemp = itemsParent.GetComponentsInChildren<ItemSlot>(true);
-        List<ItemSlot> hotBarSlotsTemp = hotBarParent.GetComponentsInChildren<ItemSlot>(true).ToList();
-        armorSlots = armorSlotsContainer.GetComponentsInChildren<ItemSlot>(true);
-        foreach (ItemSlot slot in itemSlotsTemp)
-        {
-            hotBarSlotsTemp.Add(slot);
-        }
-        itemSlots = hotBarSlotsTemp.ToArray();
-        for (int i = 0; i < itemSlots.Length; i++)
-        {
-            itemSlots[i].slotNumber = i + 1;
-        }
-        for (int i = 0; i < armorSlots.Length; i++)
-        {
-            armorSlots[i].slotNumber = i + 34;
-        }
-    }
-
-
+    //Active Top Tip (item)
     public void ActivateToolTip(Item item) 
     {
         if (!toolTipHandler.gameObject.activeSelf)
@@ -196,7 +203,7 @@ public class InventoryGfx : MonoBehaviour
         toolTipHandler.SetData(FindItemData(item.itemID), item);
     }
 
-
+    //Select a slot
     public Item SelectSlot(int slot) 
     {
         Item item = null;
@@ -215,6 +222,7 @@ public class InventoryGfx : MonoBehaviour
         return item;
     }
 
+    //Button: Inventory Open/Close
     public void InvButton() 
     {
         
@@ -257,6 +265,7 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Update the UI
     private void UpdateUI()
     {
         foreach (ItemSlot slot in itemSlots)
@@ -306,6 +315,7 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Find ItemData by ID
     public ItemData FindItemData(int id) 
     {
         ItemData itemData = null;

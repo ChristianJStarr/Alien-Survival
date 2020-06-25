@@ -15,6 +15,8 @@ public class Reticle : MonoBehaviour
     private GameObject currentObj;
     private SelectedItemHandler selectedItemHandler;
     private PlayerActionManager playerActionManager;
+    
+    
     private void Start()
     {
         if (NetworkingManager.Singleton.IsClient) 
@@ -29,8 +31,6 @@ public class Reticle : MonoBehaviour
             selectedItemHandler = FindObjectOfType<SelectedItemHandler>();
         }
     }
-
-
     private void FixedUpdate()
     {
         if(lookLoop) 
@@ -59,6 +59,9 @@ public class Reticle : MonoBehaviour
         }
     }
 
+
+
+    //Primary Use Function
     public void Use() 
     {
         if(currentObj != null) 
@@ -99,7 +102,7 @@ public class Reticle : MonoBehaviour
         }
     }
 
-
+    //Show Reticle Tool Tip
     private void ShowTip()
     {
         Clickable clickable = currentObj.GetComponent<Clickable>();

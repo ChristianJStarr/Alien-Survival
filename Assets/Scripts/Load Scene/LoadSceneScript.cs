@@ -8,11 +8,9 @@ public class LoadSceneScript : MonoBehaviour
 {
     //What: Load Scene Script. Does Login/Signup/Stats & Loading into main menu.
     //Where: The Load Scene.
-    public string[] loadTips;
-    
+    public string[] loadTips;    
     public bool devServer = false;
     public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting; //Each screen layer.
-
     public TextMeshProUGUI loginNotify, signupNotify, loadTip; //Notify text field for login and signup screen.
     public TMP_InputField usernameText, passwordText, regUsernameText, regPassText; //Input fields for login and signup.
     public Button loginButton, signupButton; //Login and signup screen buttons.
@@ -20,12 +18,9 @@ public class LoadSceneScript : MonoBehaviour
     public WebServer webServer; //Web Server Handler.
     private int loadProgress, lastLoadProgress = 0; //Loading bar values.
     private bool singleAttempt = true; //A single attempt for retrying guest login.
-
-
-    public RawImage background;
-
-    public Texture blurTexture;
-    public Texture regTexture;
+    public RawImage background; //Background Image
+    public Texture blurTexture; //Blurred Bkg Texture
+    public Texture regTexture; //Regular Bkg Texture
 
     void Start() 
     {
@@ -58,12 +53,14 @@ public class LoadSceneScript : MonoBehaviour
         mainScreen.SetActive(false);
         loginScreen.SetActive(true);
     }
+    
     //Button Function: Show signup menu.
     public void SignupMenu()
     {
         mainScreen.SetActive(false);
         signupScreen.SetActive(true);
     }
+    
     //Button Function: Show main menu.
     public void Close()
     {
@@ -76,6 +73,7 @@ public class LoadSceneScript : MonoBehaviour
             background.texture = regTexture;
         }
     }
+    
     //Load MainMenu scene. Called if a login or signup was successful.
     private void LoadGame()
     {

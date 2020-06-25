@@ -23,15 +23,15 @@ public class ServerConnect : MonoBehaviour
 
     #endregion
 
-    private NetworkingManager networkManager;
-    private GameServer gameServer;
-    private WebServer webServer;
-    public MainMenuScript mainMenu;
+    private NetworkingManager networkManager; //Networking Manager
+    private GameServer gameServer; //Game Server
+    private WebServer webServer; //Web Server
+    public MainMenuScript mainMenu; //Main Menu
 
-    public bool devServer = false;
-    private ServerProperties storedProperties;
+    public bool devServer = false; //If development Server
+    private ServerProperties storedProperties; //Stored Server Properties
     [SerializeField]
-    private int logLevel = 3;
+    private int logLevel = 3; //LogLevel
 
     private void Start()
     {
@@ -54,6 +54,8 @@ public class ServerConnect : MonoBehaviour
     //-----------------------------------------------------------------//
     //                       Client Side Connect                       //
     //-----------------------------------------------------------------//
+    
+    //Client: Connect to Server
     public void ConnectToServer(string ip, ushort port)
     {
         if(mainMenu == null) 
@@ -65,6 +67,7 @@ public class ServerConnect : MonoBehaviour
         StartCoroutine(ConnectionWait(ip, port));
     }
 
+    //Connection Wait
     private IEnumerator ConnectionWait(string ip, ushort port) 
     {
         yield return new WaitForSeconds(5f);
@@ -75,11 +78,14 @@ public class ServerConnect : MonoBehaviour
         networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
         networkManager.StartClient();
     }
-
+    
+    //Callback: Connected
     private void PlayerConnected_Player(ulong id) 
     {
         GameServer.singleton.PlayerConnected_Player(id);
     }
+    
+    //Callback: Disconnected
     private void PlayerDisconnected_Player(ulong id)
     {
         DebugMessage("Disconnected from Server.", 1);
@@ -106,6 +112,8 @@ public class ServerConnect : MonoBehaviour
     //-----------------------------------------------------------------//
     //                       Server Side Connect                       //
     //-----------------------------------------------------------------//
+    
+    //Server: Start Server
     public void StartServer()
     {
         storedProperties = new ServerProperties();
@@ -124,18 +132,20 @@ public class ServerConnect : MonoBehaviour
         }
     }
 
+    //Get Server Properties
     public ServerProperties GetServerProperties() 
     {
         return storedProperties;
     }
     
+    //Server: Stop Server
     public void StopServer()
     {
         UpdateServerList(false);
         GameServer.singleton.StopGameServer();
     }
     
-    
+    //Approval Check
     private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkingManager.ConnectionApprovedDelegate callback)
     {
         bool approve = true;
@@ -220,14 +230,14 @@ public class ServerConnect : MonoBehaviour
         callback(createPlayerObject, prefabHash, approve, spawnPoint, Quaternion.identity);
     }
     
-    
+    //Callback: Server Started
     private void ServerStarted() 
     {
         UpdateServerList(true);
         NetworkSceneManager.SwitchScene("Primary");
     }
     
-    
+    //Update the Server List
     private void UpdateServerList(bool value)
     {
 
@@ -258,20 +268,20 @@ public class ServerConnect : MonoBehaviour
         }
     }
 
-
+    //Callback: Player Conencted
     private void PlayerConnected_Server(ulong id)
     {
         UpdatePlayerCount();
     }
 
-
+    //Callback: Player Disconnected
     private void PlayerDisconnected_Server(ulong id) 
     {
         GameServer.singleton.MovePlayerToInactive(id);
         UpdatePlayerCount();
     }
 
-
+    //Update the Player Count on the Server List
     private void UpdatePlayerCount()
     {
 
@@ -289,7 +299,7 @@ public class ServerConnect : MonoBehaviour
         }
     }
     
-    
+    //Get the Stored Server Settings
     private bool GetServerSettings()
     {
         string path = @"C:\Settings\server-properties.txt".Replace('\\', Path.DirectorySeparatorChar);
@@ -333,7 +343,7 @@ public class ServerConnect : MonoBehaviour
 
     }
     
-    
+    //Check the Settings file 
     private bool CheckSettingsFile(ServerProperties sp) 
     {
         bool empty = false;
@@ -346,6 +356,8 @@ public class ServerConnect : MonoBehaviour
         if (sp.serverMaxPlayer == 0) { empty = true; }
         return empty;
     }
+    
+    //Debug Message
     private void DebugMessage(string message, int level)
     {
         if (networkManager != null) 
