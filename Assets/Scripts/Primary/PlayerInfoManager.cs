@@ -21,8 +21,9 @@ public class PlayerInfoManager : MonoBehaviour
     private Topbar topbar;
     private GameServer gameServer;
     private PlayerInfo storedPlayerInfo;
+    private PlayerInfo previousPlayerInfo;
     private GameObject player;
-
+    private Backpack playerBackpack;
     private int id;
     private string authKey;
     private bool firstRequest = true;
@@ -50,6 +51,10 @@ public class PlayerInfoManager : MonoBehaviour
         }
     }
 
+
+
+
+
     //-------Update Inventory
     private void UpdateInventory()
     {
@@ -67,8 +72,16 @@ public class PlayerInfoManager : MonoBehaviour
         if (topbar != null && storedPlayerInfo != null)
         {
             topbar.Incoming(storedPlayerInfo);
+            CalculateBackpackEffect();
         }
     }
+
+    //-------Backpack Initialize
+    public void InitializeBackpackEffect(Backpack backpack) 
+    {
+        playerBackpack = backpack;
+    }
+
 
     //-----------------------------------------------------------------//
     //             Player Request : Request Own Values                 //
@@ -239,7 +252,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Main Player Loop
     private IEnumerator MainPlayerLoop() 
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(2f);
 
         DepleteFoodWaterHealth();
         StorePlayerLocation();
@@ -309,6 +322,25 @@ public class PlayerInfoManager : MonoBehaviour
         else 
         {
             player = FindObjectOfType<FirstPersonController>().gameObject;
+        }
+    }
+
+    //-----------------------------------------------------------------//
+    //                      Client Side Loops                          //
+    //-----------------------------------------------------------------//
+
+    private void CalculateBackpackEffect() 
+    {
+        int effect = 0;
+        if (previousPlayerInfo == null) { previousPlayerInfo = storedPlayerInfo; return; }
+        else if(storedPlayerInfo.health > previousPlayerInfo.health) { effect = 2; }
+        else if(storedPlayerInfo.health < previousPlayerInfo.health) { effect = 1; }
+
+        previousPlayerInfo = storedPlayerInfo;
+        if (effect != 0 && playerBackpack != null) 
+        {
+            playerBackpack.UpdateBackpackGlow(effect);
+            Debug.Log("[Client] Info Manager : Updating Backpack Glow.");
         }
     }
 }
