@@ -21,7 +21,6 @@ public class PlayerInfoManager : MonoBehaviour
     private Topbar topbar;
     private GameServer gameServer;
     private PlayerInfo storedPlayerInfo;
-    private PlayerInfo previousPlayerInfo;
     private GameObject player;
     private Backpack playerBackpack;
     private int id;
@@ -72,8 +71,8 @@ public class PlayerInfoManager : MonoBehaviour
         if (topbar != null && storedPlayerInfo != null)
         {
             topbar.Incoming(storedPlayerInfo);
-            CalculateBackpackEffect();
         }
+        
     }
 
     //-------Backpack Initialize
@@ -136,7 +135,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Armor
     public void GetPlayer_InventoryArmor()
         {
-            gameServer.GetPlayerInventoryArmor(id, returnValue =>
+        gameServer.GetPlayerInventoryArmor(id, returnValue =>
             {
                 storedPlayerInfo.armor = returnValue;
                 UpdateInventory();
@@ -146,7 +145,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Blueprints
     public void GetPlayer_InventoryBlueprints()
         {
-            gameServer.GetPlayerInventoryBlueprints(id, returnValue =>
+        gameServer.GetPlayerInventoryBlueprints(id, returnValue =>
             {
                 storedPlayerInfo.blueprints = returnValue;
                 UpdateInventory();
@@ -156,8 +155,22 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Health
     public void GetPlayer_Health()
         {
-            gameServer.GetPlayerHealth(id, returnValue =>
+        gameServer.GetPlayerHealth(id, returnValue =>
             {
+                if(storedPlayerInfo.health > returnValue) 
+                {
+                    if (playerBackpack != null)
+                    {
+                        playerBackpack.UpdateBackpackGlow(1);
+                    }
+                }
+                else if(storedPlayerInfo.health < returnValue) 
+                {
+                    if (playerBackpack != null)
+                    {
+                        playerBackpack.UpdateBackpackGlow(2);
+                    }
+                }
                 storedPlayerInfo.health = returnValue;
                 UpdateTopBar();
             });
@@ -166,7 +179,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Items
     public void GetPlayer_Food()
         {
-            gameServer.GetPlayerFood(id, returnValue =>
+        gameServer.GetPlayerFood(id, returnValue =>
             {
                 storedPlayerInfo.food = returnValue;
                 UpdateTopBar();
@@ -252,7 +265,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Main Player Loop
     private IEnumerator MainPlayerLoop() 
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(.5F);
 
         DepleteFoodWaterHealth();
         StorePlayerLocation();
@@ -325,22 +338,6 @@ public class PlayerInfoManager : MonoBehaviour
         }
     }
 
-    //-----------------------------------------------------------------//
-    //                      Client Side Loops                          //
-    //-----------------------------------------------------------------//
 
-    private void CalculateBackpackEffect() 
-    {
-        int effect = 0;
-        if (previousPlayerInfo == null) { previousPlayerInfo = storedPlayerInfo; return; }
-        else if(storedPlayerInfo.health > previousPlayerInfo.health) { effect = 2; }
-        else if(storedPlayerInfo.health < previousPlayerInfo.health) { effect = 1; }
-
-        previousPlayerInfo = storedPlayerInfo;
-        if (effect != 0 && playerBackpack != null) 
-        {
-            playerBackpack.UpdateBackpackGlow(effect);
-            Debug.Log("[Client] Info Manager : Updating Backpack Glow.");
-        }
-    }
+    
 }

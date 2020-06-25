@@ -14,8 +14,11 @@ public class Backpack : MonoBehaviour
 
     private PlayerInfoManager infoManager;
 
+    private List<int> pendingGlows;
+
     private void Start()
     {
+        pendingGlows = new List<int>();
         infoManager = PlayerInfoManager.singleton;
         if(infoManager != null) 
         {
@@ -26,31 +29,53 @@ public class Backpack : MonoBehaviour
     //Update the backpack Glow
     public void UpdateBackpackGlow(int value) 
     {
-        Debug.Log("[Client] Backpack : Updating Backpack Glow.");
-        if (value != glowPosition) 
+        if (glowPosition == 0) 
         {
             glowPosition = value;
             if(value == 1) 
             {
-                glowRing.materials[4] = redGlow;
+                SetMaterial(redGlow);
             }
             if(value == 2) 
             {
-                glowRing.materials[4] = greenGlow;
+                SetMaterial(greenGlow);
             }
             if(value == 3) 
             {
-                glowRing.materials[4] = yellowGlow;
+                SetMaterial(yellowGlow);
             }
             StartCoroutine(GlowFade());
+        }
+        else if(glowPosition == value)
+        {
+            pendingGlows.Add(value);
         }
     }
 
     private IEnumerator GlowFade()
     {
-        yield return new WaitForSeconds(1F);
-        Debug.Log("[Client] Backpack : Reseting Backpack Glow.");
-        glowRing.materials[4] = blueGlow;
+        WaitForSeconds wait = new WaitForSeconds(1F);
+        yield return wait;
+        if (pendingGlows.Contains(glowPosition))
+        {
+            for (int i = 0; i < pendingGlows.Count; i++)
+            {
+                if(pendingGlows[i] == glowPosition) 
+                {
+                    yield return wait;
+                }
+            }
+        }
+        SetMaterial(blueGlow);
         glowPosition = 0;
+        pendingGlows.Clear();
+    }
+
+
+    private void SetMaterial(Material material) 
+    {
+        Material[] mats = glowRing.materials;
+        mats[4] = material;
+        glowRing.materials = mats;
     }
 }

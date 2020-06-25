@@ -11080,7 +11080,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainMenu: {fileID: 804832991}
-  devServer: 0
+  devServer: 1
   logLevel: 3
 --- !u!4 &1022403220 stripped
 Transform:
