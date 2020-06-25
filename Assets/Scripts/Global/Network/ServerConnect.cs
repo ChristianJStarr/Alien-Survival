@@ -32,7 +32,7 @@ public class ServerConnect : MonoBehaviour
     private ServerProperties storedProperties; //Stored Server Properties
     [SerializeField]
     private int logLevel = 3; //LogLevel
-
+    private string storedIp = "";
     private void Start()
     {
         networkManager = NetworkingManager.Singleton;
@@ -55,9 +55,41 @@ public class ServerConnect : MonoBehaviour
     //                       Client Side Connect                       //
     //-----------------------------------------------------------------//
     
+    //Request Ping
+    public void RequestPing(Action<int> callback) 
+    {
+        StartCoroutine(StartPing(returnValue => { callback(returnValue); }));
+    }
+    //Request Ping Wait
+    private IEnumerator StartPing(Action<int> callback)
+    {
+        int count = 0;
+        int pingTime = 1;
+        WaitForSeconds f = new WaitForSeconds(0.05F);
+        Ping ping = new Ping(storedIp);
+        while (!ping.isDone)
+        {
+            if (count >= 10)
+            {
+                pingTime = 0;
+                break;
+            }
+            count++;
+            yield return f;
+        }
+        if(pingTime != 0) 
+        {
+            pingTime = ping.time;
+        }
+        callback(pingTime);
+    }
+
+
+
     //Client: Connect to Server
     public void ConnectToServer(string ip, ushort port)
     {
+        storedIp = ip;
         if(mainMenu == null) 
         {
             mainMenu = FindObjectOfType<MainMenuScript>();
