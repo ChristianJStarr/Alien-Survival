@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityStandardAssets.CrossPlatformInput;
 
 public class SelectedItemHandler : MonoBehaviour
 {
@@ -37,14 +38,18 @@ public class SelectedItemHandler : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetButtonDown("Use")) 
+        if (CrossPlatformInputManager.GetButtonDown("Use")) 
         {
             Use();
             isHoldingUse = true;
         }
-        if (Input.GetButtonUp("Use"))
+        if (CrossPlatformInputManager.GetButtonUp("Use"))
         {
             isHoldingUse = false;
+        }
+        if (CrossPlatformInputManager.GetButtonDown("Reload"))
+        {
+            actionManager.ReloadToDurability(selectedSlot);
         }
     }
 
@@ -58,42 +63,15 @@ public class SelectedItemHandler : MonoBehaviour
     //Use Selected Item
     public void Use() 
     {
-        if (selectedItem == null || selectedItem.itemID == 0)
-        {
-            animator.SetTrigger("Punch");
-        }
-        else if (inventory != null && selectedItem.itemID == inventory.SelectSlot(selectedSlot).itemID)
-        {
+        actionManager.UseSelectedItem(selectedSlot, aimTransform, this);
+    }
 
-            Animator holdAnimator = holdItem.GetComponent<Animator>();
-            ItemData data = gameServer.GetItemDataById(selectedItem.itemID);
-            if (data.useRequire.Length > 0)
-            {
-                string[] strings = data.useRequire.Split('-');
-                int itemId = Convert.ToInt32(strings[0]);
-                int itemAmount = Convert.ToInt32(strings[1]);
-                if (itemId > 0 && itemAmount > 0)
-                {
-                    infoManager.GetIfEnoughItems(itemId, itemAmount, returnValue =>
-                    {
-                        if (returnValue) 
-                        {
-                            if (holdAnimator != null)
-                            {
-                                holdAnimator.SetTrigger("Use");
-                                actionManager.UseSelectedItem(data, aimTransform);
-                            }
-                        }
-                    });
-                }
-            }
-            else 
-            {
-                if (holdAnimator != null)
-                {
-                    holdAnimator.SetTrigger("Use");
-                }
-            }
+    public void SelectedReturn() 
+    {
+        Animator holdAnimator = holdItem.GetComponent<Animator>();
+        if(holdAnimator != null) 
+        {
+            holdAnimator.SetTrigger("Use");
         }
     }
 
@@ -105,46 +83,9 @@ public class SelectedItemHandler : MonoBehaviour
         {
             inventory = FindObjectOfType<InventoryGfx>();
         }
-        if (selectedSlot != slot) 
-        {
-            inventory.SelectedItemHandover(this);
+
             selectedSlot = slot;
             selectedItem = inventory.SelectSlot(slot);
-            if(selectedItem != null) 
-            {
-                if (selectedItem.isHoldable)
-                {
-                    HoldItem();
-                }
-                else
-                {
-                    if (holdItem != null)
-                    {
-                        holdItem.SetActive(false);
-                        holdItemCache.Add(holdItem);
-                        leftHand = null;
-                        rightHand = null;
-                    }
-                }
-            }
-            else 
-            {
-                
-                if(controls != null) 
-                {
-                    controls.SwapUse(0);
-                }
-                if (holdItem != null)
-                {
-                    holdItem.SetActive(false);
-                    holdItemCache.Add(holdItem);
-                    leftHand = null;
-                    rightHand = null;
-                }
-            }
-        }
-        else 
-        {
             if (selectedItem != null)
             {
                 if (selectedItem.isHoldable)
@@ -177,7 +118,40 @@ public class SelectedItemHandler : MonoBehaviour
                     rightHand = null;
                 }
             }
-        }
+        //else 
+        //{
+        //    if (selectedItem != null)
+        //    {
+        //        if (selectedItem.isHoldable)
+        //        {
+        //            HoldItem();
+        //        }
+        //        else
+        //        {
+        //            if (holdItem != null)
+        //            {
+        //                holdItem.SetActive(false);
+        //                holdItemCache.Add(holdItem);
+        //                leftHand = null;
+        //                rightHand = null;
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+
+        //        if (controls != null)
+        //        {
+        //            controls.SwapUse(0);
+        //        }
+        //        if (holdItem != null)
+        //        {
+        //            holdItem.SetActive(false);
+        //            holdItemCache.Add(holdItem);
+        //            leftHand = null;
+        //            rightHand = null;
+        //        }
+        //    }
     }
 
     //Hold Item Function

@@ -51,9 +51,6 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
 
-
-
-
     //-------Update Inventory
     private void UpdateInventory()
     {
@@ -261,66 +258,40 @@ public class PlayerInfoManager : MonoBehaviour
     //                      Client Side Loops                          //
     //-----------------------------------------------------------------//
 
-    
+
+    //Food and Water Deplete Speed
+    private int depleteRate = 1;
+    private int depleteCount = 1;
+    private int depleteIntensity = 1;
+
     //-------Main Player Loop
     private IEnumerator MainPlayerLoop() 
     {
-        yield return new WaitForSeconds(.5F);
+        yield return new WaitForSeconds(2F);
 
-        DepleteFoodWaterHealth();
         StorePlayerLocation();
-        
+        DepleteFoodWater();
         StartCoroutine(MainPlayerLoop());
     }
 
-    //-------Food & Water Deplete
-    private void DepleteFoodWaterHealth()
+    //Deplete Food & Water
+    private void DepleteFoodWater() 
     {
-        if (storedPlayerInfo != null)
+        if(depleteRate == depleteCount) 
         {
-            int intensity = 1;
-            int remove = 0;
-            int healthDeplete = 0;
-            if (storedPlayerInfo.health < 100)
+            depleteCount = 1;
+            if (storedPlayerInfo.food > 0)
             {
-                remove++;
-                intensity = 3;
+                SetPlayer_Food(-1 * depleteIntensity);
             }
-
-            if (storedPlayerInfo.food != 0 && (storedPlayerInfo.food + (-1 * intensity)) >= 0)
+            if (storedPlayerInfo.water > 0)
             {
-                SetPlayer_Food(-1 * intensity);
-                remove++;
+                SetPlayer_Water(-1 * depleteIntensity);
             }
-
-            if (storedPlayerInfo.water != 0 && (storedPlayerInfo.water + (-1 * intensity)) >= 0)
-            {
-                SetPlayer_Water(-1 * intensity);
-                remove++;
-            }
-
-            if (remove == 3)
-            {
-                SetPlayer_Health(1);
-            }
-
-            if (storedPlayerInfo.food == 0)
-            {
-                healthDeplete++;
-            }
-
-            if (storedPlayerInfo.water == 0)
-            {
-                healthDeplete++;
-            }
-
-            if (healthDeplete > 0)
-            {
-                if (storedPlayerInfo.health > 0)
-                {
-                    SetPlayer_Health(-1 * healthDeplete);
-                }
-            }
+        }
+        else 
+        {
+            depleteCount++;
         }
     }
 

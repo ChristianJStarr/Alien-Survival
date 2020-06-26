@@ -17,13 +17,18 @@ MonoBehaviour:
   craftAmount: 1
   maxItemStack: 1
   armorType: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse:
+  - 4-7
+  maxDurability: 30
+  durabilityId: 9
   name: Rifle
   description: This is the description for this item
   recipe:
   - 43-3
   - 39-2
-  itemUse:
-  - 4-7
   isCraftable: 1
   isHoldable: 1
   isArmor: 0

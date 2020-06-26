@@ -5,6 +5,7 @@ using MLAPI.Transports.UNET;
 using System;
 using System.Collections;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -27,12 +28,21 @@ public class ServerConnect : MonoBehaviour
     private GameServer gameServer; //Game Server
     private WebServer webServer; //Web Server
     public MainMenuScript mainMenu; //Main Menu
+    public TMP_InputField serverConsole;
+    public TMP_InputField serverCommand;
+    public GameObject serverUI;
+    public GameObject serverCamera;
+
 
     public bool devServer = false; //If development Server
     private ServerProperties storedProperties; //Stored Server Properties
     [SerializeField]
     private int logLevel = 3; //LogLevel
     private string storedIp = "";
+
+    private string command = "";
+    
+    
     private void Start()
     {
         networkManager = NetworkingManager.Singleton;
@@ -50,6 +60,54 @@ public class ServerConnect : MonoBehaviour
         }
 #endif
     }
+
+    
+
+
+    //Server Commands
+    public void CommandUpdated() 
+    {
+        command = serverCommand.text;
+    }
+    public void SendCommand() 
+    {
+        if (command.StartsWith("/")) 
+        {
+            serverCommand.text = "";
+            string[] coms = command.Split(null);
+            if(coms.Length > 1) 
+            {
+                string newCommand = coms[0].Trim('/');
+                string var1 = coms[1];
+                string var2 = coms[2];
+                if(newCommand == "teleport") 
+                {
+                    if(var1.Length > 0 && var2.Length > 0) 
+                    {
+                        gameServer.ServerTeleport(var1, var2);
+                    }
+                    else 
+                    {
+                        DebugMessage("Please Specify, '/teleport <player> <target>", 1);
+                    }
+                }
+                else { DebugMessage("Command Not Recognized. Try /Help for a list of commands.", 1); }
+            }
+            else 
+            {
+                string newCommand = coms[0].Trim('/');
+
+                if(newCommand == "Stop") { StopServer(); }
+                else { DebugMessage("Command Not Recognized. Try /Help for a list of commands.", 1); }
+            }
+        }
+        else 
+        {
+            DebugMessage("Command Not Recognized. Try /Help for a list of commands.", 1);
+        }
+    }
+
+
 
     //-----------------------------------------------------------------//
     //                       Client Side Connect                       //
@@ -144,10 +202,20 @@ public class ServerConnect : MonoBehaviour
     //-----------------------------------------------------------------//
     //                       Server Side Connect                       //
     //-----------------------------------------------------------------//
-    
+
+    private void ConsoleLogMessage(string message, string stack, LogType type) 
+    {
+        serverConsole.text += message + "\n";
+    }
+
     //Server: Start Server
     public void StartServer()
     {
+        serverCamera.SetActive(true);
+        serverUI.SetActive(true);
+        Application.logMessageReceived += ConsoleLogMessage;
+
+
         storedProperties = new ServerProperties();
         webServer = GetComponent<WebServer>();
         if (GetServerSettings()) 
@@ -173,6 +241,7 @@ public class ServerConnect : MonoBehaviour
     //Server: Stop Server
     public void StopServer()
     {
+        DebugMessage("Stopping the Server...", 1);
         UpdateServerList(false);
         GameServer.singleton.StopGameServer();
     }

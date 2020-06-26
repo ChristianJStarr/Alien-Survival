@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,6 +33,10 @@ public class PlayerActionManager : MonoBehaviour
     private bool deathDropUIActive = false;
     private string currentDeathDropUnique;
     private bool needClose = false;
+
+    private SelectedItemHandler itemHandler;
+    
+    
     void Start()
     {
         id = PlayerPrefs.GetInt("userId");
@@ -43,6 +48,13 @@ public class PlayerActionManager : MonoBehaviour
             deathDropItemSlots[i].slotNumber = i + 1;
         }
     }
+
+
+
+    //-----------------------------------------------------------------//
+    //                      Interact With                              //
+    //-----------------------------------------------------------------//
+
 
     //Interact with Clickable
     public void InteractWithClickable(string uniqueId) 
@@ -91,85 +103,116 @@ public class PlayerActionManager : MonoBehaviour
         ToggleDeathDropUI(true);
         currentDeathDropItems = drops;
     }
-    
-    private void ToggleDeathDropUI(bool value) 
-    {
-        deathDropGfx.SetActive(value);
-        deathDropUIActive = value;
-    }
-    public void CloseDeathDropUI() 
-    {
-        ToggleDeathDropUI(false);
-    }
-
-    public void TakeAllDeathDrop() 
-    {
-        gameServer.InteractWithDeathDrop(id, authKey, currentDeathDropUnique, 100, returnValue =>
+        private void ToggleDeathDropUI(bool value)
         {
-            if (returnValue != null) 
+            deathDropGfx.SetActive(value);
+            deathDropUIActive = value;
+        }
+        public void CloseDeathDropUI()
+        {
+            ToggleDeathDropUI(false);
+        }
+        public void TakeAllDeathDrop()
+        {
+            gameServer.InteractWithDeathDrop(id, authKey, currentDeathDropUnique, 100, returnValue =>
             {
-                currentDeathDropItems = returnValue;
-                if (returnValue.Length == 0)
+                if (returnValue != null)
+                {
+                    currentDeathDropItems = returnValue;
+                    if (returnValue.Length == 0)
+                    {
+                        currentDeathDropItems = null;
+                        ToggleDeathDropUI(false);
+                        return;
+                    }
+                    InteractWithDeathDrop(currentDeathDropUnique, returnValue);
+                }
+                else
                 {
                     currentDeathDropItems = null;
                     ToggleDeathDropUI(false);
-                    return;
                 }
-                InteractWithDeathDrop(currentDeathDropUnique, returnValue);
-            }
-            else
-            {
-                currentDeathDropItems = null;
-                ToggleDeathDropUI(false);
-            }
-        });
-        
-    }
-    public void TakeSingleDeathDrop(int slotNumber)
-    {
-        gameServer.InteractWithDeathDrop(id, authKey, currentDeathDropUnique, slotNumber, returnValue => 
+            });
+
+        }
+        public void TakeSingleDeathDrop(int slotNumber)
         {
-            if (returnValue != null) 
+            gameServer.InteractWithDeathDrop(id, authKey, currentDeathDropUnique, slotNumber, returnValue =>
             {
-                currentDeathDropItems = returnValue;
-                if(returnValue.Length == 0) 
+                if (returnValue != null)
+                {
+                    currentDeathDropItems = returnValue;
+                    if (returnValue.Length == 0)
+                    {
+                        currentDeathDropItems = null;
+                        ToggleDeathDropUI(false);
+                        return;
+                    }
+                    InteractWithDeathDrop(currentDeathDropUnique, returnValue);
+                }
+                else
                 {
                     currentDeathDropItems = null;
                     ToggleDeathDropUI(false);
-                    return;
                 }
-                InteractWithDeathDrop(currentDeathDropUnique, returnValue);
-            }
-            else 
-            {
-                currentDeathDropItems = null;
-                ToggleDeathDropUI(false);
-            }
-        });
-    }
-
-    public void DragStarted() 
-    {
-        needClose = false;
-        dragButton.color = new Color32(183,183,183,170);
-        dragButtonText.text = "Drag Item Here";
-    }
-    public void DragEnded() 
-    {
-        if (needClose) 
+            });
+        }
+        public void DragStarted()
         {
-            CloseDeathDropUI();
-            return;
-        }    
-        dragButton.color = new Color32(183, 183, 183, 255);
-        dragButtonText.text = "Inventory";
+            needClose = false;
+            dragButton.color = new Color32(183, 183, 183, 170);
+            dragButtonText.text = "Drag Item Here";
+        }
+        public void DragEnded()
+        {
+            if (needClose)
+            {
+                CloseDeathDropUI();
+                return;
+            }
+            dragButton.color = new Color32(183, 183, 183, 255);
+            dragButtonText.text = "Inventory";
+        }
+        public void ShowDeathScreen()
+        {
+            deathScreen.SetActive(true);
+        }
+        public void HideDeathScreen()
+        {
+            deathScreen.SetActive(false);
+        }
+
+
+    //-----------------------------------------------------------------//
+    //                      Selected Items                             //
+    //-----------------------------------------------------------------//
+
+    //Use Selected
+    public void UseSelectedItem(int slot, Transform aim, SelectedItemHandler handler) 
+    {
+        if(itemHandler == null) 
+        {
+            itemHandler = handler;
+        }
+        gameServer.UseSelectedItem(id, authKey, slot, aim);
     }
 
-    //Use Selected Item
-    public void UseSelectedItem(ItemData data, Transform aim) 
+    public void UseSelectedItemReturn() 
     {
-        gameServer.UseSelectedItem(id, authKey, data.itemID, aim);
+        itemHandler.SelectedReturn();
     }
+
+
+    //Add to Durability (Reload)
+    public void ReloadToDurability(int slot) 
+    {
+        gameServer.ReloadToDurability(id, authKey, slot);
+    }
+
+
+    //-----------------------------------------------------------------//
+    //                      Debug Commands                             //
+    //-----------------------------------------------------------------//
 
 
     //Request to Teleport
@@ -183,13 +226,6 @@ public class PlayerActionManager : MonoBehaviour
         gameServer.RequestToCheatItem(id, authKey, itemId);
     }
 
-    public void ShowDeathScreen() 
-    {
-        deathScreen.SetActive(true);
-    }
-    public void HideDeathScreen() 
-    {
-        deathScreen.SetActive(false);
-    }
+ 
    
 }

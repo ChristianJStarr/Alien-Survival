@@ -3,7 +3,32 @@ guid: ee5427bfa1d8acc4ab484a914c6d11e9
 ModelImporter:
   serializedVersion: 19301
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Body
+    second: {fileID: 2100000, guid: cf5d34c0a2e9c2f4488bd62669f6951c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.002
+    second: {fileID: 2100000, guid: 1f90ee87b345b074aa712004f31c18e1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RingGlow
+    second: {fileID: 2100000, guid: aba10e3364b15cc428ddee3ef9eb9cf1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Screen
+    second: {fileID: 2100000, guid: c3b23ae83aaee54478e4acc42958f234, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Straps
+    second: {fileID: 2100000, guid: 58d594c758f99ca45843455c756243fd, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -61,7 +86,7 @@ ModelImporter:
     secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:
-    normalSmoothAngle: 60
+    normalSmoothAngle: 72
     normalImportMode: 1
     tangentImportMode: 3
     normalCalculationMode: 4

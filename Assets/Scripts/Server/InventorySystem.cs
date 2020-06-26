@@ -28,40 +28,63 @@ public class InventorySystem : MonoBehaviour
         return SortItemSlotsInInventory(RemoveItemFromInventoryTask(id, amount, inventory));
     }
 
+    //Remove Item from Inventory Max
+    public int GetMaxAvailableInventory(int id, Item[] inventory)
+    {
+        int stored = 0;
+        foreach (Item item in inventory)
+        {
+            if(item.itemID == id) 
+            {
+                stored += item.itemStack;
+            }
+        }
+        return stored;
+    }
+
     //Move Item In Inventory
     public Item[] MoveItemInInventory(int curSlot, int newSlot, Item[] inventory)
     {
+        int changed = 0;
         foreach (Item item in inventory)
         {
+            if(changed == 2) { break; }
             if (item.currSlot == curSlot)
             {
                 item.currSlot = newSlot;
+                changed++;
             }
             else if (item.currSlot == newSlot)
             {
                 item.currSlot = curSlot;
+                changed++;
             }
         }
         return inventory;
     }
 
     //Remove Item From Inventory By Slot
-    public Item[] RemoveItemFromInventoryBySlot(int curSlot, Item[] inventory, Action<Item> callback)
+    public Item[] RemoveItemFromInventoryBySlot(int curSlot, Item[] inventory, Action<Item> callback,int amount = 0)
     {
-
-        List<Item> newInventory = new List<Item>();
-        foreach (Item item in inventory)
+        List<Item> inv = inventory.ToList();
+        Item item = inv.Single(r => r.currSlot == curSlot);
+        if(item != null) 
         {
-            if (item.currSlot != curSlot)
+            if(amount != 0) 
             {
-                newInventory.Add(item);
+                item.itemStack -= amount;
             }
-            else
+            else 
             {
-                callback(item);
+                inv.Remove(item);
             }
+            callback(item);
         }
-        return newInventory.ToArray();
+        else 
+        {
+            return null;
+        }
+        return inv.ToArray();
     }
 
     //Remove Items by Recipe
@@ -85,6 +108,26 @@ public class InventorySystem : MonoBehaviour
         }
         return inventory;
     }
+
+
+    public Item[] ChangeItemDurability(Item[] inventory, int amount, int maxDurability, int slot) 
+    {
+        
+        foreach (Item item in inventory)
+        {
+            if(item.currSlot == slot) 
+            {
+                if (item.durability + amount > 0 && item.durability + amount <= maxDurability) 
+                {
+                    item.durability += amount;
+                    UnityEngine.Debug.Log("Changed Durability of Item: " + item.itemID + " Amount:" + amount);
+                }
+                break;
+            }
+        }
+        return inventory;
+    }
+
 
 
     //-----------------------------------------------------------------//
@@ -350,7 +393,6 @@ public class InventorySystem : MonoBehaviour
             if(!assigned.Contains(slot) && unassigned.Count > 0) 
             {
                 Item item = unassigned.First();
-                UnityEngine.Debug.Log("Setting new slot" + slot);
                 item.currSlot = slot;
                 assigned.Add(slot);
                 newInventory.Add(item);
@@ -422,7 +464,8 @@ public class InventorySystem : MonoBehaviour
             return null;
         }
     }
-    
+
+   
 }
 
 public class ItemArmorArrays 

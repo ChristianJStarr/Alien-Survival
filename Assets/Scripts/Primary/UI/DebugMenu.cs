@@ -41,9 +41,9 @@ public class DebugMenu : MonoBehaviour
 
     public void UpdatePlayers() 
     {
-        foreach (DebugMenuSlide item in slides)
+        for (int i = 0; i < slides.Count; i++)
         {
-            Destroy(item.gameObject);
+            Destroy(slides[i].gameObject);
         }
 
         gameServer.GetAllConnectedClients(returnValue => 

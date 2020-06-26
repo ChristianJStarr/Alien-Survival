@@ -17,11 +17,16 @@ MonoBehaviour:
   craftAmount: 0
   maxItemStack: 1
   armorType: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse:
+  - 4-10
+  maxDurability: 20
+  durabilityId: 50
   name: Spacegun Mk2
   description: This is the description for this item
   recipe: []
-  itemUse:
-  - 4-10
   isCraftable: 0
   isHoldable: 1
   isArmor: 0

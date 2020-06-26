@@ -3912,6 +3912,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: backpack2 (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1433295224521056122, guid: 61af7d3002091c24d9ebc8dc836ea2d6,
+        type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: c3b23ae83aaee54478e4acc42958f234, type: 2}
+    - target: {fileID: 1433295224521056122, guid: 61af7d3002091c24d9ebc8dc836ea2d6,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: cf5d34c0a2e9c2f4488bd62669f6951c, type: 2}
+    - target: {fileID: 1433295224521056122, guid: 61af7d3002091c24d9ebc8dc836ea2d6,
+        type: 3}
+      propertyPath: m_Materials.Array.data[2]
+      value: 
+      objectReference: {fileID: 2100000, guid: f7b312524e1d64f4d81d995087588344, type: 2}
+    - target: {fileID: 1433295224521056122, guid: 61af7d3002091c24d9ebc8dc836ea2d6,
+        type: 3}
+      propertyPath: m_Materials.Array.data[5]
+      value: 
+      objectReference: {fileID: 2100000, guid: aba10e3364b15cc428ddee3ef9eb9cf1, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 61af7d3002091c24d9ebc8dc836ea2d6, type: 3}
 --- !u!4 &5301297859068571755 stripped

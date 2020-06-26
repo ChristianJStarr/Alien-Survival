@@ -6,10 +6,9 @@ using TMPro;
 
 public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
 {
-    public TextMeshProUGUI slot_Amount, toolTip_name, toolTip_desc, toolTip_button;
+    public TextMeshProUGUI slot_Amount;
     public int numberItems = 0;
     public Image icon;
-    public Image toolTipImage;
     public GameObject Hover;
     public int slotNumber = 0;
     public int armorType = 0;
@@ -17,28 +16,14 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     public Item item;
     public ItemData itemData;
     public InventoryGfx inventoryGfx;
+    public Slider slider;
     Vector3 iconPos;
 
     private void Start()
     {
         iconPos = icon.gameObject.transform.position;
     }
-    private void Update()
-    {
 
-        if (numberItems > 1)
-        {
-            slot_Amount.text = numberItems.ToString();
-        }
-        else
-        {
-            if (slot_Amount.text != "")
-            {
-                slot_Amount.text = "";
-            }
-        }
-
-    }
 
 
 
@@ -82,12 +67,40 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     public void AddItem(Item newItem, ItemData data)
     {
         item = newItem;
+        itemData = data;
         if (data.icon != null)
         {
             icon.sprite = data.icon;
             icon.enabled = true;
-            numberItems = item.itemStack;
-            itemData = data;
+            if(data.maxDurability > 0) 
+            {
+                if(data.durabilityId == 0) 
+                {
+                    numberItems = 0;
+                    slider.value = item.durability;
+                    slider.gameObject.SetActive(true);
+                }
+                else 
+                {
+                    numberItems = item.durability;
+                    slider.gameObject.SetActive(false);
+                }
+            }
+            else 
+            {
+                numberItems = item.itemStack;
+            }
+            if (numberItems > 1)
+            {
+                slot_Amount.text = numberItems.ToString();
+            }
+            else if (numberItems == 0)
+            {
+                if (slot_Amount.text != "")
+                {
+                    slot_Amount.text = "";
+                }
+            }
         }
     }
 
@@ -109,8 +122,12 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
         item = null;
         icon.sprite = null;
         icon.enabled = false;
+        if (slot_Amount.text != "")
+        {
+            slot_Amount.text = "";
+        }
+        slider.gameObject.SetActive(false);
         numberItems = 0;
-        UpdateText();
     }
 
     //Get this slots Item
@@ -129,13 +146,10 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     //Toggle this Slot
     public void Toggle() 
     {
-        this.gameObject.SetActive(!this.gameObject.activeSelf);
+        gameObject.SetActive(!gameObject.activeSelf);
     }
     
-    //Update Text
-    public void UpdateText()
-    { }
-     
+
     //Set Tooltip
     public void SetTooltip() 
     {

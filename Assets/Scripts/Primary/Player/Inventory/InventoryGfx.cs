@@ -67,7 +67,6 @@ public class InventoryGfx : MonoBehaviour
         UpdateMenus();
     }
 
-
     //Update Player Info
     public void Incoming(PlayerInfo playerInfo)
     {

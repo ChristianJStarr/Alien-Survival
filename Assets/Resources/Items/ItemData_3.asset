@@ -17,11 +17,16 @@ MonoBehaviour:
   craftAmount: 0
   maxItemStack: 1
   armorType: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse:
+  - 4-7
+  maxDurability: 10
+  durabilityId: 50
   name: HP Laser Rifle
   description: This is the description for this item
   recipe: []
-  itemUse:
-  - 4-7
   isCraftable: 0
   isHoldable: 1
   isArmor: 0

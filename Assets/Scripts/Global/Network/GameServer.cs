@@ -31,6 +31,7 @@ public class GameServer : NetworkedBehaviour
                 writer.WriteInt32Packed(instance.maxItemStack);
                 writer.WriteInt32Packed(instance.currSlot);
                 writer.WriteInt32Packed(instance.armorType);
+                writer.WriteInt32Packed(instance.durability);
 
                 writer.WriteStringPacked(instance.special);
 
@@ -49,7 +50,8 @@ public class GameServer : NetworkedBehaviour
                 item.maxItemStack = reader.ReadInt32Packed();
                 item.currSlot = reader.ReadInt32Packed();
                 item.armorType = reader.ReadInt32Packed();
-
+                item.durability = reader.ReadInt32Packed();
+                
                 item.special = reader.ReadStringPacked().ToString();
 
                 item.isCraftable = reader.ReadBool();
@@ -67,7 +69,7 @@ public class GameServer : NetworkedBehaviour
         //    {
         //        float[] flarray= { instance.x, instance.y, instance.z };
         //        writer.WriteFloatArrayPacked(flarray);
-                
+
         //    }
         //}, (Stream stream) =>
         //{
@@ -88,8 +90,6 @@ public class GameServer : NetworkedBehaviour
     #endregion
     public GameObject deathDropPrefab;
     public GameObject[] particlePrefabs;
-    public GameObject serverInterface;
-    public GameObject serverCamera;
 
     //Player lists
     public List<PlayerInfo> activePlayers;
@@ -101,9 +101,11 @@ public class GameServer : NetworkedBehaviour
 
     //Systems
     private PlayerInfoManager playerInfoManager;
+    private PlayerActionManager playerActionManager;
     private ServerSaveData serverSaveData;
     private InventorySystem inventorySystem;
     private ClickableSystem clickableSystem;
+
     //Item Datas
     private ItemData[] allItems;
 
@@ -113,15 +115,22 @@ public class GameServer : NetworkedBehaviour
     [SerializeField]
     private int logLevel = 3;
 
+
     private void Start()
     {
         allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         playerInfoManager = PlayerInfoManager.singleton;
+        playerActionManager = PlayerActionManager.singleton;
         if (IsServer)
         {
             StartGameServer();
         }
     }
+
+
+
+
+
 
     //-----------------------------------------------------------------//
     //             SERVER FUNCTIONS                                    //
@@ -129,12 +138,10 @@ public class GameServer : NetworkedBehaviour
 
     private void StartGameServer()
     {
-        serverInterface.SetActive(true);
-        serverCamera.SetActive(true);
         DebugMessage("Starting Game Server.", 1);
         activePlayers = new List<PlayerInfo>();
         inactivePlayers = new List<PlayerInfo>();
-        
+
         serverSaveData = Resources.Load("Data/ServerSaveData") as ServerSaveData;
         if (serverSaveData.playerData != null)
         {
@@ -194,6 +201,10 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+
+
+
+
     //-----------------------------------------------------------------//
     //             CLIENT CALLBACKS                                    //
     //-----------------------------------------------------------------//
@@ -226,6 +237,12 @@ public class GameServer : NetworkedBehaviour
 
     }
 
+
+
+
+
+
+
     //-----------------------------------------------------------------//
     //             SERVER SIDE TOOLS                                   //
     //-----------------------------------------------------------------//
@@ -246,7 +263,6 @@ public class GameServer : NetworkedBehaviour
         return itemData;
     }
 
-
     //Create Item from Item Data
     private Item CreateItemFromData(ItemData itemData, int id, int amount)
     {
@@ -260,22 +276,26 @@ public class GameServer : NetworkedBehaviour
         item.isHoldable = itemData.isHoldable;
         item.isArmor = itemData.isArmor;
         item.showInInventory = itemData.showInInventory;
+        if (itemData.startMaxDurability)
+        {
+            item.durability = itemData.maxDurability;
+        }
+
         return item;
     }
 
     //Get All ItemData
-    public ItemData[] GetAllItemData() 
+    public ItemData[] GetAllItemData()
     {
-        if(allItems != null && allItems.Length > 0) 
+        if (allItems != null && allItems.Length > 0)
         {
             return allItems;
         }
-        else 
+        else
         {
             return null;
         }
     }
-
 
     //Generate UniqueID
     public string GenerateUnique()
@@ -289,6 +309,26 @@ public class GameServer : NetworkedBehaviour
         }
         return new string(stringChars);
     }
+
+
+    public int ServerGetItemDamage(ItemData itemData) 
+    {
+        int damage = 0;
+        foreach(string data in itemData.itemUse) 
+        {
+            string[] datas = data.Split('-');
+            int type = Convert.ToInt32(datas[0]);
+            int amount = Convert.ToInt32(datas[1]);
+            if (type == 4) 
+            {
+                damage += amount;
+            }
+        }
+        return damage;
+    }
+
+
+
 
     //-----------------------------------------------------------------//
     //             Server Action : Change Player Info                  //
@@ -561,8 +601,9 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Server Raycast Request
-    private void ServerRaycastRequest(Vector3 aimPos, Vector3 aimRot, GameObject particlePrefab, int range, string[] itemUse)
+    private NetworkedObject ServerRaycastRequest(Vector3 aimPos, Vector3 aimRot, bool spawnParticle, int range)
     {
+        NetworkedObject netObject = null; ;
         RaycastHit hit;
         LagCompensationManager.Simulate(1, () =>
         {
@@ -570,48 +611,32 @@ public class GameServer : NetworkedBehaviour
             {
                 if (hit.collider != null)
                 {
-                    GameObject hitObject = hit.collider.gameObject;
-                    Vector3 hitPosition = hitObject.transform.position;
-                    string tag = hitObject.tag;
-                    ServerSpawnParticle(particlePrefab, hitPosition);
-                    if (hitObject.GetComponent<NetworkedObject>() != null)
+                    Vector3 hitPosition = hit.point;
+                    netObject = hit.collider.GetComponent<NetworkedObject>();
+                    if (spawnParticle) 
                     {
-                        int amount = 0;
-                        if (itemUse != null)
-                        {
-                            foreach (string item in itemUse)
-                            {
-                                string[] type = item.Split('-');
-                                int item_type = Convert.ToInt32(type[0]);
-                                int type_amount = Convert.ToInt32(type[1]);
-                                if (item_type == 4)
-                                {
-                                    amount = type_amount;
-                                    break;
-                                }
-                            }
-                        }
-                        ServerDamageNetworkedObject(hitObject.GetComponent<NetworkedObject>().NetworkId, amount);
+                        ServerSpawnParticle(hitPosition, netObject.tag);
                     }
                 }
             }
         });
+        return netObject;
     }
 
     //Server Spawn Particle
-    private void ServerSpawnParticle(GameObject particle, Vector3 pos)
+    private void ServerSpawnParticle(Vector3 pos, string tag)
     {
-        GameObject newObject = Instantiate(particle, pos, Quaternion.identity);
-        newObject.GetComponent<NetworkedObject>().Spawn();
+        //GameObject newObject = Instantiate(particle, pos, Quaternion.identity);
+        //newObject.GetComponent<NetworkedObject>().Spawn();
     }
 
     //Server Damage Networked Object
-    private void ServerDamageNetworkedObject(ulong networkId, int amount)
+    private void ServerDamageNetworkedObject(NetworkedObject netObject, int amount)
     {
         bool damaged = false;
         for (int i = 0; i < activePlayers.Count; i++)
         {
-            if (activePlayers[i].networkId == networkId)
+            if (activePlayers[i].networkId == netObject.NetworkId)
             {
                 ServerSetHealth(activePlayers[i].clientId, -1 * amount);
                 damaged = true;
@@ -623,6 +648,115 @@ public class GameServer : NetworkedBehaviour
             //Damage AI through AI Controller by NetworkID
         }
     }
+
+    //Server Get Item From Slot #
+    private Item GetItemFromSlot(Item[] items, int slot)
+    {
+        foreach (Item item in items)
+        {
+            if (item.currSlot == slot)
+            {
+                return item;
+            }
+        }
+        return null;
+    }
+    
+    //Server Change Item Durability
+    private bool ServerChangeItemDurability(ulong clientId, int amount, int maxDurability, int slot)
+    {
+        bool wasNotPlaced = false;
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].clientId == clientId)
+            {
+                Item[] items = inventorySystem.ChangeItemDurability(activePlayers[i].items, amount, maxDurability, slot);
+                if (items != null)
+                {
+                    activePlayers[i].items = items;
+                    ForceRequestInfoById(clientId, 5);
+                }
+                else
+                {
+                    wasNotPlaced = true;
+                }
+            }
+        }
+        return wasNotPlaced;
+    }
+
+    //Server Add to Durability 
+    private bool ServerAddToDurability(ulong clientId, int slot, int resSlot)
+    {
+        bool value = false;
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].clientId == clientId)
+            {
+                Item item = GetItemFromSlot(activePlayers[i].items, slot);
+                Item res = GetItemFromSlot(activePlayers[i].items, resSlot);
+                if (item != null && res != null)
+                {
+                    ItemData data = GetItemDataById(item.itemID);
+                    if (item.durability + res.itemStack > data.maxDurability && data.durabilityId == res.itemID)
+                    {
+                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(resSlot, activePlayers[i].items, callback => { });
+                        inventory = inventorySystem.ChangeItemDurability(inventory, data.maxDurability - item.durability, data.maxDurability, slot);
+                        if (inventory != null)
+                        {
+                            activePlayers[i].items = inventory;
+                            ForceRequestInfoById(clientId, 5);
+                            value = true;
+                        }
+                    }
+                    else if(data.durabilityId == res.itemID)
+                    {
+                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(resSlot, activePlayers[i].items, callback => { });
+                        inventory = inventorySystem.ChangeItemDurability(inventory, res.itemStack, data.maxDurability, slot);
+                        if (inventory != null)
+                        {
+                            activePlayers[i].items = inventory;
+                            ForceRequestInfoById(clientId, 5);
+                            value = true;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        return value;
+    }
+
+    public void ServerTeleport(string playerName, string targetName) 
+    {
+        ulong clientId = 0;
+        ulong targetId = 0;
+
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].name == playerName)
+            {
+                clientId = activePlayers[i].clientId;
+            }
+            else if (activePlayers[i].name == targetName) 
+            {
+                targetId = activePlayers[i].clientId;
+            }
+        }
+
+        if(clientId != 0 && targetId != 0) 
+        {
+            MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
+            if (movement != null)
+            {
+                movement.TeleportClient(clientId, NetworkingManager.Singleton.ConnectedClients[targetId].PlayerObject.transform.position);
+            }
+        }
+    
+    }
+
+
+
 
     //-----------------------------------------------------------------//
     //             Server Action : User Interface                      //
@@ -642,9 +776,15 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+
+
+
+
+
     //-----------------------------------------------------------------//
     //             Server Action : Handle GameObjs                     //
     //-----------------------------------------------------------------//
+
 
     //Load all Game Objects.
     private void LoadGameObjects()
@@ -671,6 +811,12 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+
+
+
+
+
+
 
     //-----------------------------------------------------------------//
     //             Player Request : Retrieve Player Info               //
@@ -997,6 +1143,12 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+
+
+
+
+
+
     //-----------------------------------------------------------------//
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
@@ -1004,7 +1156,7 @@ public class GameServer : NetworkedBehaviour
     //--Set Player Health
     public void SetPlayerHealth(int id, string authKey, int health)
     {
-        DebugMessage("Requesting to Modify Health.", 2);
+        DebugMessage("Requesting to Modify Health.", 4);
         InvokeServerRpc(SetPlayerHealth_Rpc, id, authKey, health);
     }
     [ServerRPC(RequireOwnership = false)]
@@ -1024,7 +1176,7 @@ public class GameServer : NetworkedBehaviour
                 {
                     ServerRespawnPlayer(activePlayers[i].clientId);
                 }
-                DebugMessage("Setting Health of Player '" + activePlayers[i].name + "'.", 2);
+                DebugMessage("Setting Health of Player '" + activePlayers[i].name + "'.", 4);
                 ForceRequestInfoById(activePlayers[i].clientId, 2);
                 break;
             }
@@ -1035,7 +1187,7 @@ public class GameServer : NetworkedBehaviour
     //--Set Player Water
     public void SetPlayerWater(int id, string authKey, int water)
     {
-        DebugMessage("Requesting to Modify Water.", 2);
+        DebugMessage("Requesting to Modify Water.", 4);
         InvokeServerRpc(SetPlayerWater_Rpc, id, authKey, water);
     }
 
@@ -1046,8 +1198,8 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                activePlayers[i].water += water;
-                DebugMessage("Setting Water of Player '" + activePlayers[i].name + "'.", 2);
+                activePlayers[i].water = Mathf.Clamp(activePlayers[i].water += water, 0, 100);
+                DebugMessage("Setting Water of Player '" + activePlayers[i].name + "'.", 4);
                 ForceRequestInfoById(activePlayers[i].clientId, 4);
                 break;
             }
@@ -1058,7 +1210,7 @@ public class GameServer : NetworkedBehaviour
     //--Set Player Food
     public void SetPlayerFood(int id, string authKey, int food)
     {
-        DebugMessage("Requesting to Modify Food.", 2);
+        DebugMessage("Requesting to Modify Food.", 4);
         InvokeServerRpc(SetPlayerFood_Rpc, id, authKey, food);
     }
 
@@ -1069,8 +1221,8 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                activePlayers[i].food += food;
-                DebugMessage("Setting Food of Player '" + activePlayers[i].name + "'.", 2);
+                activePlayers[i].food = Mathf.Clamp(activePlayers[i].food += food, 0, 100);
+                DebugMessage("Setting Food of Player '" + activePlayers[i].name + "'.", 4);
                 ForceRequestInfoById(activePlayers[i].clientId, 3);
                 break;
             }
@@ -1105,7 +1257,7 @@ public class GameServer : NetworkedBehaviour
                 if (activePlayers[i].id == reader.ReadInt32Packed() && activePlayers[i].authKey == reader.ReadStringPacked().ToString())
                 {
                     activePlayers[i].location = new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked());
-                    DebugMessage("Setting Location of Player '" + activePlayers[i].name + "'.", 3);
+                    DebugMessage("Setting Location of Player '" + activePlayers[i].name + "'.", 4);
                     break;
                 }
             }
@@ -1115,7 +1267,7 @@ public class GameServer : NetworkedBehaviour
     //--Request To Teleport
     public void RequestToDie(int id, string authKey)
     {
-        DebugMessage("Requesting to Modify Food.", 2);
+        DebugMessage("Requesting to Die.", 4);
         InvokeServerRpc(RequestToDie_Rpc, id, authKey);
     }
 
@@ -1131,6 +1283,12 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+
+
+
+
+
+
 
 
 
@@ -1183,6 +1341,12 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+
+
+
+
+
+
     //-----------------------------------------------------------------//
     //         Player Request : Inventory Items Modification           //
     //-----------------------------------------------------------------//
@@ -1209,8 +1373,39 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                activePlayers[i].items = inventorySystem.MoveItemInInventory(curSlot, newSlot, activePlayers[i].items);
-                DebugMessage("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 2);
+                bool value = false;
+                Item item = GetItemFromSlot(activePlayers[i].items, newSlot);
+                Item res = GetItemFromSlot(activePlayers[i].items, curSlot);
+                if (item != null && res != null)
+                {
+                    ItemData data = GetItemDataById(item.itemID);
+                    if (item.durability + res.itemStack <= data.maxDurability && data.durabilityId == res.itemID)
+                    {
+                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(curSlot, activePlayers[i].items, callback => { });
+                        inventory = inventorySystem.ChangeItemDurability(inventory, res.itemStack, data.maxDurability, newSlot);
+                        if (inventory != null)
+                        {
+                            activePlayers[i].items = inventory;
+                            value = true;
+                        }
+                    }
+                    else if (data.durabilityId == res.itemID)
+                    {
+                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(curSlot, activePlayers[i].items, callback => { }, data.maxDurability - item.durability);
+                        inventory = inventorySystem.ChangeItemDurability(inventory, res.itemStack, data.maxDurability, newSlot);
+                        if (inventory != null)
+                        {
+                            activePlayers[i].items = inventory;
+                            value = true;
+                        }
+                    }
+                }
+                if (!value) 
+                {
+                    activePlayers[i].items = inventorySystem.MoveItemInInventory(curSlot, newSlot, activePlayers[i].items);
+                }
+                DebugMessage("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 4);
+
                 ForceRequestInfoById(activePlayers[i].clientId, 5);
                 break;
             }
@@ -1225,7 +1420,6 @@ public class GameServer : NetworkedBehaviour
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
                 ItemArmorArrays arrays = inventorySystem.MoveArmorInInventory(curSlot, newSlot, activePlayers[i].items, activePlayers[i].armor);
-                activePlayers[i].items = arrays.items;
                 activePlayers[i].items = arrays.items;
                 ForceRequestInfoById(activePlayers[i].clientId);
                 break;
@@ -1364,13 +1558,22 @@ public class GameServer : NetworkedBehaviour
         return hasItem;
     }
 
+
+
+
+
+
+
+
+
     //-----------------------------------------------------------------//
     //             Player Request : Use Selected Item                  //
     //-----------------------------------------------------------------//
 
-    //Use Selected Item
-    public void UseSelectedItem(int id, string authKey, int itemId, Transform aim) 
+    //CLIENT : Use Selected Item
+    public void UseSelectedItem(int id, string authKey, int itemSlot, Transform aim) 
     {
+        DebugMessage("Requesting to Use Selected Item", 2);
         Vector3 rot = aim.TransformDirection(Vector3.forward);
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
@@ -1378,7 +1581,7 @@ public class GameServer : NetworkedBehaviour
             {
                 writer.WriteInt32Packed(id);
                 writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(itemId);
+                writer.WriteInt32Packed(itemSlot);
                 writer.WriteSinglePacked(aim.position.x);
                 writer.WriteSinglePacked(aim.position.y);
                 writer.WriteSinglePacked(aim.position.z);
@@ -1390,15 +1593,17 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-    //Use Selected Item RPC
+
+    //SERVER : Use Selected Item 
     [ServerRPC(RequireOwnership = false)]
     private void UseSelectedItem_Rpc(ulong clientId, Stream stream)
     {
+        bool success = false;
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
             int id = reader.ReadInt32Packed();
             string authKey = reader.ReadStringPacked().ToString();
-            int itemId = reader.ReadInt32Packed();
+            int itemSlot = reader.ReadInt32Packed();
             float xPos = reader.ReadSinglePacked();
             float yPos = reader.ReadSinglePacked();
             float zPos = reader.ReadSinglePacked();
@@ -1409,30 +1614,190 @@ public class GameServer : NetworkedBehaviour
             Vector3 aimPos = new Vector3(xPos, yPos, zPos);
             Vector3 aimRot = new Vector3(xRot, yRot, zRot);
 
-            ItemData data = GetItemDataById(itemId);
-            if (data.useRequire.Length > 0)
+
+            for (int i = 0; i < activePlayers.Count; i++)
             {
-                string[] strings = data.useRequire.Split('-');
-                int useItemId = Convert.ToInt32(strings[0]);
-                int useItemAmount = Convert.ToInt32(strings[1]);
-                if (itemId > 0 && useItemAmount > 0)
+                if (activePlayers[i].id == id && activePlayers[i].authKey == authKey) 
                 {
-                    ServerRemoveItemFromInventory(clientId, useItemId, useItemAmount);
+                    Item selectedItem = GetItemFromSlot(activePlayers[i].items, itemSlot);
+                    if (selectedItem != null) 
+                    {
+                        ItemData selectedData = GetItemDataById(selectedItem.itemID);
+                        if(selectedData.useType == 1) 
+                        {
+                            success = ServerShootSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+                        }
+                        if (selectedData.useType == 2)
+                        {
+                            success = ServerMeleeSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+                        }
+                        if (selectedData.useType == 3)
+                        {
+                            success = ServerPlaceSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+                        }
+                    }
+                    else 
+                    {
+                        success = ServerPunchSelected(clientId, aimPos, aimRot);
+                    }
                 }
             }
+        }
+        if (success) 
+        {
+            InvokeClientRpcOnClient(UseSelectedItemReturn, clientId);
+        }
+    }
 
-            int range = data.useRange;
-            if(range > 0 && data.useParticleId > 0) 
+    [ClientRPC]
+    private void UseSelectedItemReturn() 
+    {
+        playerActionManager.UseSelectedItemReturn();
+    }
+
+    //Server Shoot Selected
+    private bool ServerShootSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
+    {
+        if (item.durability > 0 && ServerChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
+        {
+            NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, data.useRange);
+            if (netObject != null)
             {
-                if(particlePrefabs.Length > 0) 
+                int damage = ServerGetItemDamage(data);
+                if(damage > 0) 
                 {
-                    ServerRaycastRequest(aimPos, aimRot, particlePrefabs[data.useParticleId - 1], range, data.itemUse);
+                    DebugMessage("Shoot. Damaging Network Object for Player: " + clientId, 2);
+                    ServerDamageNetworkedObject(netObject, damage);
+                }
+            }
+            return true;
+        }
+        else { return false; }
+    }
+    
+    //Server Melee Seleceted
+    private bool ServerMeleeSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
+    {
+        if (item.durability > 0 && ServerChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
+        {
+            NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, data.useRange);
+            if (netObject != null)
+            {
+                int damage = ServerGetItemDamage(data);
+                if (damage > 0)
+                {
+                    DebugMessage("Melee. Damaging Network Object for Player: " + clientId, 2);
+                    ServerDamageNetworkedObject(netObject, damage);
+                }
+            }
+            return true;
+        }
+        else { return false; }
+    }
+    
+    //Server Place Selected
+    private bool ServerPlaceSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
+    {
+        return false;
+    }
+    
+    //Server Punch Selected
+    private bool ServerPunchSelected(ulong clientId, Vector3 pos, Vector3 rot) 
+    {
+        NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, 1);
+        if (netObject != null)
+        {
+            DebugMessage("Punch. Damaging Network Object for Player: " + clientId, 2);
+            ServerDamageNetworkedObject(netObject, 2);
+        }
+        return false;
+    }
+
+    //CLIENT : Add to Durability
+    public void ReloadToDurability(int id, string authKey, int slot)
+    {
+        DebugMessage("Requesting to Reload", 2);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(id);
+                writer.WriteStringPacked(authKey);
+                writer.WriteInt32Packed(slot);
+                InvokeServerRpcPerformance(ReloadToDurability_Rpc, writeStream);
+            }
+        }
+    }
+
+    //SERVER : Add to Durability 
+    [ServerRPC(RequireOwnership = false)]
+    private void ReloadToDurability_Rpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            int id = reader.ReadInt32Packed();
+            string authKey = reader.ReadStringPacked().ToString();
+            int slot = reader.ReadInt32Packed();
+
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+                {
+                    if(activePlayers[i].items != null) 
+                    {
+                        Item item = GetItemFromSlot(activePlayers[i].items, slot);
+                        if (item != null)
+                        {
+                            ItemData data = GetItemDataById(item.itemID);
+                            if (item.durability < data.maxDurability)
+                            {
+                                int needed = data.maxDurability - item.durability;
+                                int available = inventorySystem.GetMaxAvailableInventory(data.durabilityId, activePlayers[i].items);
+                                int final = 0;
+                                if (available <= needed)
+                                {
+                                    final = available;
+                                }
+                                else if (available > needed)
+                                {
+                                    final = needed;
+                                }
+                                Item[] inventory = inventorySystem.RemoveItemFromInventory(data.durabilityId, final, activePlayers[i].items);
+                                if (inventory != null)
+                                {
+                                    inventory = inventorySystem.ChangeItemDurability(inventory, final, data.maxDurability, slot);
+                                    if (inventory != null)
+                                    {
+                                        DebugMessage("Reloading for Player: " + clientId, 2);
+                                        activePlayers[i].items = inventory;
+                                        ForceRequestInfoById(clientId, 5);
+                                    }
+                                    else
+                                    {
+                                        DebugMessage("Reloading for Player Failed: " + clientId, 3);
+                                    }
+                                }
+                                else
+                                {
+                                    DebugMessage("Reloading for Player Failed: " + clientId, 3);
+                                }
+                            }
+                            else
+                            {
+                                DebugMessage("Reloading for Player Failed: " + clientId, 3);
+                            }
+                        }
+                    }
+                    break;
                 }
             }
         }
     }
-    
-   
+
+
+
+
+
     //-----------------------------------------------------------------//
     //         Player Request : World Interactions                     //
     //-----------------------------------------------------------------//
@@ -1547,9 +1912,17 @@ public class GameServer : NetworkedBehaviour
         return placed;
     }
 
+
+
+
+
+
+
     //-----------------------------------------------------------------//
     //             Client RPC : Force Request                          //
     //-----------------------------------------------------------------//
+    
+    
     private void ForceRequestInfoById(ulong clientId, int infoDepth = 1)
     {
         List<ulong> idList = new List<ulong>();
@@ -1620,6 +1993,15 @@ public class GameServer : NetworkedBehaviour
         playerInfoManager.GetPlayer_InventoryBlueprints();
     }
 
+
+
+
+
+
+
+    //-----------------------------------------------------------------//
+    //             EH                                                  //
+    //-----------------------------------------------------------------//
 
     //Auto Save Loop
     private IEnumerator AutoSaveLoop()

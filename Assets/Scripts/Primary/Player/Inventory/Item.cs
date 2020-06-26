@@ -9,7 +9,7 @@ public class Item
     public int maxItemStack = 0;
     public int currSlot = 0;
     public int armorType = 0;
-    
+    public int durability = 0;
     public string special = "";
 
     public bool isCraftable = false;

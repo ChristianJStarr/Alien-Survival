@@ -44,29 +44,30 @@ public class TopToolTipHandler : MonoBehaviour
     }
     private void BuildTypes(string[] types) 
     {
-        if (typeSlides != null)
+        if (typeSlides != null && typeSlides.Count > 0)
         {
-            if (typeSlides.Count > 0)
+            for (int i = 0; i < typeSlides.Count; i++)
             {
-                foreach (TopToolTypeSlide slide in typeSlides.ToList())
+                if(typeSlides[i] != null) 
                 {
-                    Destroy(slide.gameObject);
-                    typeSlides.Remove(slide);
+                    Destroy(typeSlides[i].gameObject);
+                    typeSlides.RemoveAt(i);
                 }
+                
             }
         }
-            if (types != null)
+        if (types != null)
+        {
+            foreach (string item in types)
             {
-                foreach (string item in types)
-                {
-                    string[] type = item.Split('-');
-                    int item_type = Convert.ToInt32(type[0]);
-                    int type_amount = Convert.ToInt32(type[1]);
-                    TopToolTypeSlide slide = Instantiate(typeSlidePrefab, typeContainer).GetComponent<TopToolTypeSlide>();
-                    slide.UpdateType(item_type, type_amount);
-                    typeSlides.Add(slide);
-                }
+                string[] type = item.Split('-');
+                int item_type = Convert.ToInt32(type[0]);
+                int type_amount = Convert.ToInt32(type[1]);
+                TopToolTypeSlide slide = Instantiate(typeSlidePrefab, typeContainer).GetComponent<TopToolTypeSlide>();
+                slide.UpdateType(item_type, type_amount);
+                typeSlides.Add(slide);
             }
+        }
         
     }
 }

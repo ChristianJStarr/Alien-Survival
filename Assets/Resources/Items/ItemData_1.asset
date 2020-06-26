@@ -20,9 +20,10 @@ MonoBehaviour:
   useType: 1
   useRange: 10
   useParticleId: 1
-  useRequire: 50-1
   itemUse:
   - 4-5
+  maxDurability: 20
+  durabilityId: 50
   name: Spacegun Mk1
   description: This is the description for this item
   recipe: []
