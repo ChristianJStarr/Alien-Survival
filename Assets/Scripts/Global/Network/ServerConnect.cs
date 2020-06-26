@@ -59,6 +59,10 @@ public class ServerConnect : MonoBehaviour
             StartServer();
         }
 #endif
+        if (devServer)
+        {
+            StartServer();
+        }
     }
 
     
@@ -403,7 +407,7 @@ public class ServerConnect : MonoBehaviour
     //Get the Stored Server Settings
     private bool GetServerSettings()
     {
-        string path = @"C:\Settings\server-properties.txt".Replace('\\', Path.DirectorySeparatorChar);
+        string path = @"C:\Setting\server-properties.txt".Replace('\\', Path.DirectorySeparatorChar);
         if (!File.Exists(path)) 
         {
             DebugMessage("No Server Properties Found at 'C:/Settings/server-properties.txt'.", 1);

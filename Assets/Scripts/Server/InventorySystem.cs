@@ -120,7 +120,6 @@ public class InventorySystem : MonoBehaviour
                 if (item.durability + amount > 0 && item.durability + amount <= maxDurability) 
                 {
                     item.durability += amount;
-                    UnityEngine.Debug.Log("Changed Durability of Item: " + item.itemID + " Amount:" + amount);
                 }
                 break;
             }

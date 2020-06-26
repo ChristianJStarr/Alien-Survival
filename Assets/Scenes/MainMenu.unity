@@ -11881,7 +11881,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DontDestroy: 1
   RunInBackground: 1
-  LogLevel: 1
+  LogLevel: 2
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 1011803584}
@@ -11962,8 +11962,8 @@ MonoBehaviour:
   serverCommand: {fileID: 1503941492}
   serverUI: {fileID: 719751445}
   serverCamera: {fileID: 1310885805}
-  devServer: 1
-  logLevel: 3
+  devServer: 0
+  logLevel: 0
 --- !u!1 &1018648559
 GameObject:
   m_ObjectHideFlags: 0

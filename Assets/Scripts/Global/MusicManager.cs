@@ -26,6 +26,10 @@ public class MusicManager : MonoBehaviour
         uiAudio.Stop();
         return;
 #endif
+        musicAudio.Stop();
+        ambientAudio.Stop();
+        uiAudio.Stop();
+        return;
 
         DontDestroyOnLoad(this);
         Change();
