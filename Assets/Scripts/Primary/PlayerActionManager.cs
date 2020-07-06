@@ -227,5 +227,12 @@ public class PlayerActionManager : MonoBehaviour
     }
 
  
+
+
+
+    public void RequestDisconnect() 
+    {
+        gameServer.RequestToDisconnect(id, authKey);
+    }
    
 }

@@ -10,10 +10,10 @@ public class LoadSceneScript : MonoBehaviour
     //Where: The Load Scene.
     public string[] loadTips;    
     public bool devServer = false;
-    public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting; //Each screen layer.
+    public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting, terms, termsCheck; //Each screen layer.
     public TextMeshProUGUI loginNotify, signupNotify, loadTip; //Notify text field for login and signup screen.
     public TMP_InputField usernameText, passwordText, regUsernameText, regPassText; //Input fields for login and signup.
-    public Button loginButton, signupButton; //Login and signup screen buttons.
+    public Button loginButton, signupButton, termsButton; //Login and signup screen buttons.
     public PlayerStats playerStats; //Player Statistics data object.
     public WebServer webServer; //Web Server Handler.
     private int loadProgress, lastLoadProgress = 0; //Loading bar values.
@@ -21,6 +21,10 @@ public class LoadSceneScript : MonoBehaviour
     public RawImage background; //Background Image
     public Texture blurTexture; //Blurred Bkg Texture
     public Texture regTexture; //Regular Bkg Texture
+
+    private string privacyPolicyUrl = "https://aliensurvival.com/privacy.php";
+    private string termsConditionsUrl = "https://aliensurvival.com/terms.php";
+
 
     void Start() 
     {
@@ -45,10 +49,54 @@ public class LoadSceneScript : MonoBehaviour
         }
         else 
         {
-            mainScreen.SetActive(true);//Show main menu screen.
+            if(PlayerPrefs.GetInt("terms") == 0) 
+            {
+                terms.SetActive(true);
+            }
+            else 
+            {
+                mainScreen.SetActive(true);
+                background.texture = regTexture;
+            }
         }
         //Change asterisk to dot in input field.
         usernameText.asteriskChar = passwordText.asteriskChar = regUsernameText.asteriskChar = regPassText.asteriskChar = '•';
+    }
+
+    public void CheckTerms() 
+    {
+        if (termsButton.interactable) 
+        {
+            termsButton.interactable = false;
+            termsCheck.SetActive(false);
+        }
+        else
+        {
+            termsButton.interactable = true;
+            termsCheck.SetActive(true);
+        }
+    }
+
+    public void ContinueTerms() 
+    {
+        PlayerPrefs.SetInt("terms", 1);
+        background.texture = regTexture;
+        terms.SetActive(false);
+        mainScreen.SetActive(true);
+    }
+
+    public void CloseApp() 
+    {
+        Application.Quit();
+    }
+
+    public void OpenPrivacyUrl() 
+    {
+        Application.OpenURL(privacyPolicyUrl);
+    }
+    public void OpenTermsUrl()
+    {
+        Application.OpenURL(termsConditionsUrl);
     }
 
     //Button Function: Show login menu.
@@ -107,27 +155,30 @@ public class LoadSceneScript : MonoBehaviour
             {
                 loadTime = false;
                 loadProgress = 100;
-                int userId = PlayerPrefs.GetInt("userId");
-                string authKey = PlayerPrefs.GetString("authKey");
-                webServer.StatRequest(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), onRequestFinished =>
-                {
-                    if (onRequestFinished != null)
-                    {
-                        loadProgress = 75;
-                        playerStats = onRequestFinished;
-                        op.allowSceneActivation = true;
-                    }
-                    else 
-                    {
-                        Debug.Log("Network - Web - Unable to get stats.");
-                        Close();
-                    }
-                });
+                LoadRoutineStage(op);
             }
             if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress;  }
             yield return null;
         }
     }
+
+    private void LoadRoutineStage(AsyncOperation op) 
+    {
+        webServer.StatRequest(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), onRequestFinished =>
+        {
+            if (onRequestFinished)
+            {
+                loadProgress = 100;
+                op.allowSceneActivation = true;
+            }
+            else
+            {
+                Debug.Log("Network - Web - Unable to get stats.");
+                Close();
+            }
+        });
+    }
+
 
     //Login with stored PlayerPrefs.
     private void LoginRememberMe()
@@ -158,6 +209,8 @@ public class LoadSceneScript : MonoBehaviour
         {
             if (onRequestFinished)
             {
+                PlayerPrefs.SetInt("newPlayer", 1);
+                PlayerPrefs.Save();
                 LoadGame();//Load the MainMenu scene.
             }
             else
@@ -223,6 +276,8 @@ public class LoadSceneScript : MonoBehaviour
                 if (onRequestFinished)
                 {
                     LoadGame();//Load the MainMenu scene.
+                    PlayerPrefs.SetInt("newPlayer", 1);
+                    PlayerPrefs.Save();
                 }
                 else
                 {

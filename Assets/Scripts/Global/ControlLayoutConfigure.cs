@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -8,32 +7,35 @@ public class ControlLayoutConfigure : MonoBehaviour, IBeginDragHandler, IDragHan
 {
 
     public GameObject button_Container;
-    private List<Image> buttons = new List<Image>();
-
+    private List<Image> buttons;
 
     private void Start()
     {
-        foreach (Image item in button_Container.GetComponentsInChildren<Image>()) 
+        buttons = new List<Image>();
+        if(button_Container != null) 
         {
-            buttons.Add(item);
-            
+            Image[] images = button_Container.GetComponentsInChildren<Image>();
+            if(images != null) 
+            {
+                foreach (Image image in images)
+                {
+                    buttons.Add(image);
+                }
+            }
         }
     }
 
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        throw new System.NotImplementedException();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        throw new System.NotImplementedException();
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        throw new System.NotImplementedException();
     }
 
 

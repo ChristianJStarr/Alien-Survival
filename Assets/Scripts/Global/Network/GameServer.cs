@@ -39,6 +39,7 @@ public class GameServer : NetworkedBehaviour
                 writer.WriteBool(instance.isHoldable);
                 writer.WriteBool(instance.isArmor);
                 writer.WriteBool(instance.showInInventory);
+
             }
         }, (Stream stream) =>
         {
@@ -204,7 +205,6 @@ public class GameServer : NetworkedBehaviour
 
 
 
-
     //-----------------------------------------------------------------//
     //             CLIENT CALLBACKS                                    //
     //-----------------------------------------------------------------//
@@ -212,7 +212,6 @@ public class GameServer : NetworkedBehaviour
     //Player has Connected callback.
     public void PlayerConnected_Player(ulong networkId)
     {
-        Debug.Log("Network - Game - Connected to Server.");
         InvokeServerRpc(HandoverNetworkId, PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), networkId);
     }
 
@@ -310,7 +309,7 @@ public class GameServer : NetworkedBehaviour
         return new string(stringChars);
     }
 
-
+    //Get Item from ItemData Damage
     public int ServerGetItemDamage(ItemData itemData) 
     {
         int damage = 0;
@@ -498,17 +497,23 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Move Player To Inactive List
-    public void MovePlayerToInactive(ulong clientId)
+    public PlayerInfo MovePlayerToInactive(ulong clientId)
     {
+        PlayerInfo info = null;
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
             {
                 inactivePlayers.Add(activePlayers[i]);
+                info = activePlayers[i];
+                
+                info.hoursAdd = (float)DateTime.Now.Subtract(info.time).TotalMinutes / 60;
+
                 activePlayers.Remove(activePlayers[i]);
                 break;
             }
         }
+        return info;
     }
 
     //Respawn Player
@@ -762,6 +767,7 @@ public class GameServer : NetworkedBehaviour
     //             Server Action : User Interface                      //
     //-----------------------------------------------------------------//
 
+    //Force Death Screen on Client
     public void ServerUIDeathScreen(ulong clientId)
     {
         List<ulong> clients = new List<ulong>();
@@ -769,14 +775,12 @@ public class GameServer : NetworkedBehaviour
         InvokeClientRpcOnClient(ServerUIDeathScreenRpc, clientId);
     }
 
+    //Client RPC - Force Death Screen
     [ClientRPC]
     private void ServerUIDeathScreenRpc()
     {
         PlayerActionManager.singleton.ShowDeathScreen();
     }
-
-
-
 
 
 
@@ -811,7 +815,6 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-
 
 
 
@@ -1915,14 +1918,39 @@ public class GameServer : NetworkedBehaviour
 
 
 
+    //-----------------------------------------------------------------//
+    //         Player Request :                                        //
+    //-----------------------------------------------------------------//
 
+    public void RequestToDisconnect(int id, string authKey) 
+    {
+        InvokeServerRpc(RequestToDisconnect_Rpc, id, authKey);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private void RequestToDisconnect_Rpc(int id, string authKey)
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                DebugMessage("Disconnecting Player '" + activePlayers[i].name + "'.", 2);
+                NetworkingManager.Singleton.DisconnectClient(activePlayers[i].clientId);
+                
+                
+                
+                
+                break;
+            }
+        }
+    }
 
 
     //-----------------------------------------------------------------//
     //             Client RPC : Force Request                          //
     //-----------------------------------------------------------------//
-    
-    
+
+
     private void ForceRequestInfoById(ulong clientId, int infoDepth = 1)
     {
         List<ulong> idList = new List<ulong>();
@@ -2068,6 +2096,12 @@ public class PlayerInfo
     public Item[] armor;
     public int[] blueprints;
     public ulong clientId;
+
+    public int coinsAdd;
+    public int expAdd;
+    public float hoursAdd;
+
+    public DateTime time;
 }
 
 //1156 6/20/20

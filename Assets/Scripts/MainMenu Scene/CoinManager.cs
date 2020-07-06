@@ -13,17 +13,6 @@ public class CoinManager : MonoBehaviour
     {
         mainMenuStatUpdater.UpdateText();
         playerStats.playerCoins += value;
-        webServer.StatSend(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), playerStats, onRequestFinished =>
-        {
-            if (onRequestFinished)
-            {
-                Debug.Log("Network - Web - Player Stats save successful.");
-            }
-            else
-            {
-                Debug.Log("Network - Web - Failed to save Player Stats.");
-            }
-        });
     }
     public bool RemoveCoin(int value) 
     {
@@ -31,17 +20,7 @@ public class CoinManager : MonoBehaviour
         {
             mainMenuStatUpdater.UpdateText();
             playerStats.playerCoins -= value;
-            webServer.StatSend(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), playerStats, onRequestFinished => 
-            {
-                if (onRequestFinished) 
-                {
-                    Debug.Log("Network - Web - Player Stats save successful.");
-                }
-                else 
-                {
-                    Debug.Log("Network - Web - Failed to save Player Stats.");
-                }
-            });
+            
             return true;
         }
         else

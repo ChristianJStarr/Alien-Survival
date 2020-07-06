@@ -1,6 +1,7 @@
-﻿using MLAPI;
+﻿using System.Collections;
+using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PauseControl : MonoBehaviour
 {
@@ -11,7 +12,12 @@ public class PauseControl : MonoBehaviour
     public GameObject pauseMenu; //Pause Menu container.
     public GameObject pauseButtons; //Pause Menu buttons.
     public GameObject settingsMenu; //pause Menu Settings container.
+    public GameObject inventory; //Inventory UI GameObject.
+    public GameObject topBar; //Topbar UI GameObject.
+
     public ControlControl controls; //Controls Controller script.
+    public TextMeshProUGUI disconnectButtonText; //Disconnect Button
+    public Button disconnectButton;
 
     void Start()
     {
@@ -33,7 +39,9 @@ public class PauseControl : MonoBehaviour
             pauseMenu.SetActive(true);//Show the pause menu.
             controls.Hide(); //Hides the UI Controls layer.
             gamePaused = true;
-            
+            inventory.SetActive(false);
+            topBar.SetActive(false);
+            StartCoroutine(BattleLog());
         }
         else //If game is paused and button was clicked.
         {
@@ -41,6 +49,8 @@ public class PauseControl : MonoBehaviour
             pauseMenu.SetActive(false);//Hide the pause menu.
             controls.Show(); //Shows the UI Controls layer.
             gamePaused = false;
+            inventory.SetActive(true);
+            topBar.SetActive(true);
         }
     }
 
@@ -61,11 +71,34 @@ public class PauseControl : MonoBehaviour
     }
 
 
+    private IEnumerator BattleLog() 
+    {
+        disconnectButton.interactable = false;
+        WaitForSeconds wait = new WaitForSeconds(1F);
+        int pos = 5;
+        while(true) 
+        {
+            if (!gamePaused) 
+            {
+                break;
+            }
+            disconnectButtonText.text = "DISCONNECT (" + pos + ")";
+            pos--;
+            yield return wait;
+            if(pos == 0) 
+            {
+                disconnectButtonText.text = "DISCONNECT";
+                disconnectButton.interactable = true;
+                break;
+            }
+        }
+    }
+
+
     //Exit to Main Menu button function. Called from button inside of pause menu.
     public void ButtonExitMain() 
     {
         gamePaused = false;
-        NetworkingManager.Singleton.StopClient();
-        SceneManager.LoadScene(1);
+        PlayerActionManager.singleton.RequestDisconnect();
     }
 }

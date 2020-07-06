@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using System;
 /// <summary>
 /// Update the UI with Player Stats.
 /// </summary>
@@ -21,8 +22,8 @@ public class MainMenuStatUpdater : MonoBehaviour
     public void UpdateText() 
     {
         userName.text = PlayerPrefs.GetString("username");
-        userHours.text = playerStats.playerHours + " HOURS SURVIVED";
-        userSp.text = playerStats.playerCoins + " SP";
+        userHours.text = Math.Round(playerStats.playerHours,2) + " HOURS SURVIVED";
+        userSp.text = playerStats.playerCoins.ToString();
         joinSp.text = userSp.text;
         expBar.SetExp(playerStats.playerExp);
     }

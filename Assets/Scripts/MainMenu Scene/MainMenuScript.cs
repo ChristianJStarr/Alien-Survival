@@ -18,12 +18,13 @@ public class MainMenuScript : MonoBehaviour
     public GameObject profileMenu; //Profile Screen.
     public GameObject settingsMenu; //Settings Screen.
     public GameObject onlineMenu; //Server Screen.
+    public GameObject alienStore; // Alien Store
     public Slider loadSlider; //Loading Screen slider.
     public Camera cam; //Scene Camera.
     public GameObject easterEggBeam;
     static Transform camReset; //Camera default positon to reset to.
 
-    public TextMeshProUGUI loadTip;
+    public TextMeshProUGUI loadTip, loadMainText;
     public string[] loadTips;
 
 
@@ -128,7 +129,8 @@ public class MainMenuScript : MonoBehaviour
         onlineMenu.SetActive(false);
         profileMenu.SetActive(false);
         loadScreen.SetActive(false);
-        settingsMenu.SetActive(false); 
+        settingsMenu.SetActive(false);
+        alienStore.SetActive(false);
         mainScreen.SetActive(true);
         camTargetposition = resetTargetCord;
         camTargetrotation = resetTargetRot;
@@ -157,14 +159,36 @@ public class MainMenuScript : MonoBehaviour
         PlayerPrefs.DeleteKey("guest-b");
         PlayerPrefs.DeleteKey("authKey");
         PlayerPrefs.DeleteKey("userId");
-        playerStats.Wipe();
         mainScreen.SetActive(false);
         onlineMenu.SetActive(false);
         profileMenu.SetActive(false);
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
+        loadMainText.text = "Logging Out Account";
         loadTip.text = LoadText();
         StartCoroutine(LogOutRoutine());
+    }
+
+    //Alien Store
+    public void AlienStore() 
+    {
+        mainScreen.SetActive(false);
+        alienStore.SetActive(true);
+        camTargetposition = profTargetCord;
+        camTargetrotation = profTargetRot;
+    }
+
+
+    public void CloseAll() 
+    {
+        onlineMenu.SetActive(false);
+        profileMenu.SetActive(false);
+        loadScreen.SetActive(false);
+        settingsMenu.SetActive(false);
+        alienStore.SetActive(false);
+        mainScreen.SetActive(false);
+        camTargetposition = resetTargetCord;
+        camTargetrotation = resetTargetRot;
     }
 
     //Load Routine

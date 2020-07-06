@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MLAPI;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -22,7 +23,18 @@ public class WebServer : MonoBehaviour
     /// <summary>
     /// Server List File Name
     /// </summary>
-    private string serversFile = "servers.php"; 
+    private string serversFile = "servers.php";
+
+    private NetworkingManager networkManager;
+    public int logLevel = 0;
+    public PlayerStats playerStats;
+
+
+    private void Start()
+    {
+        networkManager = NetworkingManager.Singleton;
+    }
+
     /// <summary>
     /// Check if already requesting.
     /// </summary>
@@ -41,6 +53,8 @@ public class WebServer : MonoBehaviour
             onRequestFinished(returnValue);
         }));
     }
+    
+    
     /// <summary>
     /// Make a Signup Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
     /// </summary>
@@ -56,37 +70,43 @@ public class WebServer : MonoBehaviour
             onRequestFinished(returnValue);
         }, authKey));
     }
+    
+    
     /// <summary>
     /// Make a Stats Request. If successful, returns PlayerStats will not be null and will contain current stats.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="authKey"></param>
     /// <param name="onRequestFinished"></param>
-    public void StatRequest(int userId, string authKey, Action<PlayerStats> onRequestFinished)
+    public void StatRequest(int userId, string authKey, Action<bool> onRequestFinished)
     {
-
-
-        StartCoroutine(WebServerStatistics(true, userId, authKey, returnValue => { }, returnStats =>
-        {
-            onRequestFinished(returnStats);
-        }));
-    }
-    /// <summary>
-    /// Save Current Stats. Returns bool depending on success of save.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="authKey"></param>
-    /// <param name="stats"></param>
-    /// <param name="onRequestFinished"></param>
-    public void StatSend(int userId, string authKey, PlayerStats stats, Action<bool> onRequestFinished)
-    {
-
-
-        StartCoroutine(WebServerStatistics(true, userId, authKey, returnValue =>
+        StartCoroutine(WebServerStatistics( userId, authKey, returnValue =>
         {
             onRequestFinished(returnValue);
-        }, returnStats => { }, stats));
+        }));
     }
+
+
+    /// <summary>
+    /// Server Store Statistics
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="authToken"></param>
+    /// <param name="expAdd"></param>
+    /// <param name="coinsAdd"></param>
+    /// <param name="hoursAdd"></param>
+    /// <param name="notifyData"></param>
+    /// <param name="storeSet"></param>
+    /// <param name="onRequestFinished"></param>
+    public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
+    {
+        StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
+    }
+
+    
     /// <summary>
     /// Make a Login Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
     /// </summary>
@@ -100,6 +120,8 @@ public class WebServer : MonoBehaviour
             onRequestFinished(returnValue);
         }));
     }
+    
+    
     /// <summary>
     /// Make a Signup Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
     /// </summary>
@@ -115,7 +137,9 @@ public class WebServer : MonoBehaviour
             
         }));
     }
-   /// <summary>
+    
+    
+    /// <summary>
    /// Update the Player Count on the Server List.
    /// </summary>
    /// <param name="name">Server Name</param>
@@ -130,6 +154,8 @@ public class WebServer : MonoBehaviour
             onRequestFinished(returnValue);
         }));
     }
+    
+    
     /// <summary>
     /// Handles login or signup requests. From Users mysql db.
     /// </summary>
@@ -216,6 +242,8 @@ public class WebServer : MonoBehaviour
             success(false);
         }
     }
+    
+    
     /// <summary>
     /// Handles stats get or set. From Users mysql db.
     /// </summary>
@@ -226,61 +254,68 @@ public class WebServer : MonoBehaviour
     /// <param name="statsReturn"></param>
     /// <param name="stats"></param>
     /// <returns></returns>
-    private IEnumerator WebServerStatistics(bool get, int userId, string authKey, Action<bool> success = null, Action<PlayerStats> statsReturn = null, PlayerStats stats = null)
+    private IEnumerator WebServerStatistics(int userId, string authKey, Action<bool> success = null)
     {
-        if (get)
+        WWWForm form = new WWWForm();
+        form.AddField("userId", userId);
+        form.AddField("authKey", authKey);
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
         {
-            WWWForm form = new WWWForm();
-            form.AddField("userId", userId);
-            form.AddField("authKey", authKey);
-            form.AddField("action", "get");
-            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
-            yield return web.SendWebRequest();
-            if (web.downloadHandler.text.StartsWith("TRUE"))
-            {
-                string[] floatData = web.downloadHandler.text.Split(',');
-                string exp = floatData[1];
-                string coins = floatData[2];
-                string hours = floatData[3];
-                if (exp == "") { exp = "0"; }
-                if (coins == "") { coins = "50"; }
-                if (hours == "") { hours = "0.01"; }
-
-
-                PlayerStats newStats = new PlayerStats();
-                newStats.playerExp = Convert.ToInt32(exp);
-                newStats.playerCoins = Convert.ToInt32(coins);
-                newStats.playerHours = float.Parse(hours);
-
-                statsReturn(newStats);
-                success(true);
-            }
-            else
-            {
-                success(false);
-            }
+            string[] floatData = web.downloadHandler.text.Split('!');
+            string storeData = floatData[1];
+            string notifyData = floatData[2];
+            string exp = floatData[3];
+            string coins = floatData[4];
+            string hours = floatData[5];
+            if (hours == "") { hours = "0.01"; }
+            if (exp == "") { exp = "0"; }
+            if (coins == "") { coins = "0"; }
+            playerStats.playerExp = Convert.ToInt32(exp);
+            playerStats.playerCoins = Convert.ToInt32(coins);
+            playerStats.playerHours = float.Parse(hours);
+            playerStats.notifyData = notifyData;
+            playerStats.storeData = storeData;
+            DebugMessage("Statistics Request Successful.", 2);
+            success(true);
         }
-        else if(stats != null)
+        else
         {
-            WWWForm form = new WWWForm();
-            form.AddField("userId", userId);
-            form.AddField("authKey", authKey);
-            form.AddField("exp", stats.playerExp);
-            form.AddField("coins", stats.playerCoins);
-            form.AddField("hours", stats.playerHours.ToString());
-            form.AddField("action", "set");
-            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
-            yield return web.SendWebRequest();
-            if (web.downloadHandler.text.StartsWith("TRUE"))
-            {
-                success(true);
-            }
-            else
-            {
-                success(false);
-            }
+            DebugMessage("Statistics Request Failed. Message: " + web.downloadHandler.text, 1);
+            success(false);
         }
     }
+
+    
+    private IEnumerator WebServerSetStatistics(int userId, string authKey, string authToken, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, Action<bool> success = null) 
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("userId", userId);
+        form.AddField("authKey", authKey);
+        form.AddField("authToken", authToken);
+        form.AddField("exp", expAdd);
+        form.AddField("coins", coinsAdd);
+        form.AddField("hours", hoursAdd.ToString());
+        form.AddField("store", storeSet);
+        form.AddField("notify", notifyData);
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
+
+        yield return web.SendWebRequest();
+        
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            DebugMessage("Successfully Set Player Statistics: " + web.downloadHandler.text, 2);
+            success(true);
+        }
+        else
+        {
+            DebugMessage("Failed Setting Player Statistics: " + web.downloadHandler.text, 1);
+            success(false);
+        }
+    }
+
+
     /// <summary>
     /// Handles serverlist get or update."master server". Array of Server objects json parsed from mysql db.
     /// </summary>
@@ -308,7 +343,7 @@ public class WebServer : MonoBehaviour
             }
             else
             {
-                Debug.Log("Network - Web - Master Server Error: " + web.downloadHandler.text);
+                DebugMessage("Master Server Error: " + web.downloadHandler.text, 1);
                 serverSuccess(null);
             }
         }
@@ -332,11 +367,13 @@ public class WebServer : MonoBehaviour
             }
             else
             {
-                Debug.Log("Network - Web - Master Server Send Error: " + web.downloadHandler.text);
+                DebugMessage("Master Server Send Error: " + web.downloadHandler.text, 1);
                 success(false);
             }
         }
     }
+    
+    
     /// <summary>
     /// Change the player count on the server list.
     /// </summary>
@@ -351,9 +388,12 @@ public class WebServer : MonoBehaviour
             form.AddField("player", count);
             form.AddField("action", "playerCount");
             UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
+        Debug.Log("Updating player count...");
             yield return web.SendWebRequest();
+            
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
+            Debug.Log("Updated Success. OUT: " + count);
                 success(true);
             }
             else
@@ -362,6 +402,27 @@ public class WebServer : MonoBehaviour
                 success(false);
             }
     }
+
+
+    //Debug Message
+    private void DebugMessage(string message, int level)
+    {
+        if (networkManager != null)
+        {
+            if (level <= logLevel)
+            {
+                if (networkManager.IsServer)
+                {
+                    Debug.Log("[Server] ServerConnect : " + message);
+                }
+                else
+                {
+                    Debug.Log("[Client] ServerConnect : " + message);
+                }
+            }
+        }
+    }
+
 }
 /// <summary>
 /// Server List Object. Contains Server[]
@@ -371,6 +432,8 @@ public class ServerList
 {
     public Server[] servers;
 }
+
+
 /// <summary>
 /// Server Object
 /// </summary>

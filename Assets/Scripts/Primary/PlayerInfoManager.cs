@@ -303,12 +303,14 @@ public class PlayerInfoManager : MonoBehaviour
         {
             SetPlayer_Location(player.transform.position);
         }
-        else 
+        else
         {
-            player = FindObjectOfType<FirstPersonController>().gameObject;
+            FirstPersonController fps = FindObjectOfType<FirstPersonController>();
+            if (fps != null) 
+            {
+                player = fps.gameObject;
+            } 
         }
     }
-
-
     
 }

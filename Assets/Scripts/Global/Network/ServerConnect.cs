@@ -26,7 +26,7 @@ public class ServerConnect : MonoBehaviour
 
     private NetworkingManager networkManager; //Networking Manager
     private GameServer gameServer; //Game Server
-    private WebServer webServer; //Web Server
+    public WebServer webServer; //Web Server
     public MainMenuScript mainMenu; //Main Menu
     public TMP_InputField serverConsole;
     public TMP_InputField serverCommand;
@@ -41,8 +41,8 @@ public class ServerConnect : MonoBehaviour
     private string storedIp = "";
 
     private string command = "";
-    
-    
+    int am = 1;
+
     private void Start()
     {
         networkManager = NetworkingManager.Singleton;
@@ -59,53 +59,49 @@ public class ServerConnect : MonoBehaviour
             StartServer();
         }
 #endif
-        if (devServer)
-        {
-            StartServer();
-        }
     }
 
-    
+
 
 
     //Server Commands
-    public void CommandUpdated() 
+    public void CommandUpdated()
     {
         command = serverCommand.text;
     }
-    public void SendCommand() 
+    public void SendCommand()
     {
-        if (command.StartsWith("/")) 
+        if (command.StartsWith("/"))
         {
             serverCommand.text = "";
             string[] coms = command.Split(null);
-            if(coms.Length > 1) 
+            if (coms.Length > 1)
             {
                 string newCommand = coms[0].Trim('/');
                 string var1 = coms[1];
                 string var2 = coms[2];
-                if(newCommand == "teleport") 
+                if (newCommand == "teleport")
                 {
-                    if(var1.Length > 0 && var2.Length > 0) 
+                    if (var1.Length > 0 && var2.Length > 0)
                     {
                         gameServer.ServerTeleport(var1, var2);
                     }
-                    else 
+                    else
                     {
                         DebugMessage("Please Specify, '/teleport <player> <target>", 1);
                     }
                 }
                 else { DebugMessage("Command Not Recognized. Try /Help for a list of commands.", 1); }
             }
-            else 
+            else
             {
                 string newCommand = coms[0].Trim('/');
 
-                if(newCommand == "Stop") { StopServer(); }
+                if (newCommand == "Stop") { StopServer(); }
                 else { DebugMessage("Command Not Recognized. Try /Help for a list of commands.", 1); }
             }
         }
-        else 
+        else
         {
             DebugMessage("Command Not Recognized. Try /Help for a list of commands.", 1);
         }
@@ -116,9 +112,9 @@ public class ServerConnect : MonoBehaviour
     //-----------------------------------------------------------------//
     //                       Client Side Connect                       //
     //-----------------------------------------------------------------//
-    
+
     //Request Ping
-    public void RequestPing(Action<int> callback) 
+    public void RequestPing(Action<int> callback)
     {
         StartCoroutine(StartPing(returnValue => { callback(returnValue); }));
     }
@@ -139,7 +135,7 @@ public class ServerConnect : MonoBehaviour
             count++;
             yield return f;
         }
-        if(pingTime != 0) 
+        if (pingTime != 0)
         {
             pingTime = ping.time;
         }
@@ -152,7 +148,7 @@ public class ServerConnect : MonoBehaviour
     public void ConnectToServer(string ip, ushort port)
     {
         storedIp = ip;
-        if(mainMenu == null) 
+        if (mainMenu == null)
         {
             mainMenu = FindObjectOfType<MainMenuScript>();
         }
@@ -162,9 +158,9 @@ public class ServerConnect : MonoBehaviour
     }
 
     //Connection Wait
-    private IEnumerator ConnectionWait(string ip, ushort port) 
+    private IEnumerator ConnectionWait(string ip, ushort port)
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(2f);
         networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
         networkManager.GetComponent<UnetTransport>().ConnectAddress = ip;
         networkManager.GetComponent<UnetTransport>().ConnectPort = port;
@@ -172,27 +168,28 @@ public class ServerConnect : MonoBehaviour
         networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
         networkManager.StartClient();
     }
-    
+
     //Callback: Connected
-    private void PlayerConnected_Player(ulong id) 
+    private void PlayerConnected_Player(ulong id)
     {
-        GameServer.singleton.PlayerConnected_Player(id);
+        DebugMessage("Connected to Server.", 1);
+        if (gameServer == null)
+        {
+            gameServer = GameServer.singleton;
+        }
+        gameServer.PlayerConnected_Player(id);
     }
-    
+
     //Callback: Disconnected
     private void PlayerDisconnected_Player(ulong id)
     {
         DebugMessage("Disconnected from Server.", 1);
-        
-        if(SceneManager.GetActiveScene().name != "MainMenu") 
+
+        if (SceneManager.GetActiveScene().name != "MainMenu")
         {
-            if(GameServer.singleton != null) 
-            {
-                GameServer.singleton.PlayerDisconnected_Player(id);
-            }
-            SceneManager.LoadScene(1);
+            StartCoroutine(LoadMainMenu());
         }
-        else 
+        else
         {
             if (mainMenu == null)
             {
@@ -200,8 +197,45 @@ public class ServerConnect : MonoBehaviour
             }
             mainMenu.LoadingScreen(false);
         }
-        
+
     }
+
+    private IEnumerator LoadMainMenu()
+    {
+        yield return null;
+        bool singleCall = true;
+        DebugMessage("Starting to Load Main Menu.", 4);
+        AsyncOperation op = SceneManager.LoadSceneAsync(1);
+        op.allowSceneActivation = false;
+        while (!op.isDone)
+        {
+            if (op.progress >= 0.9f && singleCall)
+            {
+                singleCall = false;
+                DebugMessage("Requesting Disconnect Stats.", 3);
+                LoadMainMenuStage(op);
+            }
+            yield return null;
+        }
+    }
+
+    private void LoadMainMenuStage(AsyncOperation op) 
+    {
+        webServer.StatRequest(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), onRequestFinished =>
+        {
+            if (onRequestFinished)
+            {
+                DebugMessage("Successfully Requested Stats.", 2);
+                op.allowSceneActivation = true;
+            }
+            else
+            {
+                DebugMessage("Failed Requesting Stats.", 1);
+                op.allowSceneActivation = true;
+            }
+        });
+    }
+   
 
     //-----------------------------------------------------------------//
     //                       Server Side Connect                       //
@@ -219,9 +253,8 @@ public class ServerConnect : MonoBehaviour
         serverUI.SetActive(true);
         Application.logMessageReceived += ConsoleLogMessage;
 
-
+        gameServer = GameServer.singleton;
         storedProperties = new ServerProperties();
-        webServer = GetComponent<WebServer>();
         if (GetServerSettings()) 
         {
             networkManager.ConnectionApprovalCallback += ApprovalCheck;
@@ -253,6 +286,7 @@ public class ServerConnect : MonoBehaviour
     //Approval Check
     private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkingManager.ConnectionApprovedDelegate callback)
     {
+        if(gameServer == null) { gameServer = GameServer.singleton; }
         bool approve = true;
         bool noData = true;
         string connectData = System.Text.Encoding.ASCII.GetString(connectionData);
@@ -262,11 +296,7 @@ public class ServerConnect : MonoBehaviour
         string username = connectDataSplit[2].ToString();
         GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
         Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
-        if(gameServer == null) 
-        {
-            gameServer = GameServer.singleton;
-        }
-        
+
         //Check if player has active PlayerInfo
         if (gameServer.activePlayers != null)
         {
@@ -274,6 +304,7 @@ public class ServerConnect : MonoBehaviour
             {
                 if (gameServer.activePlayers[i].id == id)
                 {
+                    Debug.Log(id);
                     DebugMessage("Player '" + username + "' Tried to Connect but has Active Player Info.", 1);
                     approve = false;
                     break;
@@ -294,6 +325,7 @@ public class ServerConnect : MonoBehaviour
                     {
                         if (player.authKey == authKey)
                         {
+                            player.time = DateTime.Now;
                             gameServer.ActiveManage(player, true);
                             gameServer.InactiveManage(player, false);
                             spawnPoint = player.location;
@@ -322,7 +354,11 @@ public class ServerConnect : MonoBehaviour
                     food = 100,
                     water = 100,
                     location = spawnPoint,
-                    clientId = clientId
+                    clientId = clientId,
+                    coinsAdd = 0,
+                    expAdd = 0,
+                    hoursAdd = 0,
+                    time = DateTime.Now
                 };
                 gameServer.ActiveManage(newPlayer, true);
                 DebugMessage("Created New Player Data for '" + username + "'.", 1);
@@ -380,10 +416,35 @@ public class ServerConnect : MonoBehaviour
     }
 
     //Callback: Player Disconnected
-    private void PlayerDisconnected_Server(ulong id) 
+    private void PlayerDisconnected_Server(ulong id)
     {
-        GameServer.singleton.MovePlayerToInactive(id);
+        PlayerInfo savedInfo = gameServer.MovePlayerToInactive(id);
+        if (savedInfo != null)
+        {
+            SavePlayerStats(savedInfo);
+        }
         UpdatePlayerCount();
+    }
+
+    //Save Player Statistics
+    private void SavePlayerStats(PlayerInfo savedInfo) 
+    {
+        string serverAuthToken = "2alien2survival2";
+        string notifyData = storedProperties.serverName + "," + savedInfo.hoursAdd + "," + savedInfo.expAdd + "," + savedInfo.coinsAdd;
+        if(webServer != null) 
+        {
+            webServer.StatSend(savedInfo.id, savedInfo.authKey, serverAuthToken, savedInfo.expAdd, savedInfo.coinsAdd, savedInfo.hoursAdd, notifyData, "", returnValue => 
+            {
+                if (returnValue) 
+                {
+                    DebugMessage("Saving Player Statistics Successful.", 2);
+                }
+                else 
+                {
+                    DebugMessage("Failed Saving Player Statistics.", 1);
+                }
+            });
+        }
     }
 
     //Update the Player Count on the Server List
@@ -399,6 +460,10 @@ public class ServerConnect : MonoBehaviour
                 {
                     //Player Count updated successfully
                     DebugMessage("Updating Server List, Player Count.", 1);
+                }
+                else 
+                {
+                    DebugMessage("Updating Server List Failed", 1);
                 }
             });
         }
