@@ -1,0 +1,1 @@
+{"serverName":"Community Server #1","serverDescription":"Default Server","serverMode":"Default Mode","serverMap":"Default Map","serverIP":"10.0.0.211","serverPort":25565,"serverMaxPlayer":30,"maxEnemies":0,"maxFriendly":0,"autoSaveInterval":5}

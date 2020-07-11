@@ -56,7 +56,7 @@ SpeedTreeImporter:
     enableHue: 1
     enableSubsurface: 1
     windQuality: 4
-  - height: 0.01
+  - height: 0.011755709
     castShadows: 1
     receiveShadows: 1
     useLightProbes: 0
