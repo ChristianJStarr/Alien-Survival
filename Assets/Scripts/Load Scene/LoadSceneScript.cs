@@ -21,10 +21,12 @@ public class LoadSceneScript : MonoBehaviour
     public RawImage background; //Background Image
     public Texture blurTexture; //Blurred Bkg Texture
     public Texture regTexture; //Regular Bkg Texture
+    public Texture nightTexture;
+    public Texture blurNightTexture;
 
     private string privacyPolicyUrl = "https://aliensurvival.com/privacy.php";
     private string termsConditionsUrl = "https://aliensurvival.com/terms.php";
-
+    private int nightChance = 0;
 
     void Start() 
     {
@@ -41,6 +43,11 @@ public class LoadSceneScript : MonoBehaviour
         {
             SceneManager.LoadScene(1);
         }
+
+        nightChance = Random.Range(0,30);
+        PlayerPrefs.SetInt("nightChance", nightChance);
+        PlayerPrefs.Save();
+
         Application.targetFrameRate = 30;
         //Check if user has logged in before and has username/pass stored.
         if (PlayerPrefs.GetString("username").Length > 0) 
@@ -51,12 +58,27 @@ public class LoadSceneScript : MonoBehaviour
         {
             if(PlayerPrefs.GetInt("terms") == 0) 
             {
+                if (nightChance > 15)
+                {
+                    background.texture = blurTexture;
+                }
+                else
+                {
+                    background.texture = blurNightTexture;
+                }
                 terms.SetActive(true);
             }
             else 
             {
                 mainScreen.SetActive(true);
-                background.texture = regTexture;
+                if(nightChance > 15) 
+                {
+                    background.texture = regTexture;
+                }
+                else 
+                {
+                    background.texture = nightTexture;
+                } 
             }
         }
         //Change asterisk to dot in input field.
@@ -80,7 +102,15 @@ public class LoadSceneScript : MonoBehaviour
     public void ContinueTerms() 
     {
         PlayerPrefs.SetInt("terms", 1);
-        background.texture = regTexture;
+        PlayerPrefs.Save();
+        if (nightChance > 15)
+        {
+            background.texture = regTexture;
+        }
+        else
+        {
+            background.texture = nightTexture;
+        }
         terms.SetActive(false);
         mainScreen.SetActive(true);
     }
@@ -120,10 +150,21 @@ public class LoadSceneScript : MonoBehaviour
         loginScreen.SetActive(false);
         signupScreen.SetActive(false);
         mainScreen.SetActive(true);
-        if(background.texture != regTexture) 
+        if (nightChance > 15)
         {
-            background.texture = regTexture;
+            if (background.texture != regTexture)
+            {
+                background.texture = regTexture;
+            }
         }
+        else
+        {
+            if (background.texture != nightTexture)
+            {
+                background.texture = nightTexture;
+            }
+        }
+        
     }
     
     //Load MainMenu scene. Called if a login or signup was successful.
@@ -134,7 +175,17 @@ public class LoadSceneScript : MonoBehaviour
         signupScreen.SetActive(false);
         userReporting.SetActive(false);
         loadScreen.SetActive(true);
-        background.texture = blurTexture;
+
+        if (nightChance > 15)
+        {
+            background.texture = blurTexture;
+        }
+        else
+        {
+            background.texture = blurNightTexture;
+        }
+
+
         loadTip.text = GetLoadTip();
         StartCoroutine(LoadRoutine());//Start loading the MainMenu scene.
     }

@@ -3,8 +3,7 @@ using UnityEngine.Rendering;
 
 public class MainMenuEasterEgg : MonoBehaviour
 {
-    public SkinnedMeshRenderer Alien;
-    public Material GlowAlienMaterial;
+    public GameObject Alien;
     private Volume PostFx;
     private float weightTarget = 0;
     private float inc = 0.9F;
@@ -15,9 +14,6 @@ public class MainMenuEasterEgg : MonoBehaviour
     {
         PostFx = GetComponent<Volume>();
         weightTarget = 1;
-        Material[] mats = Alien.materials;
-        mats[1] = GlowAlienMaterial;
-        Alien.materials = mats;
     }
     private void Update()
     {
@@ -29,7 +25,7 @@ public class MainMenuEasterEgg : MonoBehaviour
             }
             if (PostFx.weight <= .5)
             {
-                Alien.GetComponentInParent<Animator>().gameObject.SetActive(false);
+                Alien.SetActive(false);
                 gameObject.SetActive(false);
             }
         }
@@ -44,18 +40,12 @@ public class MainMenuEasterEgg : MonoBehaviour
                 if (PostFx.weight >= 1)
                 {
                     hasFaded = true;
-                    FadeAway();
+                    weightTarget = 0;
+                    fadeOut = true;
                 }
             }
         }
     }
-    private void FadeAway() 
-    {
-        
-        weightTarget = 0;
-        fadeOut = true;
-    }
-    
 }
 
 

@@ -51,6 +51,9 @@ public class MusicManager : MonoBehaviour
 #if UNITY_SERVER
         return;
 #endif
+#if UNITY_EDITOR
+        return;
+#endif
 
         int level = scene.buildIndex;
         if(level == 2) 

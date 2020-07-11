@@ -132,7 +132,6 @@ GameObject:
   m_Component:
   - component: {fileID: 68773767}
   - component: {fileID: 68773766}
-  - component: {fileID: 68773768}
   m_Layer: 0
   m_Name: DataManger
   m_TagString: Untagged
@@ -167,20 +166,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &68773768
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 68773765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 509c93e3bbf64cb4b911c039f4f39dce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Scheme: myscheme
-  UniquePath: callback/oauth/
 --- !u!1 &72716325
 GameObject:
   m_ObjectHideFlags: 0
@@ -10864,6 +10849,8 @@ MonoBehaviour:
   background: {fileID: 993642193}
   blurTexture: {fileID: 2800000, guid: 123881a11a08eae4d9e46e1537b265f1, type: 3}
   regTexture: {fileID: 2800000, guid: 16f015120dbeaf141bda886fa10f4ed6, type: 3}
+  nightTexture: {fileID: 2800000, guid: 87625ce31b26bdb46878ee4164ccb88c, type: 3}
+  blurNightTexture: {fileID: 2800000, guid: a9718c3d57f64c24db3b658af50c1439, type: 3}
 --- !u!114 &1682609097
 MonoBehaviour:
   m_ObjectHideFlags: 0

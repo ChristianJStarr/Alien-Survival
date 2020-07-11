@@ -43,6 +43,8 @@ public class MainMenuScript : MonoBehaviour
     //Touch Phase
     private TouchPhase touchPhase = TouchPhase.Ended;
 
+    //Move Camera on Menu Change
+    private bool moveCameraOnMenuChange = false;
 
     void Start() 
     {
@@ -71,14 +73,20 @@ public class MainMenuScript : MonoBehaviour
                 }
             }
         }
-        float step = 15 * Time.deltaTime;
-        if (cam.transform.position != camTargetposition)
+
+
+        //Move Camera On Menu Change
+        if (moveCameraOnMenuChange) 
         {
-            cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetposition, step);
-        }
-        if (cam.transform.localRotation.y != camTargetrotation.y)
-        {
-            cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
+            float step = 15 * Time.deltaTime;
+            if (cam.transform.position != camTargetposition)
+            {
+                cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetposition, step);
+            }
+            if (cam.transform.localRotation.y != camTargetrotation.y)
+            {
+                cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
+            }
         }
     }
 
@@ -101,8 +109,11 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         onlineMenu.SetActive(true);
-        camTargetposition = playTargetCord;
-        camTargetrotation = playTargetRot;
+        if (moveCameraOnMenuChange)
+        {
+            camTargetposition = playTargetCord;
+            camTargetrotation = playTargetRot;
+        }
     }
     
     //Open Profile Menu
@@ -110,8 +121,11 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         profileMenu.SetActive(true);
-        camTargetposition = profTargetCord;
-        camTargetrotation = profTargetRot;
+        if (moveCameraOnMenuChange)
+        {
+            camTargetposition = profTargetCord;
+            camTargetrotation = profTargetRot;
+        }
     }
     
     //Open Settings Menu
@@ -119,8 +133,11 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         settingsMenu.SetActive(true);
-        camTargetposition = profTargetCord;
-        camTargetrotation = profTargetRot;
+        if (moveCameraOnMenuChange)
+        {
+            camTargetposition = profTargetCord;
+            camTargetrotation = profTargetRot;
+        }
     }
     
     //Close all Menus
@@ -132,8 +149,11 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         alienStore.SetActive(false);
         mainScreen.SetActive(true);
-        camTargetposition = resetTargetCord;
-        camTargetrotation = resetTargetRot;
+        if (moveCameraOnMenuChange)
+        {
+            camTargetposition = resetTargetCord;
+            camTargetrotation = resetTargetRot;
+        }
     }
     
     //Load the Game Function
@@ -145,8 +165,11 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
         loadTip.text = LoadText();
-        camTargetposition = resetTargetCord;
-        camTargetrotation = resetTargetRot;
+        if (moveCameraOnMenuChange)
+        {
+            camTargetposition = resetTargetCord;
+            camTargetrotation = resetTargetRot;
+        }
     }
 
     //Log Out Function
@@ -174,8 +197,11 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         alienStore.SetActive(true);
-        camTargetposition = profTargetCord;
-        camTargetrotation = profTargetRot;
+        if (moveCameraOnMenuChange)
+        {
+            camTargetposition = profTargetCord;
+            camTargetrotation = profTargetRot;
+        }
     }
 
 
@@ -187,8 +213,11 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         alienStore.SetActive(false);
         mainScreen.SetActive(false);
-        camTargetposition = resetTargetCord;
-        camTargetrotation = resetTargetRot;
+        if (moveCameraOnMenuChange)
+        {
+            camTargetposition = resetTargetCord;
+            camTargetrotation = resetTargetRot;
+        }
     }
 
     //Load Routine

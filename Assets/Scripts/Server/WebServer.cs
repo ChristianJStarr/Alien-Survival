@@ -341,6 +341,7 @@ public class WebServer : MonoBehaviour
 
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
+                DebugMessage("Master Server Success: ServerList", 3);
                 string[] data = web.downloadHandler.text.Split('`');
                 ServerList serverList = new ServerList();
                 string json = "{ \"server\": " + data[1] + "}";
