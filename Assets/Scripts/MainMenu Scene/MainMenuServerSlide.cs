@@ -8,9 +8,9 @@ public class MainMenuServerSlide : MonoBehaviour
     public TextMeshProUGUI slideName, slidePing, slideType, slideMode, slidePlayers;
     public int serverPlayers, serverMaxPlayers;
     public ushort serverPort;
-    public CoinManager coinManager;
     public GameObject roomNotify;
     public Server storedServer;
+    private MainMenuAdsListener adListener;
 
     //Update Values of this Slide
     public void RefreshValues(Server server) 
@@ -27,11 +27,11 @@ public class MainMenuServerSlide : MonoBehaviour
     public void JoinThisRoom() 
     {
         ClickSound();
-        ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
-        if(serverConnect != null) 
+        if(adListener == null) 
         {
-            serverConnect.ConnectToServer(storedServer.serverIP, storedServer.serverPort);
+            adListener = FindObjectOfType<MainMenuAdsListener>();
         }
+        adListener.ShowAd(storedServer.serverIP, storedServer.serverPort);
     }
     
     //Play UI Click Sound

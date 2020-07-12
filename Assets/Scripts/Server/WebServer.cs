@@ -11,15 +11,15 @@ public class WebServer : MonoBehaviour
     /// <summary>
     /// Web Server Host URL
     /// </summary>
-    private string Host = "https://www.game.aliensurvival.com"; 
+    private string Host = "https://www.game.aliensurvival.com";
     /// <summary>
     /// Login/Signup File Name
     /// </summary>
-    private string loginFile = "login.php"; 
+    private string loginFile = "login.php";
     /// <summary>
     /// Player Stats File Name
     /// </summary>
-    private string statsFile = "stats.php"; 
+    private string statsFile = "stats.php";
     /// <summary>
     /// Server List File Name
     /// </summary>
@@ -30,39 +30,24 @@ public class WebServer : MonoBehaviour
     public PlayerStats playerStats;
     private TimeZoneInfo serverTimeZone;
 
+    public MainMenuAlienStore alienStore;
+
     private void Start()
     {
         networkManager = NetworkingManager.Singleton;
+     
     }
 
-    /// <summary>
-    /// Check if already requesting.
-    /// </summary>
-    /// <summary>
-    /// Make a Login Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
-    /// </summary>
-    /// <param name="username">Player Username</param>
-    /// <param name="password">Player Password MD5 Format</param>
-    /// <param name="onRequestFinished">Bool Callback</param>
     public void LoginRequest(string username, string password, Action<bool> onRequestFinished)
     {
 
 
-        StartCoroutine(WebServerCredential(true, username, password , returnValue => 
-        {
-            onRequestFinished(returnValue);
-        }));
+        StartCoroutine(WebServerCredential(true, username, password, returnValue =>
+       {
+           onRequestFinished(returnValue);
+       }));
     }
-    
-    
-    /// <summary>
-    /// Make a Signup Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
-    /// </summary>
-    /// <param name="username">Player Username</param>
-    /// <param name="password">Player Password MD5 Format</param>
-    /// <param name="authKey">Player Authentication Key</param>
-    /// <param name="onRequestFinished"> Bool Callback</param>
-    public void SignupRequest(string username, string password, string authKey, Action<bool> onRequestFinished) 
+    public void SignupRequest(string username, string password, string authKey, Action<bool> onRequestFinished)
     {
 
         StartCoroutine(WebServerCredential(false, username, password, returnValue =>
@@ -70,34 +55,13 @@ public class WebServer : MonoBehaviour
             onRequestFinished(returnValue);
         }, authKey));
     }
-    
-    
-    /// <summary>
-    /// Make a Stats Request. If successful, returns PlayerStats will not be null and will contain current stats.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="authKey"></param>
-    /// <param name="onRequestFinished"></param>
     public void StatRequest(int userId, string authKey, Action<bool> onRequestFinished)
     {
-        StartCoroutine(WebServerStatistics( userId, authKey, returnValue =>
-        {
-            onRequestFinished(returnValue);
-        }));
+        StartCoroutine(WebServerStatistics(userId, authKey, returnValue =>
+       {
+           onRequestFinished(returnValue);
+       }));
     }
-
-
-    /// <summary>
-    /// Server Store Statistics
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="authToken"></param>
-    /// <param name="expAdd"></param>
-    /// <param name="coinsAdd"></param>
-    /// <param name="hoursAdd"></param>
-    /// <param name="notifyData"></param>
-    /// <param name="storeSet"></param>
-    /// <param name="onRequestFinished"></param>
     public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
     {
         StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
@@ -105,29 +69,16 @@ public class WebServer : MonoBehaviour
             onRequestFinished(returnValue);
         }));
     }
-
-    
-    /// <summary>
-    /// Make a Login Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
-    /// </summary>
-    /// <param name="onRequestFinished"></param>
     public void ServerListRequest(Action<ServerList> onRequestFinished)
     {
 
 
-        StartCoroutine(WebServerMaster(null, returnValue => 
+        StartCoroutine(WebServerMaster(null, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
     }
-    
-    
-    /// <summary>
-    /// Make a Signup Request. Returns bool depending on success of login. If successful, authKey and userId are stored in PlayerPrefs.
-    /// </summary>
-    /// <param name="server"></param>
-    /// <param name="onRequestFinished"></param>
-    public void ServerListSend(Server server, Action<bool> onRequestFinished) 
+    public void ServerListSend(Server server, Action<bool> onRequestFinished)
     {
         StartCoroutine(WebServerMaster(server, null, returnValue =>
         {
@@ -135,42 +86,66 @@ public class WebServer : MonoBehaviour
 
         }));
     }
-    
-    public void ServerListUpdateRecent(string serverName, string serverIp, Action<bool> onRequestFinished) 
+    public void ServerListUpdateRecent(string serverName, string serverIp, Action<bool> onRequestFinished)
     {
         StartCoroutine(WebServerMasterRecent(serverName, serverIp, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
     }
-
-    
-    /// <summary>
-   /// Update the Player Count on the Server List.
-   /// </summary>
-   /// <param name="name">Server Name</param>
-   /// <param name="count">New Player Count</param>
-   /// <param name="onRequestFinished">Callback bool</param>
     public void ServerListPlayerCount(string name, int count, Action<bool> onRequestFinished)
     {
 
 
-        StartCoroutine(WebServerMasterCount(name,count, returnValue =>
-        {
-            onRequestFinished(returnValue);
-        }));
+        StartCoroutine(WebServerMasterCount(name, count, returnValue =>
+         {
+             onRequestFinished(returnValue);
+         }));
     }
-    
-    
-    /// <summary>
-    /// Handles login or signup requests. From Users mysql db.
-    /// </summary>
-    /// <param name="login"></param>
-    /// <param name="username"></param>
-    /// <param name="password"></param>
-    /// <param name="success"></param>
-    /// <param name="authKey"></param>
-    /// <returns></returns>
+
+    public void AlienStorePurchase(int userId, string authKey, int itemId)
+    {
+        StartCoroutine(WebServerStore(userId, authKey, itemId));
+    }
+
+    private IEnumerator WebServerStore(int userId, string authKey, int itemId) 
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("userId", userId);
+        form.AddField("authKey", authKey);
+        form.AddField("itemId", itemId);
+        form.AddField("action", "purchase");
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            DebugMessage("Purchased Item: " + itemId, 3);
+            string[] floatData = web.downloadHandler.text.Split('!');
+            string storeData = floatData[1];
+            string notifyData = floatData[2];
+            string exp = floatData[3];
+            string coins = floatData[4];
+            string hours = floatData[5];
+            if (hours == "") { hours = "0.01"; }
+            if (exp == "") { exp = "0"; }
+            if (coins == "") { coins = "0"; }
+            playerStats.playerExp = Convert.ToInt32(exp);
+            playerStats.playerCoins = Convert.ToInt32(coins);
+            playerStats.playerHours = float.Parse(hours);
+            playerStats.notifyData = notifyData;
+            playerStats.storeData = storeData;
+            
+            if(alienStore != null) 
+            {
+                alienStore.UpdateStats();
+            }
+        }
+        else
+        {
+            DebugMessage("AlienStore Purchase Failed. Message: " + web.downloadHandler.text, 1);
+        }
+    }
+
     private IEnumerator WebServerCredential(bool login, string username, string password, Action<bool> success=null, string authKey=null) 
     {
         if (login) 
@@ -248,18 +223,7 @@ public class WebServer : MonoBehaviour
             success(false);
         }
     }
-    
-    
-    /// <summary>
-    /// Handles stats get or set. From Users mysql db.
-    /// </summary>
-    /// <param name="get"></param>
-    /// <param name="userId"></param>
-    /// <param name="authKey"></param>
-    /// <param name="success"></param>
-    /// <param name="statsReturn"></param>
-    /// <param name="stats"></param>
-    /// <returns></returns>
+
     private IEnumerator WebServerStatistics(int userId, string authKey, Action<bool> success = null)
     {
         WWWForm form = new WWWForm();
@@ -293,7 +257,6 @@ public class WebServer : MonoBehaviour
         }
     }
 
-    
     private IEnumerator WebServerSetStatistics(int userId, string authKey, string authToken, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, Action<bool> success = null) 
     {
         WWWForm form = new WWWForm();
@@ -321,14 +284,6 @@ public class WebServer : MonoBehaviour
         }
     }
 
-
-    /// <summary>
-    /// Handles serverlist get or update."master server". Array of Server objects json parsed from mysql db.
-    /// </summary>
-    /// <param name="server"></param>
-    /// <param name="serverSuccess"></param>
-    /// <param name="success"></param>
-    /// <returns></returns>
     private IEnumerator WebServerMaster(Server server, Action<ServerList> serverSuccess=null, Action<bool> success = null)
     {
 
@@ -380,15 +335,7 @@ public class WebServer : MonoBehaviour
             }
         }
     }
-    
-    
-    /// <summary>
-    /// Change the player count on the server list.
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="count"></param>
-    /// <param name="success"></param>
-    /// <returns></returns>
+
     private IEnumerator WebServerMasterCount(string name,int count, Action<bool> success = null)
     {
             WWWForm form = new WWWForm();
@@ -410,7 +357,6 @@ public class WebServer : MonoBehaviour
                 success(false);
             }
     }
-
 
     private IEnumerator WebServerMasterRecent(string serverName, string serverIp, Action<bool> success = null)
     {
@@ -452,56 +398,23 @@ public class WebServer : MonoBehaviour
     }
 
 }
-/// <summary>
-/// Server List Object. Contains Server[]
-/// </summary>
+
 [Serializable]
 public class ServerList
 {
     public Server[] servers;
 }
 
-
-/// <summary>
-/// Server Object
-/// </summary>
 [Serializable]
 public class Server
 {
-    /// <summary>
-    /// Server Name
-    /// </summary>
     public string name = "Server Name";
-    /// <summary>
-    /// Server Description
-    /// </summary>
     public string description = "Server Description";
-    /// <summary>
-    /// Server Map Type
-    /// </summary>
     public string map = "Default Map";
-    /// <summary>
-    /// Server Game Mode
-    /// </summary>
     public string mode = "Game Mode";
-    /// <summary>
-    /// Server IP Address
-    /// </summary>
     public string serverIP = "0.0.0.0";
-    /// <summary>
-    /// Server Port
-    /// </summary>
     public ushort serverPort = 44444;
-    /// <summary>
-    /// Server Player Count
-    /// </summary>
     public int player = 0;
-    /// <summary>
-    /// Server Max Players
-    /// </summary>
     public int maxPlayer = 0;
-    /// <summary>
-    /// Server Ping
-    /// </summary>
     public int ping = 0;
 }

@@ -19,9 +19,9 @@ public class ExpBar : MonoBehaviour
     {
         value = value / 1000;
 
-        if (value <= 0)
+        if (value < 0)
         {
-            return 1;
+            return 0;
         }
         else
         {

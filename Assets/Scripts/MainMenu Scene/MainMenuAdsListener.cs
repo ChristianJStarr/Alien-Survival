@@ -3,35 +3,48 @@ using UnityEngine.Advertisements;
 
 public class MainMenuAdsListener : MonoBehaviour, IUnityAdsListener
 {
-    private CoinManager coinManager;
     private string gameId = "3507995";
     private string myPlacementId = "rewardedVideo";
     private bool testMode = true;
+    private string storedIp;
+    private ushort storedPort;
 
     void Start()
     {
-        coinManager = GetComponent<CoinManager>();
         Advertisement.AddListener(this);
         Advertisement.Initialize(gameId, testMode);
     }
-    public void ShowRewardedVideo()
+    public void ShowAd(string serverIp, ushort serverPort)
     {
+        storedIp = serverIp;
+        storedPort = serverPort;
         Advertisement.Show(myPlacementId);
     }
     public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
     {
         if (showResult == ShowResult.Finished)
         {
-            Debug.Log("Ads - Finished AD");
-            coinManager.AddCoin(25);
+            ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+            if (serverConnect != null)
+            {
+                serverConnect.ConnectToServer(storedIp, storedPort);
+            }
         }
         else if (showResult == ShowResult.Skipped)
         {
-            Debug.Log("Ads - Skipped AD");
+            ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+            if (serverConnect != null)
+            {
+                serverConnect.ConnectToServer(storedIp, storedPort);
+            }
         }
         else if (showResult == ShowResult.Failed)
         {
-            Debug.LogWarning("Ads - The ad did not finish due to an error.");
+            ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+            if (serverConnect != null)
+            {
+                serverConnect.ConnectToServer(storedIp, storedPort);
+            }
         }
     }
 
