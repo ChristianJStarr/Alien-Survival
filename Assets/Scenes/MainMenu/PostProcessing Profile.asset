@@ -85,7 +85,7 @@ MonoBehaviour:
     max: 100
   tint:
     m_OverrideState: 1
-    m_Value: 60
+    m_Value: 43
     min: -100
     max: 100
 --- !u!114 &-701025150500758067

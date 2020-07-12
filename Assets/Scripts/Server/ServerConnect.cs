@@ -247,9 +247,9 @@ public class ServerConnect : MonoBehaviour
     //Server: Start Server
     public void StartServer()
     {
-        serverCamera.SetActive(true);
-        serverUI.SetActive(true);
-        Application.logMessageReceived += ConsoleLogMessage;
+        //serverCamera.SetActive(true);
+        //serverUI.SetActive(true);
+        //Application.logMessageReceived += ConsoleLogMessage;
 
         gameServer = GameServer.singleton;
         storedProperties = new ServerProperties();

@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 
 public class LoadAwake : MonoBehaviour
 {
+    public TimeSystem timeSystem;
     public GameObject loadScreen, topBar, inventory;
     public Volume volume;
     public TextMeshProUGUI loadScreenText, loadScreenText2;
@@ -65,14 +66,17 @@ public class LoadAwake : MonoBehaviour
     //Ready to Wakeup Function
     public void ReadyWake() 
     {
-        if (!readyToWake)
+        timeSystem.UpdateClientTime(onReturnValue =>
         {
-            readyToWake = true;
-            targetAlpha = .3f;
-            text2Target = .73f;
-            text1Target = .73f;
-            loadScreen.GetComponent<Button>().interactable = true;
-        }
+            if (!readyToWake && onReturnValue)
+            {
+                readyToWake = true;
+                targetAlpha = .3f;
+                text2Target = .73f;
+                text1Target = .73f;
+                loadScreen.GetComponent<Button>().interactable = true;
+            }
+        });
     }
 
     //Wake up Function
