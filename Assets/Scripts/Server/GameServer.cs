@@ -668,7 +668,7 @@ public class GameServer : NetworkedBehaviour
     //Server Change Item Durability
     private bool ServerChangeItemDurability(ulong clientId, int amount, int maxDurability, int slot)
     {
-        bool wasNotPlaced = false;
+        bool wasTaken = false;
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
@@ -676,16 +676,17 @@ public class GameServer : NetworkedBehaviour
                 Item[] items = inventorySystem.ChangeItemDurability(activePlayers[i].items, amount, maxDurability, slot);
                 if (items != null)
                 {
+                    wasTaken = true;
                     activePlayers[i].items = items;
                     ForceRequestInfoById(clientId, 5);
                 }
                 else
                 {
-                    wasNotPlaced = true;
+                    wasTaken = false;
                 }
             }
         }
-        return wasNotPlaced;
+        return wasTaken;
     }
 
     //Server Add to Durability 
@@ -1644,22 +1645,20 @@ public class GameServer : NetworkedBehaviour
                 }
             }
         }
-        if (success) 
-        {
-            InvokeClientRpcOnClient(UseSelectedItemReturn, clientId);
-        }
+            InvokeClientRpcOnClient(UseSelectedItemReturn, clientId, success);
     }
 
     [ClientRPC]
-    private void UseSelectedItemReturn() 
+    private void UseSelectedItemReturn(bool success) 
     {
-        playerActionManager.UseSelectedItemReturn();
+        playerActionManager.UseSelectedItemReturn(success);
     }
 
     //Server Shoot Selected
     private bool ServerShootSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
     {
-        if (item.durability > 0 && ServerChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
+        bool wasTaken = ServerChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot);
+        if (item.durability > 0 && wasTaken)
         {
             NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, data.useRange);
             if (netObject != null)
@@ -1671,9 +1670,8 @@ public class GameServer : NetworkedBehaviour
                     ServerDamageNetworkedObject(netObject, damage);
                 }
             }
-            return true;
         }
-        else { return false; }
+        return wasTaken;
     }
     
     //Server Melee Seleceted

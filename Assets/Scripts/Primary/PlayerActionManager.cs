@@ -197,9 +197,9 @@ public class PlayerActionManager : MonoBehaviour
         gameServer.UseSelectedItem(id, authKey, slot, aim);
     }
 
-    public void UseSelectedItemReturn() 
+    public void UseSelectedItemReturn(bool value) 
     {
-        itemHandler.SelectedReturn();
+        itemHandler.SelectedReturn(value);
     }
 
 

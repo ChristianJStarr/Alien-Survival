@@ -21,10 +21,13 @@ public class SelectedItemHandler : MonoBehaviour
     private GameServer gameServer;
     private PlayerActionManager actionManager;
     private PlayerInfoManager infoManager;
+    private Reticle reticle;
 
     private bool ikActive = false;
     private int selectedSlot = 1;
     private bool isHoldingUse = false;
+
+    private Animator tempAnimator;
 
     private void Start()
     {
@@ -33,6 +36,7 @@ public class SelectedItemHandler : MonoBehaviour
         gameServer = GameServer.singleton;
         holdItemCache = new List<GameObject>();
         inventory = FindObjectOfType<InventoryGfx>();
+        reticle = FindObjectOfType<Reticle>();
         controls = inventory.GetComponent<ControlControl>();
 
     }
@@ -66,14 +70,39 @@ public class SelectedItemHandler : MonoBehaviour
         actionManager.UseSelectedItem(selectedSlot, aimTransform, this);
     }
 
-    public void SelectedReturn() 
+    public void SelectedReturn(bool success) 
     {
-        Animator holdAnimator = holdItem.GetComponent<Animator>();
-        if(holdAnimator != null) 
+        Debug.Log("Shooting");
+        if (success) 
         {
-            holdAnimator.SetTrigger("Use");
+            if (tempAnimator != null)
+            {
+                tempAnimator.SetTrigger("Use");
+            }
+        }
+        else 
+        {
+            int type = selectedItemData.useType;
+            if (type == 1)
+            {
+                ShowReticleNotify("OUT OF AMMO");
+            }
+            else if (type == 3)
+            {
+                ShowReticleNotify("NOT ENOUGH ROOM");
+            }
         }
     }
+
+    private void ShowReticleNotify(string notify) 
+    {
+        if(reticle == null) 
+        {
+            reticle = FindObjectOfType<Reticle>();
+        }
+        reticle.ShowErrorNotify(notify);
+    }
+
 
     //Select a Slot (int)
     public void SelectSlot(int slot)
@@ -83,7 +112,7 @@ public class SelectedItemHandler : MonoBehaviour
         {
             inventory = FindObjectOfType<InventoryGfx>();
         }
-
+            
             selectedSlot = slot;
             selectedItem = inventory.SelectSlot(slot);
             if (selectedItem != null)
@@ -187,6 +216,8 @@ public class SelectedItemHandler : MonoBehaviour
             holdItem = Instantiate(selectedItemData.holdableObject, handAnchor);
             UpdateTargets();
         }
+
+        tempAnimator = holdItem.GetComponent<Animator>();
     }
 
     //Update Animator Targets

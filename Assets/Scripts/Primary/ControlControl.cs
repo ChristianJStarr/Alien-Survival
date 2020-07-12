@@ -40,12 +40,18 @@ public class ControlControl : MonoBehaviour
         {
             useLeft_Icon.sprite = handSprite;
             useRight_Icon.sprite = handSprite;
+            Button3.enabled = false;
+            Button2_Icon.enabled = false;
+            Button3.GetComponent<Button>().interactable = false;
         }
         //Shoot
         else if (useType == 1) 
         {
             useLeft_Icon.sprite = shootSprite;
             useRight_Icon.sprite = shootSprite;
+            Button3.enabled = true;
+            Button2_Icon.enabled = true;
+            Button3.GetComponent<Button>().interactable = true;
         }
     }
 

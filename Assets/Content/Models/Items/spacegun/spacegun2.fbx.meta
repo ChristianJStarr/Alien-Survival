@@ -1,24 +1,24 @@
 fileFormatVersion: 2
 guid: 22815b1cf5bd692459b8afb9f2813c81
 ModelImporter:
-  serializedVersion: 19300
+  serializedVersion: 19301
   internalIDToNameTable: []
   externalObjects:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Barrel
-    second: {fileID: 2100000, guid: 338dbf9d35df70d428453cc78f8eaa18, type: 2}
+    second: {fileID: 2100000, guid: b5118fe5e63fa6c4caba0a0eab9d762a, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Gun
-    second: {fileID: 2100000, guid: 338dbf9d35df70d428453cc78f8eaa18, type: 2}
+    second: {fileID: 2100000, guid: ea3b907053a4fdb40b7504f4173adbe0, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Sphere
-    second: {fileID: 2100000, guid: 227305b3fd7ea66409228a52e83d7458, type: 2}
+    second: {fileID: 2100000, guid: 257cd66a1fcdc3a42a522673b6550d59, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -62,6 +62,7 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -99,7 +100,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 0.00014999999
+    globalScale: 0.015
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

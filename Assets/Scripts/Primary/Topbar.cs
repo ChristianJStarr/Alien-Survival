@@ -56,11 +56,10 @@ public class Topbar : MonoBehaviour
 
     private IEnumerator GetPing() 
     {
-        
-        yield return new WaitForSeconds(1F);
         ServerConnect.singleton.RequestPing(ping => {
-            netStat_ping.text = ping + "ms";
+            netStat_ping.text = "PING:" + ping + "ms";
         });
+        yield return new WaitForSeconds(5F);
         if (netStatOpen) 
         {
             StartCoroutine(GetPing());

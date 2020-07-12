@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using MLAPI;
+using System.Collections;
 
 public class Reticle : MonoBehaviour
 {
@@ -8,14 +9,16 @@ public class Reticle : MonoBehaviour
     private int layerMask;
     private Vector3 pos;
     private Vector3 pos2;
-    public GameObject reticleTip;
-    public TextMeshProUGUI reticleText;
+    public GameObject reticleTip, reticleNotify;
+    public TextMeshProUGUI reticleText, reticleNotifyText;
+
+
     private bool lookLoop = false;
     private Camera cam;
     private GameObject currentObj;
     private SelectedItemHandler selectedItemHandler;
     private PlayerActionManager playerActionManager;
-    
+    private bool showingError = false;
     
     private void Start()
     {
@@ -44,17 +47,22 @@ public class Reticle : MonoBehaviour
             {
                 if (hit.collider != null)
                 {
-                    Debug.Log("Hit tree");
                     currentObj = hit.collider.gameObject;
                     reticle.localScale = pos2;
-                    ShowTip();
+                    if (!showingError)
+                    {
+                        ShowTip();
+                    }
                 }
             }
             else if (reticle.localScale != pos || reticleTip.activeSelf)
             {
-                reticle.localScale = pos;
-                reticleTip.SetActive(false);
-                currentObj = null;
+                if (!showingError) 
+                {
+                    reticle.localScale = pos;
+                    reticleTip.SetActive(false);
+                    currentObj = null;
+                }
             }
         }
     }
@@ -126,4 +134,28 @@ public class Reticle : MonoBehaviour
             }
         }
     }
+
+    //Show Error Notift
+    public void ShowErrorNotify(string notify) 
+    {
+        if (!showingError) 
+        {
+            showingError = true;
+            reticleTip.SetActive(true);
+            reticleText.text = notify;
+            reticleText.color = new Color32(255, 74, 74, 255);
+            StartCoroutine(ClearNotify());
+        }
+    }
+
+    //Clear the Notification
+    private IEnumerator ClearNotify() 
+    {
+        yield return new WaitForSeconds(1);
+        showingError = false;
+        reticleText.text = "";
+        reticleText.color = new Color32(255, 255, 255, 255);
+        reticleTip.SetActive(false);
+    }
+
 }

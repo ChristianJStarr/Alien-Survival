@@ -121,6 +121,10 @@ public class InventorySystem : MonoBehaviour
                 {
                     item.durability += amount;
                 }
+                else if (item.durability + amount <= 0) 
+                {
+                    return null;
+                }
                 break;
             }
         }
