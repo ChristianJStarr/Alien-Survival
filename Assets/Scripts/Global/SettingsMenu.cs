@@ -87,9 +87,18 @@ public class SettingsMenu : MonoBehaviour
         settings.terrainDistance = terrainDis.value;
         settings.objectDistance = objectDis.value;
 
-    //Apply the settings that were stored.
-        //Have objects update to new values.
+        //Apply the settings that were stored.
+        //Change render pipeline asset.
+        RenderPipelineAsset newAsset = GetAsset();
+        if (GraphicsSettings.renderPipelineAsset != newAsset)
+        {
+            GraphicsSettings.renderPipelineAsset = newAsset;
+        }
+        //Change quality level settings.
+        QualitySettings.SetQualityLevel(settings.quality - 1, true);
         
+        //Have objects update to new values.
+
         MusicManager music = FindObjectOfType<MusicManager>(); //Find music manager, if any.
         if(music != null) //If music manager exists in scene, update its settings.
          {
@@ -108,15 +117,11 @@ public class SettingsMenu : MonoBehaviour
             controlControl.Change();
         }
 
-        //Change render pipeline asset.
-        RenderPipelineAsset newAsset = GetAsset();
-        if (GraphicsSettings.renderPipelineAsset != newAsset)
+        MainMenuCampfireFlicker campfireFlicker = FindObjectOfType<MainMenuCampfireFlicker>();
+        if(campfireFlicker != null) 
         {
-            GraphicsSettings.renderPipelineAsset = newAsset;
+            campfireFlicker.Change();
         }
-        //Change quality level settings.
-        QualitySettings.SetQualityLevel(settings.quality - 1, true);
-        
     }
 
     //Get correct pipeline asset based off current settings.

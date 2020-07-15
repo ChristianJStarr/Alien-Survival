@@ -5,8 +5,7 @@ public class MainMenuDayNight : MonoBehaviour
 {
     public GameObject extraFireLight;
     public Light directionalLight;
-    public Material shipGlow;
-    public MeshRenderer ship;
+    public Light shackLight;
 
     private void Start()
     {
@@ -14,11 +13,10 @@ public class MainMenuDayNight : MonoBehaviour
         {
 
             //Set to Day
-                    
         }
         else 
         {
-            ship.material = shipGlow;
+            shackLight.enabled = true;
             directionalLight.enabled = false;
             //Set to Night
             extraFireLight.SetActive(true);

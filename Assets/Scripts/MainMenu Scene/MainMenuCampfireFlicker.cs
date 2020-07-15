@@ -7,14 +7,42 @@ public class MainMenuCampfireFlicker : MonoBehaviour
     public Light fireLight;
     private bool flickerLight = true;
     private int intensity = 60;
+    private bool flickerStarted;
+
+
+    
 
     private void Start()
     {
         if(QualitySettings.GetQualityLevel() > 0) 
         {
+            flickerStarted = true;
             StartCoroutine(StartFlicker());
         }
+        else 
+        {
+            flickerStarted = false;
+        }
     }
+
+    public void Change()
+    {
+        if (!flickerStarted) 
+        {
+            if (QualitySettings.GetQualityLevel() > 0)
+            {
+                flickerStarted = true;
+                flickerLight = true;
+                StartCoroutine(StartFlicker());
+            }
+        }
+        else if (QualitySettings.GetQualityLevel() == 0)
+        {
+            flickerStarted = false;
+            flickerLight = false;
+        }
+    }
+
 
     private IEnumerator StartFlicker() 
     {
