@@ -22,7 +22,7 @@ public class Reticle : MonoBehaviour
     
     private void Start()
     {
-        if (NetworkingManager.Singleton.IsClient) 
+        if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
         {
             playerActionManager = PlayerActionManager.singleton;
             lookLoop = true;

@@ -9,15 +9,14 @@ public class Compass : MonoBehaviour
 
     public RawImage compass;
     private Transform playerRot;
-    private bool client;
+    private bool client = false;
     private void Start()
     {
-        client = NetworkingManager.Singleton.IsClient;
-        if (client) 
+        if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient)
         {
+            client = true;
             playerRot = FindObjectOfType<FirstPersonController>().transform;
         }
-       
     }
 
     private void Update()

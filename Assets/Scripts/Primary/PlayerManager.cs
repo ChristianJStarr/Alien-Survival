@@ -77,7 +77,7 @@ public class PlayerManager : MonoBehaviour
         }
         else 
         {
-            //No Networking Manager Detected. 
+            
         }
     }
 }

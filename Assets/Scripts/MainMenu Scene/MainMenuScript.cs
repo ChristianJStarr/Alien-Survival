@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -25,7 +26,6 @@ public class MainMenuScript : MonoBehaviour
     static Transform camReset; //Camera default positon to reset to.
 
     public TextMeshProUGUI loadTip, loadMainText;
-    public string[] loadTips;
 
 
     //Camera locations for switching screens effect.
@@ -164,7 +164,7 @@ public class MainMenuScript : MonoBehaviour
         profileMenu.SetActive(false);
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
-        loadTip.text = LoadText();
+        StartLoadTip();
         if (moveCameraOnMenuChange)
         {
             camTargetposition = resetTargetCord;
@@ -188,7 +188,7 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
         loadMainText.text = "Logging Out Account";
-        loadTip.text = LoadText();
+        StartLoadTip();
         StartCoroutine(LogOutRoutine());
     }
 
@@ -269,9 +269,33 @@ public class MainMenuScript : MonoBehaviour
         easterEggBeam.SetActive(true);
     }
 
-    //Loading Text Randomizer
-    private string LoadText() 
+    //Get Load Screen Tip Text
+
+    private string[] loadingTips;
+    private int loadingTipIndex;
+
+    private void StartLoadTip() 
     {
-        return loadTips[Random.Range(0, loadTips.Length -1)];
+        string json = File.ReadAllText(Application.dataPath + "/Content/ExtData/loading-tips.txt");
+        loadingTips = JsonHelper.FromJson<string>(json);
+        loadingTipIndex = Random.Range(0, loadingTips.Length - 1);
+        loadMainText.text = loadingTips[loadingTipIndex];
+        StartCoroutine(LoadTipWait());
     }
+
+    private IEnumerator LoadTipWait()
+    {
+        yield return new WaitForSeconds(6);
+        if (loadingTipIndex + 1 >= loadingTips.Length) 
+        {
+            loadingTipIndex = 0;
+        }
+        else 
+        {
+            loadingTipIndex++;
+        }
+        loadMainText.text = loadingTips[loadingTipIndex];
+        StartCoroutine(LoadTipWait());
+    }
+
 }

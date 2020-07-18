@@ -50,7 +50,7 @@ public class MainMenuServerList : MonoBehaviour
 
         if((pings > 0 || isRefreshing || isDemoLoad) && !refreshing.gameObject.activeSelf) 
         {
-            bottomTarget = new Vector3(-256, -29);
+            bottomTarget = new Vector3(-257, -29);
         }
         else if(!isDemoLoad && pings == 0 && !isRefreshing && refreshing.gameObject.activeSelf) 
         {

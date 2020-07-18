@@ -1,3 +1,4 @@
+using MLAPI;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityStandardAssets.Utility;
@@ -27,6 +28,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
         [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
         [SerializeField] private Transform cameraPivot;
+        [SerializeField] private BenchmarkObject benchmarkObject;
 
         private Animator animator;
         private Camera m_Camera;
@@ -44,7 +46,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Jumping;
         private bool m_Crouching;
         private AudioSource m_AudioSource;
-
+        private bool isBenching = false;
 
         private void Start()
         {
@@ -61,6 +63,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Crouch = false;
             m_AudioSource = GetComponent<AudioSource>();
             m_MouseLook.Init(transform, cameraPivot);
+            if(NetworkingManager.Singleton == null) 
+            {
+                isBenching = benchmarkObject.isBenching;
+                if (isBenching) 
+                {
+                    animator.SetTrigger("Wake");
+                }
+            } 
         }
         private void Update()
         {
@@ -94,11 +104,28 @@ namespace UnityStandardAssets.Characters.FirstPerson
             float speed;
             float zSpeed;
             float xSpeed;
+            float vertical;
+            float horizontal;
+            if (isBenching)
+            {
+                vertical = 1;
+                horizontal = 0;
+            }
+            else
+            {
+                vertical = CrossPlatformInputManager.GetAxis("Vertical");
+                horizontal = CrossPlatformInputManager.GetAxis("Horizontal");
+            }
+            
 
-            float vertical = CrossPlatformInputManager.GetAxis("Vertical");
-            float horizontal = CrossPlatformInputManager.GetAxis("Horizontal");
-
-            GetInput(out speed);
+            if (isBenching) 
+            {
+                speed = 1;
+            }
+            else 
+            {
+                GetInput(out speed);
+            }
             if (vertical != 0)
             {
                 xSpeed = 1;
@@ -142,7 +169,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             Physics.SphereCast(transform.position, m_CharacterController.radius, Vector3.down, out hitInfo,
                                m_CharacterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
             desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
-
+            Debug.Log(speed);
             m_MoveDir.x = desiredMove.x * speed;
             m_MoveDir.z = desiredMove.z * speed;
 

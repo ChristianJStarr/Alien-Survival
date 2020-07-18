@@ -119,6 +119,14 @@ public class MovementManager : NetworkedBehaviour
             EnableNonProvokedResendChecks = false;
     }
 
+    private void Start()
+    {
+        if (NetworkingManager.Singleton == null)
+        {
+            Destroy(this);
+        }
+    }
+
     private float GetTimeForLerp(Vector3 pos1, Vector3 pos2)
     {
         return 1f / DistanceSendrate.Evaluate(Vector3.Distance(pos1, pos2));

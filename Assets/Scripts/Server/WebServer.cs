@@ -38,7 +38,7 @@ public class WebServer : MonoBehaviour
      
     }
 
-    public void LoginRequest(string username, string password, Action<bool> onRequestFinished)
+    public void LoginRequest(string username, string password, Action<string> onRequestFinished)
     {
 
 
@@ -47,7 +47,7 @@ public class WebServer : MonoBehaviour
            onRequestFinished(returnValue);
        }));
     }
-    public void SignupRequest(string username, string password, string authKey, Action<bool> onRequestFinished)
+    public void SignupRequest(string username, string password, string authKey, Action<string> onRequestFinished)
     {
 
         StartCoroutine(WebServerCredential(false, username, password, returnValue =>
@@ -146,7 +146,7 @@ public class WebServer : MonoBehaviour
         }
     }
 
-    private IEnumerator WebServerCredential(bool login, string username, string password, Action<bool> success=null, string authKey=null) 
+    private IEnumerator WebServerCredential(bool login, string username, string password, Action<string> success=null, string authKey=null) 
     {
         if (login) 
         {
@@ -166,23 +166,23 @@ public class WebServer : MonoBehaviour
                 PlayerPrefs.SetString("username", username);
                 PlayerPrefs.SetString("password", password);
                 PlayerPrefs.Save();
-                success(true);
+                success("TRUE");
 
             }
             else if (web.downloadHandler.text == "Wrong")
             {
                 Debug.Log("Network - Web - Login: Wrong Password");
-                success(false);
+                success("WRONG");
             }
             else if (web.downloadHandler.text == "No User")
             {
                 Debug.Log("Network - Web - Login: No User with that Username");
-                success(false);
+                success("NOUSER");
             }
             else 
             {
                 Debug.Log("Network - Web - Login: " + web.downloadHandler.text);
-                success(false);
+                success("ERROR");
             }
         }
         else if(!string.IsNullOrEmpty(authKey))
@@ -203,24 +203,24 @@ public class WebServer : MonoBehaviour
                 PlayerPrefs.SetString("authKey", authKey);
                 PlayerPrefs.SetInt("userId", userId);
                 PlayerPrefs.Save();
-                success(true);
+                success("TRUE");
             }
             else if (web.downloadHandler.text == "Taken")
             {
                 Debug.Log("Network - Web - Signup: Username Taken");
-                success(false);
+                success("TAKEN");
             }
             else 
             {
                 Debug.Log("Network - Web - Signup: Error " + web.downloadHandler.text);
-                success(false);
+                success("ERROR");
             }
         }
         else 
         {
             Debug.Log("Network - Web - Signup: No Authkey provided");
-            yield return new WaitForSeconds(1F);
-            success(false);
+            yield return new WaitForSeconds(.1F);
+            success("ERROR");
         }
     }
 

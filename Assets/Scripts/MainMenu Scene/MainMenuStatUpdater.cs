@@ -6,7 +6,7 @@ using System;
 /// </summary>
 public class MainMenuStatUpdater : MonoBehaviour
 {
-    public TextMeshProUGUI userName, userHours, userSp, joinSp;
+    public TextMeshProUGUI userName, userHours, userSp;
     public ExpBar expBar;
     public PlayerStats playerStats;
     /// <summary>
@@ -24,7 +24,6 @@ public class MainMenuStatUpdater : MonoBehaviour
         userName.text = PlayerPrefs.GetString("username");
         userHours.text = Math.Round(playerStats.playerHours,2) + " HOURS SURVIVED";
         userSp.text = playerStats.playerCoins.ToString();
-        joinSp.text = userSp.text;
         expBar.SetExp(playerStats.playerExp);
     }
 }

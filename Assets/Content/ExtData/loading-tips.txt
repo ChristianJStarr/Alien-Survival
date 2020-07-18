@@ -1,0 +1,8 @@
+{"server":
+	[
+		"If you're experiencing performance issues, try reducing your game quality in the settings.",
+		"Your connection to the server may be unstable when not using wifi.",
+		"Found a bug? Submit a report and we'll fix it as soon as possible.",
+		"Have a suggestion? Submit a report, detailed suggestion, and we'll consider it."
+	]
+}

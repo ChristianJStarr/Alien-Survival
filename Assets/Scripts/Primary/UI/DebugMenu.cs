@@ -21,9 +21,8 @@ public class DebugMenu : MonoBehaviour
 
     private void Start()
     {
-        if (NetworkingManager.Singleton.IsClient) 
+        if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
         {
-
             gameServer = GameServer.singleton;
             slides = new List<DebugMenuSlide>();
             items = new List<DebugMenuSlide>();

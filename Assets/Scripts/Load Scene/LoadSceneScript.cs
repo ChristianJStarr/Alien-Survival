@@ -3,86 +3,108 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using System.IO;
 
 public class LoadSceneScript : MonoBehaviour
 {
     //What: Load Scene Script. Does Login/Signup/Stats & Loading into main menu.
     //Where: The Load Scene.
-    public string[] loadTips;    
     public bool devServer = false;
-    public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting, terms, termsCheck; //Each screen layer.
-    public TextMeshProUGUI loginNotify, signupNotify, loadTip; //Notify text field for login and signup screen.
+    public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting, terms, termsCheck, connectionError; //Each screen layer.
+    public TextMeshProUGUI loginNotify, signupNotify, loadTip, version_1, version_2, version_3; //Notify text field for login and signup screen.
     public TMP_InputField usernameText, passwordText, regUsernameText, regPassText; //Input fields for login and signup.
     public Button loginButton, signupButton, termsButton; //Login and signup screen buttons.
     public PlayerStats playerStats; //Player Statistics data object.
     public WebServer webServer; //Web Server Handler.
     private int loadProgress, lastLoadProgress = 0; //Loading bar values.
-    private bool singleAttempt = true; //A single attempt for retrying guest login.
     public RawImage background; //Background Image
     public Texture blurTexture; //Blurred Bkg Texture
     public Texture regTexture; //Regular Bkg Texture
     public Texture nightTexture;
     public Texture blurNightTexture;
 
-    private string privacyPolicyUrl = "https://aliensurvival.com/privacy.php";
-    private string termsConditionsUrl = "https://aliensurvival.com/terms.php";
+    private AsyncOperation asyncTemp;
+    private string privacyPolicyUrl = "https://aliensurvival.com/privacy-app.php";
+    private string termsConditionsUrl = "https://aliensurvival.com/terms-app.php";
     private int nightChance = 0;
 
     void Start() 
     {
+        //Run Server if Server
+
 #if UNITY_SERVER
-        SceneManager.LoadScene(1);
+                RunServer();
 #endif
 #if UNITY_EDITOR
         if (devServer)
         {
-            SceneManager.LoadScene(1);
+            RunServer();
         }
 #endif
-        if (devServer)
-        {
-            SceneManager.LoadScene(1);
-        }
 
-        nightChance = Random.Range(0,30);
-        PlayerPrefs.SetInt("nightChance", nightChance);
-        PlayerPrefs.Save();
+        //Set Night Chance
+        SetNightChance();
+        
+        //Set Version Text
+        version_1.text = version_2.text = version_3.text = "v" + Application.version;
 
-        Application.targetFrameRate = 30;
-        //Check if user has logged in before and has username/pass stored.
-        if (PlayerPrefs.GetString("username").Length > 0) 
+        //Handle Target FrameRate
+        if(QualitySettings.GetQualityLevel() > 1) 
         {
-            LoginRememberMe();//Login with stored credentials.
+            Application.targetFrameRate = 44;
         }
         else 
         {
-            if(PlayerPrefs.GetInt("terms") == 0) 
+            Application.targetFrameRate = 30;
+        }
+        
+        //Check if user has logged in before and has username/pass stored.
+        if (PlayerPrefs.GetInt("terms") == 0)
+        {
+            if (nightChance > 15)
             {
-                if (nightChance > 15)
-                {
-                    background.texture = blurTexture;
-                }
-                else
-                {
-                    background.texture = blurNightTexture;
-                }
-                terms.SetActive(true);
+                background.texture = blurTexture;
             }
-            else 
+            else
+            {
+                background.texture = blurNightTexture;
+            }
+            terms.SetActive(true);
+        }
+        else
+        {
+            if (PlayerPrefs.GetString("username").Length > 0)
+            {
+                LoginRememberMe();//Login with stored credentials.
+            }
+            else
             {
                 mainScreen.SetActive(true);
-                if(nightChance > 15) 
+                if (nightChance > 15)
                 {
                     background.texture = regTexture;
                 }
-                else 
+                else
                 {
                     background.texture = nightTexture;
-                } 
+                }
             }
         }
         //Change asterisk to dot in input field.
         usernameText.asteriskChar = passwordText.asteriskChar = regUsernameText.asteriskChar = regPassText.asteriskChar = '•';
+    }
+
+    private void RunServer() 
+    {
+        Application.targetFrameRate = 20;
+        SceneManager.LoadScene(1);
+    }
+
+    private void SetNightChance() 
+    {
+        nightChance = Random.Range(0, 30);
+        PlayerPrefs.SetInt("nightChance", nightChance);
+        PlayerPrefs.Save();
     }
 
     public void CheckTerms() 
@@ -103,16 +125,23 @@ public class LoadSceneScript : MonoBehaviour
     {
         PlayerPrefs.SetInt("terms", 1);
         PlayerPrefs.Save();
-        if (nightChance > 15)
-        {
-            background.texture = regTexture;
-        }
-        else
-        {
-            background.texture = nightTexture;
-        }
         terms.SetActive(false);
-        mainScreen.SetActive(true);
+        if (PlayerPrefs.GetString("username").Length > 0)
+        {
+            LoginRememberMe();//Login with stored credentials.
+        }
+        else 
+        {
+            if (nightChance > 15)
+            {
+                background.texture = regTexture;
+            }
+            else
+            {
+                background.texture = nightTexture;
+            }
+            mainScreen.SetActive(true);
+        }
     }
 
     public void CloseApp() 
@@ -124,6 +153,7 @@ public class LoadSceneScript : MonoBehaviour
     {
         Application.OpenURL(privacyPolicyUrl);
     }
+    
     public void OpenTermsUrl()
     {
         Application.OpenURL(termsConditionsUrl);
@@ -164,52 +194,66 @@ public class LoadSceneScript : MonoBehaviour
                 background.texture = nightTexture;
             }
         }
-        
+        regUsernameText.text = "";
+        regPassText.text = "";
+        usernameText.text = "";
+        passwordText.text = "";
     }
     
     //Load MainMenu scene. Called if a login or signup was successful.
     private void LoadGame()
     {
-        mainScreen.SetActive(false);
-        loginScreen.SetActive(false);
-        signupScreen.SetActive(false);
-        userReporting.SetActive(false);
-        loadScreen.SetActive(true);
-
-        if (nightChance > 15)
+        if (loadScreen.activeSelf) 
         {
-            background.texture = blurTexture;
+        
         }
-        else
+        else 
         {
-            background.texture = blurNightTexture;
+            mainScreen.SetActive(false);
+            loginScreen.SetActive(false);
+            signupScreen.SetActive(false);
+            userReporting.SetActive(false);
+            loadScreen.SetActive(true);
+            StartLoadTip();
+            if (nightChance > 15)
+            {
+                background.texture = blurTexture;
+            }
+            else
+            {
+                background.texture = blurNightTexture;
+            }
         }
-
-
-        loadTip.text = GetLoadTip();
         StartCoroutine(LoadRoutine());//Start loading the MainMenu scene.
     }
     
     //Load routine for loading MainMenu scene. Handles the loading bar and getting player stats.
     private IEnumerator LoadRoutine()
     {
-        bool loadTime = true;
-        AsyncOperation op = SceneManager.LoadSceneAsync(1);
-        op.allowSceneActivation = false;
-        while (!op.isDone)
+        if (asyncTemp != null)
         {
-            if (op.progress < 0.9f)
+            LoadRoutineStage(asyncTemp);
+        }
+        else
+        {
+            bool loadTime = true;
+            AsyncOperation op = SceneManager.LoadSceneAsync(1);
+            op.allowSceneActivation = false;
+            while (!op.isDone)
             {
-                loadProgress = (int)(op.progress * 100f);
+                if (op.progress < 0.9f)
+                {
+                    loadProgress = (int)(op.progress * 100f);
+                }
+                else if (loadTime)
+                {
+                    loadTime = false;
+                    loadProgress = 100;
+                    LoadRoutineStage(op);
+                }
+                if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; }
+                yield return null;
             }
-            else if(loadTime)
-            {
-                loadTime = false;
-                loadProgress = 100;
-                LoadRoutineStage(op);
-            }
-            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress;  }
-            yield return null;
         }
     }
 
@@ -224,12 +268,73 @@ public class LoadSceneScript : MonoBehaviour
             }
             else
             {
-                Debug.Log("Network - Web - Unable to get stats.");
-                Close();
+                asyncTemp = op;
+                ShowConnectionError(1);
             }
         });
     }
 
+    //Connection Error
+    private int currentErrorType = 0;
+    
+    private void ShowConnectionError(int type) 
+    {
+        //Error Table
+        //  1 = Stats Retrieval Error
+        //  2 = Login Request Error
+        //  3 = Singup Request Error
+        //  4 = Guest Login/Signup Error
+        currentErrorType = type;
+        loadScreen.SetActive(false);
+        loginScreen.SetActive(false);
+        signupScreen.SetActive(false);
+        mainScreen.SetActive(false);
+        connectionError.SetActive(true);
+        if (nightChance > 15)
+        {
+            background.texture = blurTexture;
+        }
+        else
+        {
+            background.texture = blurNightTexture;
+        }
+    }
+
+    public void RetryConnection()
+    {
+        StartCoroutine(RetryConnectionWait());
+    }
+
+    private IEnumerator RetryConnectionWait() 
+    {
+        connectionError.SetActive(false);
+        loadScreen.SetActive(true);
+        StartLoadTip();
+        yield return new WaitForSeconds(5f);
+        if (currentErrorType == 1)
+        {
+            LoginRememberMe();
+        }
+        if (currentErrorType == 2)
+        {
+            LogIn();
+        }
+        if (currentErrorType == 3)
+        {
+            SignUp();
+        }
+        if (currentErrorType == 4)
+        {
+            DoGuest();
+        }
+    }
+
+
+    public void CloseConnectionError() 
+    {
+        connectionError.SetActive(false);
+        Close();
+    }
 
     //Login with stored PlayerPrefs.
     private void LoginRememberMe()
@@ -239,13 +344,13 @@ public class LoadSceneScript : MonoBehaviour
         
         webServer.LoginRequest(username, password, onRequestFinished => 
         {
-            if(onRequestFinished) 
+            if(onRequestFinished == "TRUE") 
             {
                 LoadGame();
             }
             else 
             {
-                mainScreen.SetActive(true);
+                ShowConnectionError(2);
             }
         });
     }
@@ -255,21 +360,28 @@ public class LoadSceneScript : MonoBehaviour
     {
         string username = regUsernameText.text.ToString();
         string password = ToMd5(regPassText.text);
-        string authKey = RandomUserCode(15);
-        webServer.SignupRequest(username, password, authKey, onRequestFinished =>
+        if(username.Length > 6 && password.Length > 6) 
         {
-            if (onRequestFinished)
+            string authKey = RandomUserCode(15);
+            webServer.SignupRequest(username, password, authKey, onRequestFinished =>
             {
-                PlayerPrefs.SetInt("newPlayer", 1);
-                PlayerPrefs.Save();
-                LoadGame();//Load the MainMenu scene.
-            }
-            else
-            {
-                //Unable to Signup. Likely username taken.
-                signupNotify.text = "USERNAME TAKEN";
-            }
-        });
+                if (onRequestFinished == "TRUE")
+                {
+                    PlayerPrefs.SetInt("newPlayer", 1);
+                    PlayerPrefs.Save();
+                    LoadGame();//Load the MainMenu scene.
+                }
+                else if (onRequestFinished == "TAKEN")
+                {
+                    //Unable to Signup. Likely username taken.
+                    signupNotify.text = "USERNAME TAKEN";
+                }
+                else 
+                {
+                    ShowConnectionError(3);
+                }
+            });
+        }
     }
 
     //Login with InputField credentials.
@@ -279,14 +391,18 @@ public class LoadSceneScript : MonoBehaviour
         string password = ToMd5(passwordText.text);
         webServer.LoginRequest(username, password, onRequestFinished =>
         {
-            if (onRequestFinished)
+            if (onRequestFinished == "TRUE")
             {
                 LoadGame();//Load the MainMenu scene.
             }
-            else
+            else if(onRequestFinished != "ERROR")
             {
                 //Unable to Login. Likely incorrect fields.
                 loginNotify.text = "INCORRECT USERNAME/PASSWORD";
+            }
+            else 
+            {
+                ShowConnectionError(2);
             }
         });
     }
@@ -300,7 +416,7 @@ public class LoadSceneScript : MonoBehaviour
             string password = PlayerPrefs.GetString("guest-b");
             webServer.LoginRequest(username, password, onRequestFinished =>
             {
-                if (onRequestFinished)
+                if (onRequestFinished == "TRUE")
                 {
                     LoadGame();//Load the MainMenu scene.
                 }
@@ -312,7 +428,7 @@ public class LoadSceneScript : MonoBehaviour
                     PlayerPrefs.DeleteKey("guest-a");
                     PlayerPrefs.DeleteKey("guest-b");
                     PlayerPrefs.Save();
-                    //DoGuest(); //Start over.
+                    ShowConnectionError(4);
                 }
             });
         }
@@ -324,7 +440,7 @@ public class LoadSceneScript : MonoBehaviour
             string authKey = random.Substring(19, 10); //Create guest username.
             webServer.SignupRequest(username, password, authKey, onRequestFinished =>
             {
-                if (onRequestFinished)
+                if (onRequestFinished == "TRUE")
                 {
                     LoadGame();//Load the MainMenu scene.
                     PlayerPrefs.SetInt("newPlayer", 1);
@@ -337,12 +453,7 @@ public class LoadSceneScript : MonoBehaviour
                     PlayerPrefs.DeleteKey("guest-a");
                     PlayerPrefs.DeleteKey("guest-b");
                     PlayerPrefs.Save();
-                    //Only allow once.
-                    if (singleAttempt)
-                    {
-                        //DoGuest(); //Try Again.
-                        singleAttempt = false;
-                    }
+                    ShowConnectionError(4);
                 }
             });
         }
@@ -392,9 +503,32 @@ public class LoadSceneScript : MonoBehaviour
     }
 
     //Get Load Screen Tip Text
-    private string GetLoadTip()
+
+    private string[] loadingTips;
+    private int loadingTipIndex;
+
+    private void StartLoadTip()
     {
-        return loadTips[Random.Range(0, loadTips.Length - 1)];
+        string json = File.ReadAllText(Application.dataPath + "/Content/ExtData/loading-tips.txt");
+        loadingTips = JsonHelper.FromJson<string>(json);
+        loadingTipIndex = Random.Range(0, loadingTips.Length - 1);
+        loadTip.text = loadingTips[loadingTipIndex];
+        StartCoroutine(LoadTipWait());
+    }
+
+    private IEnumerator LoadTipWait()
+    {
+        yield return new WaitForSeconds(6);
+        if (loadingTipIndex + 1 >= loadingTips.Length)
+        {
+            loadingTipIndex = 0;
+        }
+        else
+        {
+            loadingTipIndex++;
+        }
+        loadTip.text = loadingTips[loadingTipIndex];
+        StartCoroutine(LoadTipWait());
     }
 
 }

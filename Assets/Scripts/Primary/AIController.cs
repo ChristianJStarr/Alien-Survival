@@ -19,10 +19,13 @@ public class AIController : MonoBehaviour
 
     private void Start()
     {
-       
-        if (NetworkingManager.Singleton.IsServer) 
+       if(NetworkingManager.Singleton != null) 
         {
-            
+            if (NetworkingManager.Singleton.IsServer)
+            {
+                //HandleAI();
+                Debug.Log("[Server] AIController : Spawning AI.");
+            }
         }
     }
     private void HandleAI() 
