@@ -2151,6 +2151,80 @@ RectTransform:
   m_AnchoredPosition: {x: -275.3, y: -61.69922}
   m_SizeDelta: {x: 550.6, y: -234.2}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &372720535
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 372720536}
+  - component: {fileID: 372720538}
+  - component: {fileID: 372720537}
+  m_Layer: 5
+  m_Name: Flag_Icon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &372720536
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 372720535}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1604730325}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0.000003159, y: 0.0000018477}
+  m_SizeDelta: {x: 103.94032, y: 60.10385}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &372720537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 372720535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &372720538
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 372720535}
+  m_CullTransparentMesh: 0
 --- !u!1 &383460219
 GameObject:
   m_ObjectHideFlags: 0
@@ -2565,7 +2639,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBB38\uC81C\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4"
+  m_text: A PROBLEM HAS OCCURRED
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -2652,16 +2726,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 403167711}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: problemOccurred
-  m_languageID: 15
+  key: problemOccurred
 --- !u!1 &410401933
 GameObject:
   m_ObjectHideFlags: 0
@@ -2793,7 +2861,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uACC4\uC18D\uD558\uB2E4"
+  m_text: CONTINUE
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -2880,16 +2948,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 422354077}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: continue
-  m_languageID: 8
+  key: continue
 --- !u!1 &497793897
 GameObject:
   m_ObjectHideFlags: 0
@@ -3057,7 +3119,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC554\uD638..."
+  m_text: PASSWORD...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -3144,16 +3206,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 550395006}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: placePassword
-  m_languageID: 6
+  key: placePassword
 --- !u!1 &555546482
 GameObject:
   m_ObjectHideFlags: 0
@@ -3211,7 +3267,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC774\uC6A9 \uC57D\uAD00"
+  m_text: Terms & Conditions
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -3298,16 +3354,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 555546482}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: terms
-  m_languageID: 10
+  key: terms
 --- !u!1 &565665899
 GameObject:
   m_ObjectHideFlags: 0
@@ -3365,7 +3415,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB2E4\uC2DC \uD574 \uBCF4\uB2E4"
+  m_text: RETRY
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -3452,16 +3502,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 565665899}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: retry
-  m_languageID: 13
+  key: retry
 --- !u!1 &572712418
 GameObject:
   m_ObjectHideFlags: 0
@@ -3669,7 +3713,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uCD9C\uAD6C"
+  m_text: EXIT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -3756,16 +3800,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 587650973}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: exit
-  m_languageID: 7
+  key: exit
 --- !u!1 &590178006
 GameObject:
   m_ObjectHideFlags: 0
@@ -4183,7 +4221,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB4A4"
+  m_text: BACK
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -4211,7 +4249,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70.9
+  m_fontSize: 72
   m_fontSizeBase: 106.41
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -4270,16 +4308,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 651450741}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: back
-  m_languageID: 4
+  key: back
 --- !u!1 &651872838
 GameObject:
   m_ObjectHideFlags: 0
@@ -4337,7 +4369,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC190\uB2D8"
+  m_text: PLAY AS GUEST
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -4424,16 +4456,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 651872838}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: playasguest
-  m_languageID: 2
+  key: playasguest
 --- !u!1 &666110500
 GameObject:
   m_ObjectHideFlags: 0
@@ -4491,7 +4517,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB85C\uADF8\uC778"
+  m_text: LOG IN
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -4578,19 +4604,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 666110500}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages:
-    - systemLanguage: 10
-      languageText: LOG IN
-      fontSize: 0
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: login
-  m_languageID: 0
+  key: login
 --- !u!1 &671703379
 GameObject:
   m_ObjectHideFlags: 0
@@ -5329,6 +5346,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 771096232}
+  - {fileID: 1604730325}
   m_Father: {fileID: 582325803}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5636,7 +5654,6 @@ GameObject:
   - component: {fileID: 799257719}
   - component: {fileID: 799257721}
   - component: {fileID: 799257720}
-  - component: {fileID: 799257722}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -5760,25 +5777,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 799257718}
   m_CullTransparentMesh: 0
---- !u!114 &799257722
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 799257718}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: createreport
-  m_languageID: 3
 --- !u!1 &807773053
 GameObject:
   m_ObjectHideFlags: 0
@@ -6069,7 +6067,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB85C\uADF8\uC778"
+  m_text: LOG IN
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -6156,16 +6154,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 833437976}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: login
-  m_languageID: 0
+  key: login
 --- !u!1 &845120794
 GameObject:
   m_ObjectHideFlags: 0
@@ -6976,7 +6968,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB4A4"
+  m_text: BACK
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -7004,7 +6996,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70.9
+  m_fontSize: 72
   m_fontSizeBase: 106.41
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -7063,16 +7055,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 928857067}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: back
-  m_languageID: 4
+  key: back
 --- !u!1 &957362087
 GameObject:
   m_ObjectHideFlags: 0
@@ -9259,7 +9245,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAC00\uC785\uD558\uAE30"
+  m_text: SIGN UP
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -9346,16 +9332,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1319508719}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: signup
-  m_languageID: 1
+  key: signup
 --- !u!1 &1322816209
 GameObject:
   m_ObjectHideFlags: 0
@@ -9488,7 +9468,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uACC4\uC815\uC5D0 \uB85C\uADF8\uC778"
+  m_text: Signing into Account
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -9575,16 +9555,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1335527256}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: signingIn
-  m_languageID: 16
+  key: signingIn
 --- !u!1 &1359880104
 GameObject:
   m_ObjectHideFlags: 0
@@ -9995,7 +9969,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB2F9\uC0AC \uC6F9 \uC0AC\uC774\uD2B8\uC5D0\uC11C \uC815\uC804 \uC810\uAC80"
+  m_text: Check for outages at aliensurvival.com/status
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -10082,16 +10056,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1398227302}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: errorIndicate
-  m_languageID: 14
+  key: errorIndicate
 --- !u!1 &1413034643
 GameObject:
   m_ObjectHideFlags: 0
@@ -10410,7 +10378,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC0AC\uC6A9\uC790 \uC774\uB984..."
+  m_text: USERNAME...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -10497,16 +10465,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1442806122}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: placeUsername
-  m_languageID: 5
+  key: placeUsername
 --- !u!1 &1465268728
 GameObject:
   m_ObjectHideFlags: 0
@@ -10674,7 +10636,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uCDE8\uC18C"
+  m_text: CANCEL
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -10761,16 +10723,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1486967746}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: cancel
-  m_languageID: 12
+  key: cancel
 --- !u!1 &1494310089
 GameObject:
   m_ObjectHideFlags: 0
@@ -11249,7 +11205,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC0AC\uC6A9\uC790 \uC774\uB984..."
+  m_text: USERNAME...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -11336,16 +11292,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1550222544}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: placeUsername
-  m_languageID: 5
+  key: placeUsername
 --- !u!1 &1570229986
 GameObject:
   m_ObjectHideFlags: 0
@@ -11403,9 +11353,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC704\uC758 \uC774\uC6A9 \uC57D\uAD00 \uBC0F \uAC1C\uC778 \uC815\uBCF4
-    \uCDE8\uAE09 \uBC29\uCE68\uC744 \uBAA8\uB450 \uC77D\uACE0 \uB3D9\uC758\uD588\uC74C\uC744
-    \uB098\uD0C0\uB0B4\uB824\uBA74 \uC5EC\uAE30\uB97C \uD655\uC778\uD558\uC2ED\uC2DC\uC624."
+  m_text: 'Check here to indicate that you have read and agree to both the terms
+    and conditions and privacy policy above. '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -11433,7 +11382,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 38.35
+  m_fontSize: 40
   m_fontSizeBase: 41.5
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -11492,16 +11441,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1570229986}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: checkIndicate
-  m_languageID: 11
+  key: checkIndicate
 --- !u!1 &1582913370
 GameObject:
   m_ObjectHideFlags: 0
@@ -11727,6 +11670,136 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1587868012}
+  m_CullTransparentMesh: 0
+--- !u!1 &1604730324
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1604730325}
+  - component: {fileID: 1604730328}
+  - component: {fileID: 1604730327}
+  - component: {fileID: 1604730326}
+  m_Layer: 5
+  m_Name: LanguageSelector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1604730325
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604730324}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 372720536}
+  m_Father: {fileID: 779300282}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -842, y: -467}
+  m_SizeDelta: {x: 128.28235, y: 79.244156}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1604730326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604730324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1604730327}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1682609094}
+        m_MethodName: ChangeLanguage
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 6
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1604730327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604730324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.14150941, g: 0.14150941, b: 0.14150941, a: 0.69411767}
+  m_RaycastTarget: 1
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1604730328
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604730324}
   m_CullTransparentMesh: 0
 --- !u!1 &1610067071
 GameObject:
@@ -12029,6 +12102,7 @@ GameObject:
   - component: {fileID: 1682609098}
   - component: {fileID: 1682609097}
   - component: {fileID: 1682609093}
+  - component: {fileID: 1682609094}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -12077,6 +12151,18 @@ MonoBehaviour:
   regTexture: {fileID: 2800000, guid: 16f015120dbeaf141bda886fa10f4ed6, type: 3}
   nightTexture: {fileID: 2800000, guid: 87625ce31b26bdb46878ee4164ccb88c, type: 3}
   blurNightTexture: {fileID: 2800000, guid: a9718c3d57f64c24db3b658af50c1439, type: 3}
+--- !u!114 &1682609094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682609092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c938c854f985a4242b1b28a35ffd9436, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1682609097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12369,7 +12455,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAC1C\uC778 \uC815\uBCF4 \uC815\uCC45"
+  m_text: Privacy Policy
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -12456,16 +12542,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1716280287}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: privacy
-  m_languageID: 9
+  key: privacy
 --- !u!1 &1717228398
 GameObject:
   m_ObjectHideFlags: 0
@@ -15191,7 +15271,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC554\uD638..."
+  m_text: PASSWORD...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -15278,73 +15358,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2045320476}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: placePassword
-  m_languageID: 6
---- !u!1001 &2064798009
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1838605857493582, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_Name
-      value: LoadSceneLanguagePool
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 80
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_RootOrder
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4470821890965162, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: ff12ed6fc209d48a7902aa4c0b940d93, type: 3}
+  key: placePassword
 --- !u!1 &2076734433
 GameObject:
   m_ObjectHideFlags: 0
@@ -15778,7 +15795,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2116542926
 RectTransform:
   m_ObjectHideFlags: 0
@@ -15893,7 +15910,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAC00\uC785\uD558\uAE30"
+  m_text: SIGN UP
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -15980,16 +15997,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2121738745}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e8ad1e962c24ec1a433bc823c44cfb, type: 3}
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingType: 1
-  multiLanguage:
-    languages: []
-  m_languagePool: {fileID: 114439535378040154, guid: ff12ed6fc209d48a7902aa4c0b940d93,
-    type: 3}
-  m_languageKey: signup
-  m_languageID: 1
+  key: signup
 --- !u!1 &1105378820499710
 GameObject:
   m_ObjectHideFlags: 0

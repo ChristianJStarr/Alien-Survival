@@ -28,6 +28,21 @@ public class LoadSceneScript : MonoBehaviour
     private string termsConditionsUrl = "https://aliensurvival.com/terms-app.php";
     private int nightChance = 0;
 
+    private float storedFontSizeLogin = 0;
+    private float storedFontSizeSignup = 0;
+    private string storedKeyLogin = "";
+    private string storedKeySignup = "";
+
+    private void OnEnable()
+    {
+        MultiLangSystem.ChangedLanguage += UpdateText;
+    }
+    private void OnDisable()
+    {
+        MultiLangSystem.ChangedLanguage -= UpdateText;
+    }
+
+
     void Start() 
     {
         //Run Server if Server
@@ -41,7 +56,8 @@ public class LoadSceneScript : MonoBehaviour
             RunServer();
         }
 #endif
-
+        ChangeNotify("signup", "defaultSignup");
+        ChangeNotify("login", "defaultLogin");
         //Set Night Chance
         SetNightChance();
         
@@ -92,6 +108,12 @@ public class LoadSceneScript : MonoBehaviour
         }
         //Change asterisk to dot in input field.
         usernameText.asteriskChar = passwordText.asteriskChar = regUsernameText.asteriskChar = regPassText.asteriskChar = '•';
+    }
+
+    private void UpdateText() 
+    {
+        ChangeNotify("login", storedKeyLogin);
+        ChangeNotify("signup", storedKeySignup);
     }
 
     private void RunServer() 
@@ -157,6 +179,63 @@ public class LoadSceneScript : MonoBehaviour
     public void OpenTermsUrl()
     {
         Application.OpenURL(termsConditionsUrl);
+    }
+
+    private void ChangeNotify(string type, string key)
+    {
+        if (key.Length > 0)
+        {
+            LangDataSingle langDatas = MultiLangSystem.GetLangDataFromKey(key);
+            if (langDatas != null)
+            {
+                if (type == "login")
+                {
+                    storedKeyLogin = key;
+                    if (loginNotify.text != null)
+                    {
+                        if (storedFontSizeLogin == 0)
+                        {
+                            storedFontSizeLogin = loginNotify.fontSize;
+                        }
+                        loginNotify.text = langDatas.text;
+                        if (langDatas.fontSize == 0)
+                        {
+                            if (loginNotify.fontSize != storedFontSizeLogin)
+                            {
+                                loginNotify.fontSize = storedFontSizeLogin;
+                            }
+                        }
+                        else
+                        {
+                            loginNotify.fontSize = langDatas.fontSize;
+                        }
+                    }
+                }
+                else if (type == "signup")
+                {
+                    storedKeySignup = key;
+                    if (signupNotify.text != null)
+                    {
+                        if (storedFontSizeSignup == 0)
+                        {
+                            storedFontSizeSignup = signupNotify.fontSize;
+                        }
+                        signupNotify.text = langDatas.text;
+                        if (langDatas.fontSize == 0)
+                        {
+                            if (signupNotify.fontSize != storedFontSizeSignup)
+                            {
+                                signupNotify.fontSize = storedFontSizeSignup;
+                            }
+                        }
+                        else
+                        {
+                            signupNotify.fontSize = langDatas.fontSize;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     //Button Function: Show login menu.
@@ -329,7 +408,6 @@ public class LoadSceneScript : MonoBehaviour
         }
     }
 
-
     public void CloseConnectionError() 
     {
         connectionError.SetActive(false);
@@ -374,7 +452,7 @@ public class LoadSceneScript : MonoBehaviour
                 else if (onRequestFinished == "TAKEN")
                 {
                     //Unable to Signup. Likely username taken.
-                    signupNotify.text = "USERNAME TAKEN";
+                    ChangeNotify("signup", "takenLogin");
                 }
                 else 
                 {
@@ -399,6 +477,7 @@ public class LoadSceneScript : MonoBehaviour
             {
                 //Unable to Login. Likely incorrect fields.
                 loginNotify.text = "INCORRECT USERNAME/PASSWORD";
+                ChangeNotify("login", "incorrectLogin");
             }
             else 
             {

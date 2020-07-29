@@ -8780,7 +8780,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -0.026977539, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0.099853516, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &737399481
 MonoBehaviour:
@@ -9675,12 +9675,6 @@ MonoBehaviour:
   easterEggBeam: {fileID: 815405738}
   loadTip: {fileID: 997504536}
   loadMainText: {fileID: 260055525}
-  loadTips:
-  - If you're experiencing performance issues, try reducing your game quality in
-    the settings.
-  - Your connection to the server may be unstable when not using wifi.
-  - Found a bug? Submit a report and we'll fix it as soon as possible.
-  - Have a suggestion? Submit a report, detailed suggestion, and we'll consider it.
   playTargetCord: {x: -9.36, y: 6.968846, z: -15.53908}
   playTargetRot: {x: 0, y: 0.13, z: 0, w: 1}
   profTargetCord: {x: -9.36, y: 6.968846, z: -15.53908}
@@ -26427,7 +26421,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2095100678
 RectTransform:
   m_ObjectHideFlags: 0
