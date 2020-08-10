@@ -16,7 +16,7 @@ MonoBehaviour:
   musicVolume: 0.5
   ambientVolume: 0.5
   effectsVolume: 0.5
-  quality: 3
+  quality: 1
   shadow: 3
   aliasing: 3
   postpro: 2

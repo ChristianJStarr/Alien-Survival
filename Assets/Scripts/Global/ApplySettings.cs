@@ -13,13 +13,14 @@ public class ApplySettings : MonoBehaviour
     {
         string sceneName = SceneManager.GetActiveScene().name; //Get current scene.
         //Check if current scene is the load scene.
+        Debug.Log(sceneName);
         if (sceneName == "LoadScene") 
         {
             //Check if quality settings need to be changed.
-            if(QualitySettings.GetQualityLevel() == settings.quality)
+            if(QualitySettings.GetQualityLevel() != settings.quality)
             {
                 //Change quality settings.
-                QualitySettings.SetQualityLevel(settings.quality - 1, true);
+                QualitySettings.SetQualityLevel(settings.quality, true);
             }
             RenderPipelineAsset renderAsset = GetAsset(); //Get render pipeline asset that coresonds to stored settings.
             //Check if render pipeline asset needs to be changed.
