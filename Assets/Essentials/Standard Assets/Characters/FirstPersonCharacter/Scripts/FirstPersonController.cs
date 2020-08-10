@@ -24,7 +24,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private CurveControlledBob m_HeadBob = new CurveControlledBob();
         [SerializeField] private LerpControlledBob m_JumpBob = new LerpControlledBob();
         [SerializeField] private float m_StepInterval;
-        [SerializeField] private AudioClip[] m_FootstepSounds;    // an array of footstep sounds that will be randomly selected from.
+
+        // an array of footstep sounds that will be randomly selected from.
+        [SerializeField] private AudioClip[] m_FootstepSoundsGrass; //Array of Grass Footsteps
+        [SerializeField] private AudioClip[] m_FootstepSoundsDirt; //Array of Dirt Footsteps
+        [SerializeField] private AudioClip[] m_FootstepSoundsRock; //Array of Rock Footsteps
+        [SerializeField] private AudioClip[] m_FootstepSoundsWood; //Array of Wood Footsteps
+
+
+
         [SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
         [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
         [SerializeField] private Transform cameraPivot;
@@ -169,7 +177,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             Physics.SphereCast(transform.position, m_CharacterController.radius, Vector3.down, out hitInfo,
                                m_CharacterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
             desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
-            Debug.Log(speed);
             m_MoveDir.x = desiredMove.x * speed;
             m_MoveDir.z = desiredMove.z * speed;
 
@@ -223,20 +230,38 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
 
         //Sound: FootStep Sound
-        private void PlayFootStepAudio()
+        private void PlayFootStepAudio(int groundType)
         {
+            AudioClip[] footstepSounds = null;
+            if(groundType == 1) 
+            {
+                footstepSounds = m_FootstepSoundsGrass;
+            }
+            else if (groundType == 2)
+            {
+                footstepSounds = m_FootstepSoundsDirt;
+            }
+            else if (groundType == 3)
+            {
+                footstepSounds = m_FootstepSoundsRock;
+            }
+            else if (groundType == 4)
+            {
+                footstepSounds = m_FootstepSoundsWood;
+            }
+
             if (!m_CharacterController.isGrounded)
             {
                 return;
             }
             // pick & play a random footstep sound from the array,
             // excluding sound at index 0
-            int n = Random.Range(1, m_FootstepSounds.Length);
-            m_AudioSource.clip = m_FootstepSounds[n];
+            int n = Random.Range(1, footstepSounds.Length);
+            m_AudioSource.clip = footstepSounds[n];
             m_AudioSource.PlayOneShot(m_AudioSource.clip);
             // move picked sound to index 0 so it's not picked next time
-            m_FootstepSounds[n] = m_FootstepSounds[0];
-            m_FootstepSounds[0] = m_AudioSource.clip;
+            footstepSounds[n] = footstepSounds[0];
+            footstepSounds[0] = m_AudioSource.clip;
         }
 
         //Teleport Player
@@ -269,7 +294,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             m_NextStep = m_StepCycle + m_StepInterval;
 
-            PlayFootStepAudio();
+            PlayFootStepAudio(1);
         }
 
         //Update Camera Position
