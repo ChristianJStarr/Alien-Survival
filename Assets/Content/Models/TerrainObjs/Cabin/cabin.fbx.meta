@@ -14,6 +14,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: House_Material
     second: {fileID: 2100000, guid: 50c840edbd01d364f9dc56ecbf899c86, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Window_Glass
+    second: {fileID: 2100000, guid: ae551e8c66c6258468c3bf400faa0353, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0

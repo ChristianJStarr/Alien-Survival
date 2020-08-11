@@ -34,7 +34,7 @@ public class InventoryGfx : MonoBehaviour
     public RectTransform craftingRect;
 
     private Vector2 armorTarget = new Vector3(-354F, -41.99303F);
-    private Vector2 craftingTarget = new Vector3(2997, -41.99601F);
+    private Vector2 craftingTarget = new Vector3(-618, -41.99601F);
 
     private bool armorMove;
     private bool craftingMove;
@@ -128,14 +128,6 @@ public class InventoryGfx : MonoBehaviour
             else 
             {
                 armorMove = false;
-                if (armorActive) 
-                {
-                    tint.SetActive(true);
-                }
-                else
-                {
-                    tint.SetActive(false);
-                }
             }
         }
         if(craftingMove) 
@@ -147,15 +139,15 @@ public class InventoryGfx : MonoBehaviour
             else 
             {
                 craftingMove = false;
-                if (craftingActive)
-                {
-                    tint.SetActive(true);
-                }
-                else 
-                {
-                    tint.SetActive(false);
-                }
             }
+        }
+        if (armorActive || craftingActive)
+        {
+            tint.SetActive(true);
+        }
+        else
+        {
+            tint.SetActive(false);
         }
     }
 
@@ -167,11 +159,11 @@ public class InventoryGfx : MonoBehaviour
             Vector2 target;
             if (state) 
             {
-                target = new Vector2(1943, -41.99601F);
+                target = new Vector2(-618F, -41.99601F);
             }
             else 
             {
-                target = new Vector2(2997, -41.99601F);
+                target = new Vector2(456.8462F, -41.99601F);
             }
             craftingTarget = target;
             craftingMove = true;
