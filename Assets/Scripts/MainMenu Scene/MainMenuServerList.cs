@@ -111,6 +111,7 @@ public class MainMenuServerList : MonoBehaviour
         {
             isRefreshing = true;
             isDemoLoad = true;
+            DebugMsg.Begin(5, "Requesting Server List.", 2);
             StartCoroutine(DemoLoadDelay());
             webServer.ServerListRequest(onRequestFinished =>
             {
@@ -128,7 +129,9 @@ public class MainMenuServerList : MonoBehaviour
                         Destroy(slides[i].gameObject);
                     }
                     slides.Clear();
+                    DebugMsg.End(5, "Server List Request Done.", 2);
                 }
+               
             });
         }
     }
@@ -147,6 +150,7 @@ public class MainMenuServerList : MonoBehaviour
             Validate(server);
         }
         ToggleVisibility();
+        DebugMsg.End(5, "Server List Request Done.", 2);
     }
 
     private void ToggleVisibility() 

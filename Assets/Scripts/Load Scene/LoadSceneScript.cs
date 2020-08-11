@@ -304,6 +304,7 @@ public class LoadSceneScript : MonoBehaviour
             }
         }
         StartCoroutine(LoadRoutine());//Start loading the MainMenu scene.
+        DebugMsg.Begin(6, "Loading the Main Menu.", 2);
     }
     
     //Load routine for loading MainMenu scene. Handles the loading bar and getting player stats.
@@ -350,6 +351,7 @@ public class LoadSceneScript : MonoBehaviour
                 asyncTemp = op;
                 ShowConnectionError(1);
             }
+            DebugMsg.End(6, "Finished Loading Main Menu.", 2);
         });
     }
 
