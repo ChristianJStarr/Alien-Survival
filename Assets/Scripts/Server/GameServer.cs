@@ -129,20 +129,17 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-
-
-
-
     //-----------------------------------------------------------------//
     //             SERVER FUNCTIONS                                    //
     //-----------------------------------------------------------------//
 
+    //Start the Game Server
     private void StartGameServer()
     {
-        DebugMessage("Starting Game Server.", 1);
+        DebugMsg.Begin(1, "Starting Game Server.", 1);
+        
         activePlayers = new List<PlayerInfo>();
         inactivePlayers = new List<PlayerInfo>();
-
         serverSaveData = Resources.Load("Data/ServerSaveData") as ServerSaveData;
         if (serverSaveData.playerData != null)
         {
@@ -153,50 +150,54 @@ public class GameServer : NetworkedBehaviour
         inventorySystem = GetComponent<InventorySystem>();
         clickableSystem = GetComponent<ClickableSystem>();
         LoadGameObjects();
-
         storedProperties = ServerConnect.singleton.GetServerProperties();
         if (storedProperties != null)
         {
             StartCoroutine(AutoSaveLoop());
         }
+
+        DebugMsg.End(1, "Game Server Started.", 1);
     }
+    
+    //Stop the Game Server
     public void StopGameServer()
     {
-        DebugMessage("Stopping Game Server.", 1);
+        DebugMsg.Begin(2, "Stopping Game Server.", 1);
+
         inactivePlayers.Concat(activePlayers).ToList();
         if (serverSaveData != null)
         {
             serverSaveData.playerData = inactivePlayers;
             serverSaveData.objData = activeGameObjects;
-            DebugMessage("Saving Server Data.", 1);
+            DebugMsg.Notify("Saving Server Data.", 1);
             NetworkingManager.Singleton.StopServer();
         }
+
+        DebugMsg.End(2, "Stopped Game Server.", 1);
     }
+    
+    //Manage Active Player List
     public void ActiveManage(PlayerInfo info, bool add)
     {
         if (add)
         {
-            DebugMessage("Added Player '" + info.name + "' to Active Players.", 2);
-            DebugMessage("PlayerInfo -- " + info.health + " " + info.water + " " + info.food, 3);
             activePlayers.Add(info);
         }
         else
         {
-            DebugMessage("Removed Player '" + info.name + "' to Active Players.", 2);
-            DebugMessage("PlayerInfo -- " + info.health + " " + info.water + " " + info.food, 3);
             activePlayers.Remove(info);
         }
     }
+    
+    //Manage Inactive Player List
     public void InactiveManage(PlayerInfo info, bool add)
     {
         if (add)
         {
-            DebugMessage("Added Player '" + info.name + "' to Inactive Players.", 2);
             inactivePlayers.Add(info);
         }
         else
         {
-            DebugMessage("Removed Player '" + info.name + "' to Inactive Players.", 2);
             inactivePlayers.Remove(info);
         }
     }
@@ -223,7 +224,7 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                DebugMessage("Handing Over Player Network ID '" + activePlayers[i].name + "' to Active Players.", 3);
+                DebugMsg.Notify("Handing Over Player Network ID '" + activePlayers[i].name + "' to Active Players.", 3);
                 activePlayers[i].networkId = networkId;
                 break;
             }
@@ -334,8 +335,8 @@ public class GameServer : NetworkedBehaviour
     //Health
     public void ServerSetHealth(ulong clientId, int amount)
     {
+        DebugMsg.Notify("Setting Health of Player '" + clientId + "'.", 2);
 
-        DebugMessage("Setting Health of Player '" + clientId + "'.", 2);
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
@@ -346,7 +347,7 @@ public class GameServer : NetworkedBehaviour
             }
             else
             {
-                DebugMessage("Unable to Set Health of Player '" + clientId + "'.", 2);
+                DebugMsg.Notify("Unable to Set Health of Player '" + clientId + "'.", 2);
             }
         }
     }
@@ -354,8 +355,9 @@ public class GameServer : NetworkedBehaviour
     //Inventory Items Add by ID
     public bool ServerAddNewItemToInventory(ulong clientId, int id, int amount)
     {
+        DebugMsg.Notify("Adding Item(s) to Player '" + clientId + "'.", 3);
+        
         bool returnValue = false;
-        DebugMessage("Adding Item(s) to Player '" + clientId + "'.", 2);
         ItemData itemData = GetItemDataById(id);
         if (itemData != null)
         {
@@ -379,9 +381,10 @@ public class GameServer : NetworkedBehaviour
     //Inventory Items Add by Item
     public bool ServerAddItemToInventory(ulong clientId, Item item)
     {
+        DebugMsg.Notify("Adding Item(s) to Player '" + clientId + "'.", 3);
+
         item.currSlot = 44;
         bool wasPlaced = false;
-        DebugMessage("Adding Item(s) to Player '" + clientId + "'.", 2);
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
@@ -400,7 +403,8 @@ public class GameServer : NetworkedBehaviour
     //Inventory Items Add by Item
     public void ServerCraftItemToInventory(ulong clientId, ItemData item, int amount)
     {
-        DebugMessage("Crafting Item to Player '" + clientId + "'.", 2);
+        DebugMsg.Notify("Crafting Item to Player '" + clientId + "'.", 3);
+
         if (item != null)
         {
             for (int i = 0; i < activePlayers.Count; i++)
@@ -427,7 +431,7 @@ public class GameServer : NetworkedBehaviour
                 }
                 else
                 {
-                    DebugMessage("Unable to Craft Item to Player '" + clientId + "'.", 1);
+                    DebugMsg.Notify("Unable to Craft Item to Player '" + clientId + "'.", 3);
                 }
             }
         }
@@ -436,7 +440,8 @@ public class GameServer : NetworkedBehaviour
     //Inventory Items Remove
     public void ServerRemoveItemFromInventory(ulong clientId, int itemId, int amount)
     {
-        DebugMessage("Removing Item from Player '" + clientId + "'.", 2);
+        DebugMsg.Notify("Removing Item from Player '" + clientId + "'.", 2);
+
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
@@ -451,7 +456,7 @@ public class GameServer : NetworkedBehaviour
             }
             else
             {
-                DebugMessage("Unable to Add Item to Player '" + clientId + "'.", 1);
+                DebugMsg.Notify("Unable to Add Item to Player '" + clientId + "'.", 2);
             }
         }
     }
@@ -459,7 +464,8 @@ public class GameServer : NetworkedBehaviour
     //Inventory Blueprints Add
     public void ServerAddBlueprint(ulong clientId, Item newBp)
     {
-        DebugMessage("Adding Blueprint to Player '" + clientId + "'.", 2);
+        DebugMsg.Notify("Adding Blueprint to Player '" + clientId + "'.", 2);
+
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
@@ -470,7 +476,7 @@ public class GameServer : NetworkedBehaviour
             }
             else
             {
-                DebugMessage("Unable to Add Blueprint to Player '" + clientId + "'.", 1);
+                DebugMsg.Notify("Unable to Add Blueprint to Player '" + clientId + "'.", 1);
             }
         }
     }
@@ -478,7 +484,7 @@ public class GameServer : NetworkedBehaviour
     //Inventory Blueprints Whipe
     public void ServerWipeBlueprints(ulong clientId)
     {
-        DebugMessage("Wiping Blueprints of Player '" + clientId + "'.", 2);
+        DebugMsg.Notify("Wiping Blueprints of Player '" + clientId + "'.", 2);
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
@@ -489,7 +495,7 @@ public class GameServer : NetworkedBehaviour
             }
             else
             {
-                DebugMessage("Unable to Wipe Blueprints of Player '" + clientId + "'.", 2);
+                DebugMsg.Notify("Unable to Wipe Blueprints of Player '" + clientId + "'.", 2);
             }
         }
     }
@@ -517,7 +523,7 @@ public class GameServer : NetworkedBehaviour
     //Respawn Player
     public void ServerRespawnPlayer(ulong clientId)
     {
-        DebugMessage("Respawning Player '" + clientId + "'.", 2);
+        DebugMsg.Notify("Respawning Player '" + clientId + "'.", 2);
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
@@ -539,7 +545,7 @@ public class GameServer : NetworkedBehaviour
             }
             else
             {
-                DebugMessage("Unable to Set Health of Player '" + clientId + "'.", 2);
+                DebugMsg.Notify("Unable to Set Health of Player '" + clientId + "'.", 2);
             }
         }
     }
@@ -792,7 +798,7 @@ public class GameServer : NetworkedBehaviour
     //Load all Game Objects.
     private void LoadGameObjects()
     {
-        DebugMessage("Loading Game Objects.", 2);
+        DebugMsg.Notify("Loading Game Objects.", 2);
         if (activeGameObjects != null)
         {
             if (activeGameObjects.Count > 0)
@@ -828,10 +834,10 @@ public class GameServer : NetworkedBehaviour
     //--Request Health
     public void GetPlayerHealth(int id, Action<int> callback)
     {
-        DebugMessage("Requesting Health.", 2);
+        DebugMsg.Notify("Requesting Health.", 2);
         StartCoroutine(GetPlayerHealth_Wait(id, returnValue =>
         {
-            DebugMessage("Requesting Health Success. Amount: " + returnValue, 2);
+            DebugMsg.Notify("Requesting Health Success. Amount: " + returnValue, 2);
             callback(returnValue);
         }));
     }
@@ -857,7 +863,7 @@ public class GameServer : NetworkedBehaviour
         }
         if (value == 200)
         {
-            DebugMessage("Unable to Get Health of Player ID: " + id, 1);
+            DebugMsg.Notify("Unable to Get Health of Player ID: " + id, 1);
             value = 100;
         }
         return value;
@@ -867,10 +873,10 @@ public class GameServer : NetworkedBehaviour
     //--Request Water
     public void GetPlayerWater(int id, Action<int> callback)
     {
-        DebugMessage("Requesting Water.", 2);
+        DebugMsg.Notify("Requesting Water.", 2);
         StartCoroutine(GetPlayerWater_Wait(id, returnValue =>
         {
-            DebugMessage("Requesting Water Success. Amount: " + returnValue, 2);
+            DebugMsg.Notify("Requesting Water Success. Amount: " + returnValue, 2);
             callback(returnValue);
         }));
     }
@@ -896,7 +902,7 @@ public class GameServer : NetworkedBehaviour
         }
         if (value == 200)
         {
-            DebugMessage("Unable to Get Water of Player ID: " + id, 1);
+            DebugMsg.Notify("Unable to Get Water of Player ID: " + id, 1);
             value = 100;
         }
         return value;
@@ -906,10 +912,10 @@ public class GameServer : NetworkedBehaviour
     //--Request Food
     public void GetPlayerFood(int id, Action<int> callback)
     {
-        DebugMessage("Requesting Food.", 2);
+        DebugMsg.Notify("Requesting Food.", 2);
         StartCoroutine(GetPlayerFood_Wait(id, returnValue =>
         {
-            DebugMessage("Requesting Food Success. Amount: " + returnValue, 2);
+            DebugMsg.Notify("Requesting Food Success. Amount: " + returnValue, 2);
             callback(returnValue);
         }));
     }
@@ -935,7 +941,7 @@ public class GameServer : NetworkedBehaviour
         }
         if (value == 200)
         {
-            DebugMessage("Unable to Get Food of Player ID: " + id, 1);
+            DebugMsg.Notify("Unable to Get Food of Player ID: " + id, 1);
             value = 100;
         }
         return value;
@@ -945,7 +951,7 @@ public class GameServer : NetworkedBehaviour
     //--Request Inventory items
     public void GetPlayerInventoryItems(int id, Action<Item[]> callback)
     {
-        DebugMessage("Requesting Inventory Items.", 2);
+        DebugMsg.Notify("Requesting Inventory Items.", 2);
         StartCoroutine(GetPlayerInventoryItems_Wait(id, returnValue => { callback(returnValue); }));
     }
 
@@ -972,7 +978,7 @@ public class GameServer : NetworkedBehaviour
         }
         if (unable)
         {
-            DebugMessage("Unable to Get Items of Player ID: " + id, 1);
+            DebugMsg.Notify("Unable to Get Items of Player ID: " + id, 1);
         }
         return value;
     }
@@ -981,7 +987,7 @@ public class GameServer : NetworkedBehaviour
     //--Request Inventory armor
     public void GetPlayerInventoryArmor(int id, Action<Item[]> callback)
     {
-        DebugMessage("Requesting Inventory Armor.", 2);
+        DebugMsg.Notify("Requesting Inventory Armor.", 2);
         StartCoroutine(GetPlayerInventoryArmor_Wait(id, returnValue => { callback(returnValue); }));
     }
 
@@ -1008,7 +1014,7 @@ public class GameServer : NetworkedBehaviour
         }
         if (unable)
         {
-            DebugMessage("Unable to Get Armor of Player ID: " + id, 1);
+            DebugMsg.Notify("Unable to Get Armor of Player ID: " + id, 1);
         }
         return value;
     }
@@ -1017,7 +1023,7 @@ public class GameServer : NetworkedBehaviour
     //--Request Inventory blueprints
     public void GetPlayerInventoryBlueprints(int id, Action<int[]> callback)
     {
-        DebugMessage("Requesting Inventory Blueprints", 2);
+        DebugMsg.Notify("Requesting Inventory Blueprints", 2);
         StartCoroutine(GetPlayerInventoryBlueprints_Wait(id, returnValue => { callback(returnValue); }));
     }
 
@@ -1044,7 +1050,7 @@ public class GameServer : NetworkedBehaviour
         }
         if (unable)
         {
-            DebugMessage("Unable to Get Blueprints of Player ID: " + id, 1);
+            DebugMsg.Notify("Unable to Get Blueprints of Player ID: " + id, 1);
         }
         return value;
     }
@@ -1053,7 +1059,7 @@ public class GameServer : NetworkedBehaviour
     //--Request if have enough
     public void GetIfEnoughItems(int id, int itemId, int amount, Action<bool> callback)
     {
-        DebugMessage("Requesting If Enough Items", 2);
+        DebugMsg.Notify("Requesting If Enough Items", 2);
         StartCoroutine(GetIfEnoughItems_Wait(id, itemId, amount, returnValue => { callback(returnValue); }));
     }
 
@@ -1081,7 +1087,7 @@ public class GameServer : NetworkedBehaviour
         }
         if (enough)
         {
-            DebugMessage("Player has Enough Items. ID: " + id, 1);
+            DebugMsg.Notify("Player has Enough Items. ID: " + id, 1);
         }
         return enough;
     }
@@ -1090,7 +1096,7 @@ public class GameServer : NetworkedBehaviour
     //--Request Player Name by Client Id
     public void GetNameByClientId(ulong clientId, Action<string> callback)
     {
-        DebugMessage("Requesting Name of Client Id", 2);
+        DebugMsg.Notify("Requesting Name of Client Id", 2);
         StartCoroutine(GetNameByClientId_Wait(clientId, returnValue => { callback(returnValue); }));
     }
 
@@ -1120,7 +1126,7 @@ public class GameServer : NetworkedBehaviour
     //--Request Player Name by Client Id
     public void GetAllConnectedClients(Action<ulong[]> callback)
     {
-        DebugMessage("Requesting a List of All Clients.", 2);
+        DebugMsg.Notify("Requesting a List of All Clients.", 2);
         StartCoroutine(GetAllConnectedClients_Wait(returnValue => { callback(returnValue); }));
     }
 
@@ -1158,7 +1164,7 @@ public class GameServer : NetworkedBehaviour
     //--Set Player Health
     public void SetPlayerHealth(int id, string authKey, int health)
     {
-        DebugMessage("Requesting to Modify Health.", 4);
+        DebugMsg.Notify("Requesting to Modify Health.", 4);
         InvokeServerRpc(SetPlayerHealth_Rpc, id, authKey, health);
     }
     [ServerRPC(RequireOwnership = false)]
@@ -1178,7 +1184,7 @@ public class GameServer : NetworkedBehaviour
                 {
                     ServerRespawnPlayer(activePlayers[i].clientId);
                 }
-                DebugMessage("Setting Health of Player '" + activePlayers[i].name + "'.", 4);
+                DebugMsg.Notify("Setting Health of Player '" + activePlayers[i].name + "'.", 4);
                 ForceRequestInfoById(activePlayers[i].clientId, 2);
                 break;
             }
@@ -1189,7 +1195,7 @@ public class GameServer : NetworkedBehaviour
     //--Set Player Water
     public void SetPlayerWater(int id, string authKey, int water)
     {
-        DebugMessage("Requesting to Modify Water.", 4);
+        DebugMsg.Notify("Requesting to Modify Water.", 4);
         InvokeServerRpc(SetPlayerWater_Rpc, id, authKey, water);
     }
 
@@ -1201,7 +1207,7 @@ public class GameServer : NetworkedBehaviour
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
                 activePlayers[i].water = Mathf.Clamp(activePlayers[i].water += water, 0, 100);
-                DebugMessage("Setting Water of Player '" + activePlayers[i].name + "'.", 4);
+                DebugMsg.Notify("Setting Water of Player '" + activePlayers[i].name + "'.", 4);
                 ForceRequestInfoById(activePlayers[i].clientId, 4);
                 break;
             }
@@ -1212,7 +1218,7 @@ public class GameServer : NetworkedBehaviour
     //--Set Player Food
     public void SetPlayerFood(int id, string authKey, int food)
     {
-        DebugMessage("Requesting to Modify Food.", 4);
+        DebugMsg.Notify("Requesting to Modify Food.", 4);
         InvokeServerRpc(SetPlayerFood_Rpc, id, authKey, food);
     }
 
@@ -1224,7 +1230,7 @@ public class GameServer : NetworkedBehaviour
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
                 activePlayers[i].food = Mathf.Clamp(activePlayers[i].food += food, 0, 100);
-                DebugMessage("Setting Food of Player '" + activePlayers[i].name + "'.", 4);
+                DebugMsg.Notify("Setting Food of Player '" + activePlayers[i].name + "'.", 4);
                 ForceRequestInfoById(activePlayers[i].clientId, 3);
                 break;
             }
@@ -1259,7 +1265,7 @@ public class GameServer : NetworkedBehaviour
                 if (activePlayers[i].id == reader.ReadInt32Packed() && activePlayers[i].authKey == reader.ReadStringPacked().ToString())
                 {
                     activePlayers[i].location = new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked());
-                    DebugMessage("Setting Location of Player '" + activePlayers[i].name + "'.", 4);
+                    DebugMsg.Notify("Setting Location of Player '" + activePlayers[i].name + "'.", 4);
                     break;
                 }
             }
@@ -1269,7 +1275,7 @@ public class GameServer : NetworkedBehaviour
     //--Request To Teleport
     public void RequestToDie(int id, string authKey)
     {
-        DebugMessage("Requesting to Die.", 4);
+        DebugMsg.Notify("Requesting to Die.", 4);
         InvokeServerRpc(RequestToDie_Rpc, id, authKey);
     }
 
@@ -1302,7 +1308,7 @@ public class GameServer : NetworkedBehaviour
     //--Request To Telport
     public void RequestToTeleport(int id, string authKey, ulong targetClientId)
     {
-        DebugMessage("Requesting to Teleport.", 2);
+        DebugMsg.Notify("Requesting to Teleport.", 2);
         InvokeServerRpc(RequestToTeleport_Rpc, id, authKey, targetClientId);
     }
 
@@ -1326,7 +1332,7 @@ public class GameServer : NetworkedBehaviour
     //--Request To Cheat Item
     public void RequestToCheatItem(int id, string authKey, int itemId)
     {
-        DebugMessage("Requesting to Cheat Item.", 2);
+        DebugMsg.Notify("Requesting to Cheat Item.", 2);
         InvokeServerRpc(RequestToCheatItem_Rpc, id, authKey, itemId);
     }
 
@@ -1356,7 +1362,7 @@ public class GameServer : NetworkedBehaviour
     //--Move Player Inventory Item by Slot
     public void MovePlayerItemBySlot(int id, string authKey, int curSlot, int newSlot)
     {
-        DebugMessage("Requesting to Modify Inventory.", 2);
+        DebugMsg.Notify("Requesting to Modify Inventory.", 2);
         if (curSlot > 33 || newSlot > 33)
         {
             InvokeServerRpc(MovePlayerItemArmorBySlot_Rpc, id, authKey, curSlot, newSlot);
@@ -1406,7 +1412,7 @@ public class GameServer : NetworkedBehaviour
                 {
                     activePlayers[i].items = inventorySystem.MoveItemInInventory(curSlot, newSlot, activePlayers[i].items);
                 }
-                DebugMessage("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 4);
+                DebugMsg.Notify("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 4);
 
                 ForceRequestInfoById(activePlayers[i].clientId, 5);
                 break;
@@ -1433,7 +1439,7 @@ public class GameServer : NetworkedBehaviour
     //--Remove Player Inventory Item by Slot
     public void RemovePlayerItemBySlot(int id, string authKey, int curSlot)
     {
-        DebugMessage("Requesting to Modify Inventory.", 2);
+        DebugMsg.Notify("Requesting to Modify Inventory.", 2);
         InvokeServerRpc(RemovePlayerItemBySlot_Rpc, id, authKey, curSlot);
     }
 
@@ -1451,7 +1457,7 @@ public class GameServer : NetworkedBehaviour
                             //Instantiate Item by ID
                         }
                 });
-                DebugMessage("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 2);
+                DebugMsg.Notify("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 2);
                 ForceRequestInfoById(activePlayers[i].clientId, 5);
                 break;
             }
@@ -1462,7 +1468,7 @@ public class GameServer : NetworkedBehaviour
     //--Remove Player Craft Item by ID
     public void CraftItemById(int id, string authKey, int itemId, int amount)
     {
-        DebugMessage("Requesting to Modify Inventory.", 2);
+        DebugMsg.Notify("Requesting to Modify Inventory.", 2);
         InvokeServerRpc(CraftItemById_Rpc, id, authKey, itemId, amount);
     }
 
@@ -1575,7 +1581,7 @@ public class GameServer : NetworkedBehaviour
     //CLIENT : Use Selected Item
     public void UseSelectedItem(int id, string authKey, int itemSlot, Transform aim) 
     {
-        DebugMessage("Requesting to Use Selected Item", 2);
+        DebugMsg.Notify("Requesting to Use Selected Item", 2);
         Vector3 rot = aim.TransformDirection(Vector3.forward);
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
@@ -1666,7 +1672,7 @@ public class GameServer : NetworkedBehaviour
                 int damage = ServerGetItemDamage(data);
                 if(damage > 0) 
                 {
-                    DebugMessage("Shoot. Damaging Network Object for Player: " + clientId, 2);
+                    DebugMsg.Notify("Shoot. Damaging Network Object for Player: " + clientId, 2);
                     ServerDamageNetworkedObject(netObject, damage);
                 }
             }
@@ -1685,7 +1691,7 @@ public class GameServer : NetworkedBehaviour
                 int damage = ServerGetItemDamage(data);
                 if (damage > 0)
                 {
-                    DebugMessage("Melee. Damaging Network Object for Player: " + clientId, 2);
+                    DebugMsg.Notify("Melee. Damaging Network Object for Player: " + clientId, 2);
                     ServerDamageNetworkedObject(netObject, damage);
                 }
             }
@@ -1706,7 +1712,7 @@ public class GameServer : NetworkedBehaviour
         NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, 1);
         if (netObject != null)
         {
-            DebugMessage("Punch. Damaging Network Object for Player: " + clientId, 2);
+            DebugMsg.Notify("Punch. Damaging Network Object for Player: " + clientId, 2);
             ServerDamageNetworkedObject(netObject, 2);
         }
         return false;
@@ -1715,7 +1721,7 @@ public class GameServer : NetworkedBehaviour
     //CLIENT : Add to Durability
     public void ReloadToDurability(int id, string authKey, int slot)
     {
-        DebugMessage("Requesting to Reload", 2);
+        DebugMsg.Notify("Requesting to Reload", 2);
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
             using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
@@ -1767,23 +1773,23 @@ public class GameServer : NetworkedBehaviour
                                     inventory = inventorySystem.ChangeItemDurability(inventory, final, data.maxDurability, slot);
                                     if (inventory != null)
                                     {
-                                        DebugMessage("Reloading for Player: " + clientId, 2);
+                                        DebugMsg.Notify("Reloading for Player: " + clientId, 2);
                                         activePlayers[i].items = inventory;
                                         ForceRequestInfoById(clientId, 5);
                                     }
                                     else
                                     {
-                                        DebugMessage("Reloading for Player Failed: " + clientId, 3);
+                                        DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
                                     }
                                 }
                                 else
                                 {
-                                    DebugMessage("Reloading for Player Failed: " + clientId, 3);
+                                    DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
                                 }
                             }
                             else
                             {
-                                DebugMessage("Reloading for Player Failed: " + clientId, 3);
+                                DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
                             }
                         }
                     }
@@ -1805,7 +1811,7 @@ public class GameServer : NetworkedBehaviour
     //--Interact with Clickable
     public void InteractWithClickable(int id, string authKey, string uniqueId)
     {
-        DebugMessage("Requesting to Interact with Clickable.", 2);
+        DebugMsg.Notify("Requesting to Interact with Clickable.", 2);
         InvokeServerRpc(InteractWithClickable_Rpc, id, authKey, uniqueId);
     }
 
@@ -1817,7 +1823,7 @@ public class GameServer : NetworkedBehaviour
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
                 clickableSystem.InteractWithClickable(activePlayers[i], uniqueId);
-                DebugMessage("Player '" + activePlayers[i].name + "' Interacting with Clickable: " + uniqueId + ".", 2);
+                DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with Clickable: " + uniqueId + ".", 2);
                 break;
             }
         }
@@ -1826,7 +1832,7 @@ public class GameServer : NetworkedBehaviour
     //--Interact with Resource
     public void InteractWithResource(int id, string authKey, string uniqueId)
     {
-        DebugMessage("Requesting to Interact with Resource.", 2);
+        DebugMsg.Notify("Requesting to Interact with Resource.", 2);
         InvokeServerRpc(InteractWithResource_Rpc, id, authKey, uniqueId);
     }
 
@@ -1838,7 +1844,7 @@ public class GameServer : NetworkedBehaviour
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
                 ServerDepleteResource(activePlayers[i].clientId, uniqueId);
-                DebugMessage("Player '" + activePlayers[i].name + "' Interacting with Resource: " + uniqueId + ".", 2);
+                DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with Resource: " + uniqueId + ".", 2);
                 break;
             }
         }
@@ -1848,7 +1854,7 @@ public class GameServer : NetworkedBehaviour
     //--Interact With Death Drop
     public void InteractWithDeathDrop(int id, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback)
     {
-        DebugMessage("Requesting to Interact with DeathDrop.", 2);
+        DebugMsg.Notify("Requesting to Interact with DeathDrop.", 2);
         StartCoroutine(InteractWithDeathDropWait(id, authKey, uniqueId, itemSlot, returnValue =>
         {
             callback(returnValue);
@@ -1904,7 +1910,7 @@ public class GameServer : NetworkedBehaviour
                         break;
                     }
                 }
-                DebugMessage("Player '" + activePlayers[i].name + "' Interacting with DeathDrop: " + uniqueId + ".", 2);
+                DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with DeathDrop: " + uniqueId + ".", 2);
                 break;
             }
         }
@@ -1930,7 +1936,7 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                DebugMessage("Disconnecting Player '" + activePlayers[i].name + "'.", 2);
+                DebugMsg.Notify("Disconnecting Player '" + activePlayers[i].name + "'.", 2);
                 NetworkingManager.Singleton.DisconnectClient(activePlayers[i].clientId);
                 
                 
@@ -1951,7 +1957,7 @@ public class GameServer : NetworkedBehaviour
     {
         List<ulong> idList = new List<ulong>();
         idList.Add(clientId);
-        DebugMessage("Forcing Player '" + clientId + "' to Request Info. Depth: " + infoDepth, 2);
+        DebugMsg.Notify("Forcing Player '" + clientId + "' to Request Info. Depth: " + infoDepth, 2);
         if (infoDepth == 1)
         {
             InvokeClientRpc("ForceRequestInfoAll_Rpc", idList);
@@ -2053,25 +2059,11 @@ public class GameServer : NetworkedBehaviour
         {
             playerCount = serverSaveData.objData.Count;
         }
-        DebugMessage("Auto-Save Complete. " + playerCount + " PlayerInfo's Saved. " + objCount + " Objects Saved.", 1);
+        DebugMsg.Notify("Auto-Save Complete. " + playerCount + " PlayerInfo's Saved. " + objCount + " Objects Saved.", 1);
         StartCoroutine(AutoSaveLoop());
     }
 
-    //Debug Message Function
-    private void DebugMessage(string message, int level)
-    {
-        if (level <= logLevel)
-        {
-            if (IsServer)
-            {
-                Debug.Log("[Server] GameServer : " + message);
-            }
-            else
-            {
-                Debug.Log("[Client] GameServer : " + message);
-            }
-        }
-    }
+
 }
 
 

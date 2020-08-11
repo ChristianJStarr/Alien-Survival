@@ -119,7 +119,7 @@ public class WebServer : MonoBehaviour
         yield return web.SendWebRequest();
         if (web.downloadHandler.text.StartsWith("TRUE"))
         {
-            DebugMessage("Purchased Item: " + itemId, 3);
+            DebugMsg.Notify("Purchased Item: " + itemId, 3);
             string[] floatData = web.downloadHandler.text.Split('!');
             string storeData = floatData[1];
             string notifyData = floatData[2];
@@ -142,7 +142,7 @@ public class WebServer : MonoBehaviour
         }
         else
         {
-            DebugMessage("AlienStore Purchase Failed. Message: " + web.downloadHandler.text, 1);
+            DebugMsg.Notify("AlienStore Purchase Failed. Message: " + web.downloadHandler.text, 1);
         }
     }
 
@@ -247,12 +247,12 @@ public class WebServer : MonoBehaviour
             playerStats.playerHours = float.Parse(hours);
             playerStats.notifyData = notifyData;
             playerStats.storeData = storeData;
-            DebugMessage("Statistics Request Successful.", 2);
+            DebugMsg.Notify("Statistics Request Successful.", 2);
             success(true);
         }
         else
         {
-            DebugMessage("Statistics Request Failed. Message: " + web.downloadHandler.text, 1);
+            DebugMsg.Notify("Statistics Request Failed. Message: " + web.downloadHandler.text, 1);
             success(false);
         }
     }
@@ -274,12 +274,12 @@ public class WebServer : MonoBehaviour
         
         if (web.downloadHandler.text.StartsWith("TRUE"))
         {
-            DebugMessage("Successfully Set Player Statistics: " + web.downloadHandler.text, 2);
+            DebugMsg.Notify("Successfully Set Player Statistics: " + web.downloadHandler.text, 2);
             success(true);
         }
         else
         {
-            DebugMessage("Failed Setting Player Statistics: " + web.downloadHandler.text, 1);
+            DebugMsg.Notify("Failed Setting Player Statistics: " + web.downloadHandler.text, 1);
             success(false);
         }
     }
@@ -296,7 +296,7 @@ public class WebServer : MonoBehaviour
 
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
-                DebugMessage("Master Server Success: ServerList", 3);
+                DebugMsg.Notify("Master Server Success: ServerList", 3);
                 string[] data = web.downloadHandler.text.Split('`');
                 ServerList serverList = new ServerList();
                 string json = "{ \"server\": " + data[1] + "}";
@@ -305,7 +305,7 @@ public class WebServer : MonoBehaviour
             }
             else
             {
-                DebugMessage("Master Server Error: " + web.downloadHandler.text, 1);
+                DebugMsg.Notify("Master Server Error: " + web.downloadHandler.text, 1);
                 serverSuccess(null);
             }
         }
@@ -330,7 +330,7 @@ public class WebServer : MonoBehaviour
             }
             else
             {
-                DebugMessage("Master Server Send Error: " + web.downloadHandler.text, 1);
+                DebugMsg.Notify("Master Server Send Error: " + web.downloadHandler.text, 1);
                 success(false);
             }
         }
@@ -373,29 +373,12 @@ public class WebServer : MonoBehaviour
         }
         else
         {
-            DebugMessage("Master Server Send Error: " + web.downloadHandler.text, 1);
+            DebugMsg.Notify("Master Server Send Error: " + web.downloadHandler.text, 1);
             success(false);
         }
     }
 
-    //Debug Message
-    private void DebugMessage(string message, int level)
-    {
-        if (networkManager != null)
-        {
-            if (level <= logLevel)
-            {
-                if (networkManager.IsServer)
-                {
-                    Debug.Log("[Server] ServerConnect : " + message);
-                }
-                else
-                {
-                    Debug.Log("[Client] ServerConnect : " + message);
-                }
-            }
-        }
-    }
+    
 
 }
 
