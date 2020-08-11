@@ -46,7 +46,7 @@ public class PlayerInfoManager : MonoBehaviour
         }
         else 
         {
-            Debug.Log("[Client] InfoManager : Networking Manager Null.");
+            DebugMsg.Notify("InfoManager : Networking Manager Null.", 1);
         }
     }
 
@@ -54,7 +54,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Update Inventory
     private void UpdateInventory()
     {
-        Debug.Log("[Client] InfoManager : Updating Inventory.");
+        DebugMsg.Notify("InfoManager : Updating Inventory.", 1);
         if (inventoryGfx != null && storedPlayerInfo != null)
         {
             inventoryGfx.Incoming(storedPlayerInfo);
@@ -64,7 +64,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Update Top Bar
     private void UpdateTopBar()
     {
-        Debug.Log("[Client] InfoManager : Updating Top Bar.");
+        DebugMsg.Notify("InfoManager : Updating Top Bar.", 1);
         if (topbar != null && storedPlayerInfo != null)
         {
             topbar.Incoming(storedPlayerInfo);
@@ -242,7 +242,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Request to Die
     public void RequestToDie() 
     {
-        Debug.Log(player.transform.localPosition);
+        //Debug.Log(player.transform.localPosition);
         SetPlayer_Health(-100);
         gameServer.RequestToDie(id, authKey);
     }

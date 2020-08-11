@@ -276,10 +276,10 @@ public class MainMenuScript : MonoBehaviour
 
     private void StartLoadTip() 
     {
-        string json = File.ReadAllText(Application.dataPath + "/Content/ExtData/loading-tips.txt");
+        string json = (Resources.Load("loading-tips") as TextAsset).text;
         loadingTips = JsonHelper.FromJson<string>(json);
         loadingTipIndex = Random.Range(0, loadingTips.Length - 1);
-        loadMainText.text = loadingTips[loadingTipIndex];
+        loadTip.text = loadingTips[loadingTipIndex];
         StartCoroutine(LoadTipWait());
     }
 
@@ -294,7 +294,7 @@ public class MainMenuScript : MonoBehaviour
         {
             loadingTipIndex++;
         }
-        loadMainText.text = loadingTips[loadingTipIndex];
+        loadTip.text = loadingTips[loadingTipIndex];
         StartCoroutine(LoadTipWait());
     }
 

@@ -67,7 +67,8 @@ public class MultiLangSystem
     private static void GetLanguageDatas()
     {
         LangData data = new LangData();
-        LangData[] tempDatas = JsonHelper.FromJson<LangData>(File.ReadAllText(Application.dataPath + "/Content/ExtData/ls-lang.txt"));
+        TextAsset langDataText = Resources.Load("ls-lang") as TextAsset;
+        LangData[] tempDatas = JsonHelper.FromJson<LangData>(langDataText.text);
         if (langDictionary.Count > 0)
         {
             langDictionary.Clear();

@@ -67,7 +67,7 @@ public class LoadSceneScript : MonoBehaviour
         //Handle Target FrameRate
         if(QualitySettings.GetQualityLevel() > 1) 
         {
-            Application.targetFrameRate = 44;
+            Application.targetFrameRate = 60;
         }
         else 
         {
@@ -588,7 +588,7 @@ public class LoadSceneScript : MonoBehaviour
 
     private void StartLoadTip()
     {
-        string json = File.ReadAllText(Application.dataPath + "/Content/ExtData/loading-tips.txt");
+        string json = (Resources.Load("loading-tips") as TextAsset).text;
         loadingTips = JsonHelper.FromJson<string>(json);
         loadingTipIndex = Random.Range(0, loadingTips.Length - 1);
         loadTip.text = loadingTips[loadingTipIndex];

@@ -80,12 +80,12 @@ MonoBehaviour:
   m_AdvancedMode: 0
   temperature:
     m_OverrideState: 1
-    m_Value: 23.3
+    m_Value: 35
     min: -100
     max: 100
   tint:
     m_OverrideState: 1
-    m_Value: 43
+    m_Value: 0
     min: -100
     max: 100
 --- !u!114 &-701025150500758067
@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29fa0085f50d5e54f8144f766051a691, type: 3}
   m_Name: FilmGrain
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   m_AdvancedMode: 0
   type:
     m_OverrideState: 1
