@@ -13,7 +13,7 @@ public class ApplySettings : MonoBehaviour
     {
         string sceneName = SceneManager.GetActiveScene().name; //Get current scene.
         //Check if current scene is the load scene.
-        Debug.Log(sceneName);
+
         if (sceneName == "LoadScene") 
         {
             //Check if quality settings need to be changed.
