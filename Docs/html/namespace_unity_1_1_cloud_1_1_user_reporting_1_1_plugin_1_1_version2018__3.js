@@ -1,0 +1,4 @@
+var namespace_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_version2018__3 =
+[
+    [ "AsyncUnityUserReportingPlatform", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_version2018__3_1_1_async_unity_user_reporting_platform.html", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_version2018__3_1_1_async_unity_user_reporting_platform" ]
+];

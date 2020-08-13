@@ -84,7 +84,7 @@ public class ServerConnect : MonoBehaviour
                 {
                     if (var1.Length > 0 && var2.Length > 0)
                     {
-                        gameServer.ServerTeleport(var1, var2);
+                        gameServer.Server_Teleport(var1, var2);
                     }
                     else
                     {
@@ -433,7 +433,7 @@ public class ServerConnect : MonoBehaviour
     //Callback: Player Disconnected
     private void PlayerDisconnected_Server(ulong id)
     {
-        PlayerInfo savedInfo = gameServer.MovePlayerToInactive(id);
+        PlayerInfo savedInfo = gameServer.Server_MovePlayerToInactive(id);
         if (savedInfo != null)
         {
             SavePlayerStats(savedInfo);

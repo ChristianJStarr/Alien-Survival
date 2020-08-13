@@ -17,7 +17,15 @@ public class MusicManager : MonoBehaviour
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        SettingsMenu.ChangedSettings += Change;
     }
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SettingsMenu.ChangedSettings -= Change;
+    }
+
+
     void Start()
     {
 #if UNITY_SERVER
@@ -36,7 +44,7 @@ public class MusicManager : MonoBehaviour
     }
    
     //Update Values to Settings
-    public void Change() 
+    private void Change() 
     {
         musicAudio.volume = settings.musicVolume;
         ambientAudio.volume = settings.ambientVolume;

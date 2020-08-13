@@ -1,0 +1,5 @@
+var interface_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_i_json_serializer_strategy =
+[
+    [ "DeserializeObject", "interface_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_i_json_serializer_strategy.html#a174f106caf1025809b5228919fa3914f", null ],
+    [ "TrySerializeNonPrimitiveObject", "interface_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_i_json_serializer_strategy.html#a91fbf57dfc3396e88f423b9d1d6853c5", null ]
+];

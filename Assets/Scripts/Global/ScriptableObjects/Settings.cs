@@ -10,6 +10,7 @@ public class Settings : ScriptableObject
     public float effectsVolume = 1;
 
     //Quality
+    public bool autoQuality = false; 
     public int quality = 2;
     public int shadow = 2;
     public int aliasing = 2;
@@ -23,7 +24,11 @@ public class Settings : ScriptableObject
     public int gameControlsOpacity = 200;
     public float xSensitivity = .5F;
     public float ySensitivity = .5F;
-    
+
+    //Debug
+    public bool showFps = false;
+    public bool showConsole = false;
+
     //Control Layout
         
 }

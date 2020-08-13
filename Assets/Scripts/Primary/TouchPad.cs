@@ -30,7 +30,7 @@ using UnityStandardAssets.CrossPlatformInput;
 		public string verticalAxisName = "TouchVertical"; // The name given to the vertical axis for the cross platform input
 		public float Xsensitivity = 1f;
 		public float Ysensitivity = 1f;
-
+        public Settings settings;
 		Vector3 m_StartPos;
 		Vector2 m_PreviousDelta;
 		Vector3 m_JoytickOutput;
@@ -53,10 +53,14 @@ using UnityStandardAssets.CrossPlatformInput;
 		void OnEnable()
 		{
 			CreateVirtualAxes();
+            SettingsMenu.ChangedSettings += Change;
 		}
 
         void Start()
         {
+            Xsensitivity = settings.xSensitivity;
+            Ysensitivity = settings.ySensitivity;
+
 #if !UNITY_EDITOR
             m_Image = GetComponent<Image>();
             m_Center = m_Image.transform.position;
@@ -64,9 +68,11 @@ using UnityStandardAssets.CrossPlatformInput;
         }
 
     //Change touch sensitivity. Standard Settings Change() function.
-    public void Change()
+    private void Change()
     {
         //Change touch sensitivity.
+        Xsensitivity = settings.xSensitivity;
+        Ysensitivity = settings.ySensitivity;
     }
 
     void CreateVirtualAxes()
@@ -135,7 +141,9 @@ using UnityStandardAssets.CrossPlatformInput;
 				Vector2 pointerDelta;
 				pointerDelta.x = Input.mousePosition.x - m_PreviousMouse.x;
 				pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
-				m_PreviousMouse = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f);
+            pointerDelta.x *= Xsensitivity;
+            pointerDelta.y *= Ysensitivity;
+            m_PreviousMouse = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f);
 #endif
 				UpdateVirtualAxes(new Vector3(pointerDelta.x, pointerDelta.y, 0));
 			}
@@ -151,7 +159,9 @@ using UnityStandardAssets.CrossPlatformInput;
 
 		void OnDisable()
 		{
-			if (CrossPlatformInputManager.AxisExists(horizontalAxisName))
+            SettingsMenu.ChangedSettings -= Change;
+
+            if (CrossPlatformInputManager.AxisExists(horizontalAxisName))
 				CrossPlatformInputManager.UnRegisterVirtualAxis(horizontalAxisName);
 
 			if (CrossPlatformInputManager.AxisExists(verticalAxisName))

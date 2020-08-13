@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -10,11 +11,25 @@ public class SettingsMenu : MonoBehaviour
 
     public Settings settings; // Game Settings data.
     public Slider ui, menu, ambient, effects, xSense, ySense, opacity, terrainDis, objectDis; //All settings sliders
-    public ToggleGroup quality, shadows, aliasing, postpro; //All settings toggle groups.
+    public ToggleGroup quality, shadows, aliasing, postpro, showFps, showConsole; //All settings toggle groups.
+    public GameObject qualityContainer, manualContainer;
+    public Button qualityModeButton_Manual, qualityModeButton_Auto;
 
+    public delegate void OnGameSettingsChangedDelegate();
+    public static event OnGameSettingsChangedDelegate ChangedSettings;
+
+    private RectTransform qualityContainerRect;
+
+    public TextMeshProUGUI qualityModeAutoText;
+    public TextMeshProUGUI qualityModeManualText;
+    public ScrollRect scrollRect;
+
+    private bool realignScroll = false;
 
     void Start() 
     {
+        qualityContainerRect = qualityContainer.GetComponent<RectTransform>();
+
         //Get Volume
         ui.value = settings.uiVolume;
         menu.value = settings.musicVolume;
@@ -22,6 +37,7 @@ public class SettingsMenu : MonoBehaviour
         effects.value = settings.effectsVolume;
 
         //Get Quality
+        SetMode(settings.autoQuality);
         SetToggle(quality, settings.quality);
         SetToggle(shadows, settings.shadow);
         SetToggle(aliasing, settings.aliasing);
@@ -34,10 +50,45 @@ public class SettingsMenu : MonoBehaviour
         //Get Distance
         terrainDis.value = settings.terrainDistance;
         objectDis.value = settings.objectDistance;
+
+        //SetDebug
+        SetToggleBool(showFps, settings.showFps);
+        SetToggleBool(showFps, settings.showConsole);
     }
 
 
-    //Sets a toggle button inside of toggle group.
+    private void SetMode(bool mode) 
+    {
+        manualContainer.SetActive(!mode);
+        qualityModeButton_Manual.interactable = !mode;
+        qualityModeButton_Auto.interactable = mode;
+        if (mode) 
+        {
+            qualityContainerRect.sizeDelta = new Vector2(qualityContainerRect.sizeDelta.x, 234);
+            qualityModeAutoText.color = new Color32(204,204,204,255);
+            qualityModeManualText.color = new Color32(46, 46, 46, 255);
+        }
+        else 
+        {
+            qualityContainerRect.sizeDelta = new Vector2(qualityContainerRect.sizeDelta.x, 478.2451F);
+            qualityModeAutoText.color = new Color32(46, 46, 46, 255);
+            qualityModeManualText.color = new Color32(204, 204, 204, 255);
+        }
+    }
+
+    public void QualityModeAuto() 
+    {
+        SetMode(true);
+        settings.autoQuality = true;
+    }
+    
+    public void QualityModeManual() 
+    {
+        SetMode(false);
+        settings.autoQuality = false;
+    }
+
+    //Sets a toggle button inside of toggle group by int.
     private void SetToggle(ToggleGroup group, int value) 
     {
        foreach(Toggle item in group.GetComponentsInChildren<Toggle>()) 
@@ -51,6 +102,21 @@ public class SettingsMenu : MonoBehaviour
         }
     }
 
+    //Sets a toggle button inside of toggle group by bool.
+    private void SetToggleBool(ToggleGroup group, bool value) 
+    {
+        string valueString = "hide";
+        if (value) { valueString = "show"; }
+        foreach (Toggle item in group.GetComponentsInChildren<Toggle>())
+        {
+            group.SetAllTogglesOff();
+            if (item.name == valueString)
+            {
+                item.isOn = true;
+                break;
+            }
+        }
+    }
 
     //Called from Terrain Distance Slider in settings. Keeps Object Max Distance >= Terrain Distance
     public void TerrainDistance() 
@@ -62,7 +128,6 @@ public class SettingsMenu : MonoBehaviour
         }
     }
     
-
     //Apply Settings Values
     public void ApplySettings() 
     {
@@ -74,9 +139,27 @@ public class SettingsMenu : MonoBehaviour
         settings.effectsVolume = effects.value;
 
         //Quality
-        settings.quality = Convert.ToInt32(quality.ActiveToggles().FirstOrDefault().name);
-        settings.shadow = Convert.ToInt32(shadows.ActiveToggles().FirstOrDefault().name);
-        settings.aliasing = Convert.ToInt32(aliasing.ActiveToggles().FirstOrDefault().name);
+        if (settings.autoQuality)
+        {
+            
+            //Init auto settings
+        }
+        else
+        {
+
+            settings.quality = Convert.ToInt32(quality.ActiveToggles().FirstOrDefault().name);
+            settings.shadow = Convert.ToInt32(shadows.ActiveToggles().FirstOrDefault().name);
+            settings.aliasing = Convert.ToInt32(aliasing.ActiveToggles().FirstOrDefault().name);
+            //Change render pipeline asset.
+            RenderPipelineAsset newAsset = GetAsset();
+            if (GraphicsSettings.renderPipelineAsset != newAsset)
+            {
+                GraphicsSettings.renderPipelineAsset = newAsset;
+            }
+            //Change quality level settings.
+            QualitySettings.SetQualityLevel(settings.quality - 1, true);
+
+        }
 
         //Controls
         settings.xSensitivity = xSense.value;
@@ -87,41 +170,27 @@ public class SettingsMenu : MonoBehaviour
         settings.terrainDistance = terrainDis.value;
         settings.objectDistance = objectDis.value;
 
-        //Apply the settings that were stored.
-        //Change render pipeline asset.
-        RenderPipelineAsset newAsset = GetAsset();
-        if (GraphicsSettings.renderPipelineAsset != newAsset)
+        //Debug
+        if (showFps.ActiveToggles().FirstOrDefault().name == "show")
         {
-            GraphicsSettings.renderPipelineAsset = newAsset;
+            settings.showFps = true;
         }
-        //Change quality level settings.
-        QualitySettings.SetQualityLevel(settings.quality - 1, true);
+        else if (showFps.ActiveToggles().FirstOrDefault().name == "hide")
+        {
+            settings.showFps = false;
+        }
+        if (showConsole.ActiveToggles().FirstOrDefault().name == "show")
+        {
+            settings.showConsole = true;
+        }
+        else if (showConsole.ActiveToggles().FirstOrDefault().name == "hide")
+        {
+            settings.showConsole = false;
+        }
+
         
-        //Have objects update to new values.
 
-        MusicManager music = FindObjectOfType<MusicManager>(); //Find music manager, if any.
-        if(music != null) //If music manager exists in scene, update its settings.
-         {
-            music.Change();
-        }
-
-        TouchPad touch = FindObjectOfType<TouchPad>(); //Find touch pad, if any.
-        if (touch != null) //If touch pad exists in scene, update its settings.
-        {
-            touch.Change();
-        }
-
-        ControlControl controlControl = FindObjectOfType<ControlControl>(); //Find controls, if any.
-        if (controlControl != null) //If control control exists in scene, update its settings.
-        {
-            controlControl.Change();
-        }
-
-        MainMenuCampfireFlicker campfireFlicker = FindObjectOfType<MainMenuCampfireFlicker>();
-        if(campfireFlicker != null) 
-        {
-            campfireFlicker.Change();
-        }
+        ChangedSettings();
     }
 
     //Get correct pipeline asset based off current settings.

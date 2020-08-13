@@ -1,24 +1,49 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using TMPro;
+using UnityEngine;
 
 public class FpsCounter : MonoBehaviour
 {
-    public float timer, refresh, avgFramerate;
-    private Text countText;
+    public GameObject fpsPanel;
+    public float refresh = 20;
+    private float timer, avgFramerate;
+    public TextMeshProUGUI countText;
+    public Settings settings;
+    private bool showFps = false;
+    
 
     private void Start()
     {
-        countText = GetComponent<Text>();
+        showFps = settings.showFps;
+        fpsPanel.SetActive(showFps);
+    }
+
+
+    private void OnEnable()
+    {
+        SettingsMenu.ChangedSettings += Change;
+    }
+    private void OnDisable()
+    {
+        SettingsMenu.ChangedSettings -= Change;
+    }
+
+    private void Change() 
+    {
+        showFps = settings.showFps;
+        fpsPanel.SetActive(showFps);
     }
 
     private void Update()
     {
-        if (countText == null) return;
-        if (Time.unscaledTime > timer)
+        if (showFps) 
         {
-            int fps = (int)(1f / Time.unscaledDeltaTime);
-            countText.text = fps.ToString();
-            timer = Time.unscaledTime + refresh;
+            if (countText == null) return;
+            if (Time.unscaledTime > timer)
+            {
+                avgFramerate += ((Time.deltaTime / Time.timeScale) - avgFramerate) * 0.03f;
+                countText.text = ((int)(1F / avgFramerate)) + " FPS";
+                timer = Time.unscaledTime + refresh;
+            }
         }
     }
 }

@@ -10,7 +10,15 @@ public class MainMenuCampfireFlicker : MonoBehaviour
     private bool flickerStarted;
 
 
-    
+    private void OnEnable()
+    {
+        SettingsMenu.ChangedSettings += Change;
+    }
+    private void OnDisable() 
+    {
+        SettingsMenu.ChangedSettings -= Change;
+    }
+
 
     private void Start()
     {
@@ -25,7 +33,7 @@ public class MainMenuCampfireFlicker : MonoBehaviour
         }
     }
 
-    public void Change()
+    private void Change()
     {
         if (!flickerStarted) 
         {

@@ -21,7 +21,7 @@ public class ClickableSystem : MonoBehaviour
         {
             if(gameServer != null) 
             {
-                gameServer.ServerAddNewItemToInventory(player.clientId, clickable.itemId, clickable.maxAmount);
+                gameServer.Server_AddNewItemToInventory(player.clientId, clickable.itemId, clickable.maxAmount);
             }
         }
     }

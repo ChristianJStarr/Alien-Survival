@@ -1,0 +1,8 @@
+var namespace_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json =
+[
+    [ "IJsonSerializerStrategy", "interface_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_i_json_serializer_strategy.html", "interface_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_i_json_serializer_strategy" ],
+    [ "JsonArray", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_json_array.html", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_json_array" ],
+    [ "JsonObject", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_json_object.html", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_json_object" ],
+    [ "PocoJsonSerializerStrategy", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_poco_json_serializer_strategy.html", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_poco_json_serializer_strategy" ],
+    [ "SimpleJson", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_simple_json.html", "class_unity_1_1_cloud_1_1_user_reporting_1_1_plugin_1_1_simple_json_1_1_simple_json" ]
+];

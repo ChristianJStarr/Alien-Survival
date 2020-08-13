@@ -132,6 +132,9 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
     //             SERVER FUNCTIONS                                    //
     //-----------------------------------------------------------------//
+    /// <summary>
+    /// Server
+    /// </summary>
 
     //Start the Game Server
     private void StartGameServer()
@@ -333,7 +336,7 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
 
     //Health
-    public void ServerSetHealth(ulong clientId, int amount)
+    public void Server_SetHealth(ulong clientId, int amount)
     {
         DebugMsg.Notify("Setting Health of Player '" + clientId + "'.", 2);
 
@@ -353,7 +356,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Inventory Items Add by ID
-    public bool ServerAddNewItemToInventory(ulong clientId, int id, int amount)
+    public bool Server_AddNewItemToInventory(ulong clientId, int id, int amount)
     {
         DebugMsg.Notify("Adding Item(s) to Player '" + clientId + "'.", 3);
         
@@ -366,11 +369,11 @@ public class GameServer : NetworkedBehaviour
                 if (amount > itemData.maxItemStack)
                 {
                     amount -= itemData.maxItemStack;
-                    ServerAddItemToInventory(clientId, CreateItemFromData(itemData, id, itemData.maxItemStack));
+                    Server_AddItemToInventory(clientId, CreateItemFromData(itemData, id, itemData.maxItemStack));
                 }
                 else
                 {
-                    returnValue = ServerAddItemToInventory(clientId, CreateItemFromData(itemData, id, amount));
+                    returnValue = Server_AddItemToInventory(clientId, CreateItemFromData(itemData, id, amount));
                     break;
                 }
             }
@@ -379,7 +382,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Inventory Items Add by Item
-    public bool ServerAddItemToInventory(ulong clientId, Item item)
+    public bool Server_AddItemToInventory(ulong clientId, Item item)
     {
         DebugMsg.Notify("Adding Item(s) to Player '" + clientId + "'.", 3);
 
@@ -401,7 +404,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Inventory Items Add by Item
-    public void ServerCraftItemToInventory(ulong clientId, ItemData item, int amount)
+    public void Server_CraftItemToInventory(ulong clientId, ItemData item, int amount)
     {
         DebugMsg.Notify("Crafting Item to Player '" + clientId + "'.", 3);
 
@@ -438,7 +441,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Inventory Items Remove
-    public void ServerRemoveItemFromInventory(ulong clientId, int itemId, int amount)
+    public void Server_RemoveItemFromInventory(ulong clientId, int itemId, int amount)
     {
         DebugMsg.Notify("Removing Item from Player '" + clientId + "'.", 2);
 
@@ -462,7 +465,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Inventory Blueprints Add
-    public void ServerAddBlueprint(ulong clientId, Item newBp)
+    public void Server_AddBlueprint(ulong clientId, Item newBp)
     {
         DebugMsg.Notify("Adding Blueprint to Player '" + clientId + "'.", 2);
 
@@ -482,7 +485,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Inventory Blueprints Whipe
-    public void ServerWipeBlueprints(ulong clientId)
+    public void Server_WipeBlueprints(ulong clientId)
     {
         DebugMsg.Notify("Wiping Blueprints of Player '" + clientId + "'.", 2);
         for (int i = 0; i < activePlayers.Count; i++)
@@ -501,7 +504,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Move Player To Inactive List
-    public PlayerInfo MovePlayerToInactive(ulong clientId)
+    public PlayerInfo Server_MovePlayerToInactive(ulong clientId)
     {
         PlayerInfo info = null;
         for (int i = 0; i < activePlayers.Count; i++)
@@ -521,7 +524,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Respawn Player
-    public void ServerRespawnPlayer(ulong clientId)
+    public void Server_RespawnPlayer(ulong clientId)
     {
         DebugMsg.Notify("Respawning Player '" + clientId + "'.", 2);
         for (int i = 0; i < activePlayers.Count; i++)
@@ -531,14 +534,14 @@ public class GameServer : NetworkedBehaviour
                 activePlayers[i].health = 100;
                 activePlayers[i].food = 100;
                 activePlayers[i].water = 100;
-                SpawnDeathDrop(activePlayers[i].items, activePlayers[i].armor, NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position, activePlayers[i].name);
+                Server_SpawnDeathDrop(activePlayers[i].items, activePlayers[i].armor, NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position, activePlayers[i].name);
                 activePlayers[i].items = activePlayers[i].armor = null;
                 GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
                 Transform spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform;
                 MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
                 movement.TeleportClient(clientId, spawnpoint.position);
                 activePlayers[i].location = spawnpoint.position;
-                ServerUIDeathScreen(clientId);
+                Server_UIDeathScreen(clientId);
                 ForceRequestInfoById(clientId);
                 
                 break;
@@ -551,7 +554,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Spawn DeathDrop
-    private void SpawnDeathDrop(Item[] items, Item[] armor, Vector3 location, string username)
+    private void Server_SpawnDeathDrop(Item[] items, Item[] armor, Vector3 location, string username)
     {
         if(items != null) 
         {
@@ -585,7 +588,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Server Deplete Resource
-    private void ServerDepleteResource(ulong clientId, string unique)
+    private void Server_DepleteResource(ulong clientId, string unique)
     {
         for (int i = 0; i < activeResources.Count; i++)
         {
@@ -594,7 +597,7 @@ public class GameServer : NetworkedBehaviour
                 int amountLeft = activeResources[i].gatherAmount - activeResources[i].gatherPerAmount;
                 if (amountLeft >= 0) 
                 {
-                    if (ServerAddNewItemToInventory(clientId, activeResources[i].gatherItemId, activeResources[i].gatherPerAmount)) 
+                    if (Server_AddNewItemToInventory(clientId, activeResources[i].gatherItemId, activeResources[i].gatherPerAmount)) 
                     {
                         if (amountLeft == 0)
                         {
@@ -610,7 +613,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Server Raycast Request
-    private NetworkedObject ServerRaycastRequest(Vector3 aimPos, Vector3 aimRot, bool spawnParticle, int range)
+    private NetworkedObject Server_RaycastRequest(Vector3 aimPos, Vector3 aimRot, bool spawnParticle, int range)
     {
         NetworkedObject netObject = null; ;
         RaycastHit hit;
@@ -624,7 +627,7 @@ public class GameServer : NetworkedBehaviour
                     netObject = hit.collider.GetComponent<NetworkedObject>();
                     if (spawnParticle) 
                     {
-                        ServerSpawnParticle(hitPosition, netObject.tag);
+                        Server_SpawnParticle(hitPosition, netObject.tag);
                     }
                 }
             }
@@ -633,21 +636,21 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Server Spawn Particle
-    private void ServerSpawnParticle(Vector3 pos, string tag)
+    private void Server_SpawnParticle(Vector3 pos, string tag)
     {
         //GameObject newObject = Instantiate(particle, pos, Quaternion.identity);
         //newObject.GetComponent<NetworkedObject>().Spawn();
     }
 
     //Server Damage Networked Object
-    private void ServerDamageNetworkedObject(NetworkedObject netObject, int amount)
+    private void Server_DamageNetworkedObject(NetworkedObject netObject, int amount)
     {
         bool damaged = false;
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].networkId == netObject.NetworkId)
             {
-                ServerSetHealth(activePlayers[i].clientId, -1 * amount);
+                Server_SetHealth(activePlayers[i].clientId, -1 * amount);
                 damaged = true;
                 break;
             }
@@ -659,7 +662,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Server Get Item From Slot #
-    private Item GetItemFromSlot(Item[] items, int slot)
+    private Item Server_GetItemFromSlot(Item[] items, int slot)
     {
         foreach (Item item in items)
         {
@@ -672,7 +675,7 @@ public class GameServer : NetworkedBehaviour
     }
     
     //Server Change Item Durability
-    private bool ServerChangeItemDurability(ulong clientId, int amount, int maxDurability, int slot)
+    private bool Server_ChangeItemDurability(ulong clientId, int amount, int maxDurability, int slot)
     {
         bool wasTaken = false;
         for (int i = 0; i < activePlayers.Count; i++)
@@ -696,15 +699,15 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Server Add to Durability 
-    private bool ServerAddToDurability(ulong clientId, int slot, int resSlot)
+    private bool Server_AddToDurability(ulong clientId, int slot, int resSlot)
     {
         bool value = false;
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].clientId == clientId)
             {
-                Item item = GetItemFromSlot(activePlayers[i].items, slot);
-                Item res = GetItemFromSlot(activePlayers[i].items, resSlot);
+                Item item = Server_GetItemFromSlot(activePlayers[i].items, slot);
+                Item res = Server_GetItemFromSlot(activePlayers[i].items, resSlot);
                 if (item != null && res != null)
                 {
                     ItemData data = GetItemDataById(item.itemID);
@@ -737,7 +740,7 @@ public class GameServer : NetworkedBehaviour
         return value;
     }
 
-    public void ServerTeleport(string playerName, string targetName) 
+    public void Server_Teleport(string playerName, string targetName) 
     {
         ulong clientId = 0;
         ulong targetId = 0;
@@ -773,16 +776,16 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
 
     //Force Death Screen on Client
-    public void ServerUIDeathScreen(ulong clientId)
+    public void Server_UIDeathScreen(ulong clientId)
     {
         List<ulong> clients = new List<ulong>();
         clients.Add(clientId);
-        InvokeClientRpcOnClient(ServerUIDeathScreenRpc, clientId);
+        InvokeClientRpcOnClient(Server_UIDeathScreenRpc, clientId);
     }
 
     //Client RPC - Force Death Screen
     [ClientRPC]
-    private void ServerUIDeathScreenRpc()
+    private void Server_UIDeathScreenRpc()
     {
         PlayerActionManager.singleton.ShowDeathScreen();
     }
@@ -1178,11 +1181,11 @@ public class GameServer : NetworkedBehaviour
                 if(activePlayers[i].health < 0) 
                 {
                     activePlayers[i].health = 0;
-                    ServerRespawnPlayer(activePlayers[i].clientId);
+                    Server_RespawnPlayer(activePlayers[i].clientId);
                 }
                 else if(activePlayers[i].health == 0) 
                 {
-                    ServerRespawnPlayer(activePlayers[i].clientId);
+                    Server_RespawnPlayer(activePlayers[i].clientId);
                 }
                 DebugMsg.Notify("Setting Health of Player '" + activePlayers[i].name + "'.", 4);
                 ForceRequestInfoById(activePlayers[i].clientId, 2);
@@ -1286,14 +1289,11 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey && activePlayers[i].health == 0)
             {
-                ServerRespawnPlayer(activePlayers[i].clientId);
+                Server_RespawnPlayer(activePlayers[i].clientId);
                 break;
             }
         }
     }
-
-
-
 
 
 
@@ -1343,7 +1343,7 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                ServerAddNewItemToInventory(activePlayers[i].clientId, itemId, 1);
+                Server_AddNewItemToInventory(activePlayers[i].clientId, itemId, 1);
             }
         }
     }
@@ -1382,8 +1382,8 @@ public class GameServer : NetworkedBehaviour
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
                 bool value = false;
-                Item item = GetItemFromSlot(activePlayers[i].items, newSlot);
-                Item res = GetItemFromSlot(activePlayers[i].items, curSlot);
+                Item item = Server_GetItemFromSlot(activePlayers[i].items, newSlot);
+                Item res = Server_GetItemFromSlot(activePlayers[i].items, curSlot);
                 if (item != null && res != null)
                 {
                     ItemData data = GetItemDataById(item.itemID);
@@ -1627,7 +1627,7 @@ public class GameServer : NetworkedBehaviour
             {
                 if (activePlayers[i].id == id && activePlayers[i].authKey == authKey) 
                 {
-                    Item selectedItem = GetItemFromSlot(activePlayers[i].items, itemSlot);
+                    Item selectedItem = Server_GetItemFromSlot(activePlayers[i].items, itemSlot);
                     if (selectedItem != null) 
                     {
                         ItemData selectedData = GetItemDataById(selectedItem.itemID);
@@ -1663,17 +1663,17 @@ public class GameServer : NetworkedBehaviour
     //Server Shoot Selected
     private bool ServerShootSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
     {
-        bool wasTaken = ServerChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot);
+        bool wasTaken = Server_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot);
         if (item.durability > 0 && wasTaken)
         {
-            NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, data.useRange);
+            NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, data.useRange);
             if (netObject != null)
             {
                 int damage = ServerGetItemDamage(data);
                 if(damage > 0) 
                 {
                     DebugMsg.Notify("Shoot. Damaging Network Object for Player: " + clientId, 2);
-                    ServerDamageNetworkedObject(netObject, damage);
+                    Server_DamageNetworkedObject(netObject, damage);
                 }
             }
         }
@@ -1683,16 +1683,16 @@ public class GameServer : NetworkedBehaviour
     //Server Melee Seleceted
     private bool ServerMeleeSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
     {
-        if (item.durability > 0 && ServerChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
+        if (item.durability > 0 && Server_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
         {
-            NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, data.useRange);
+            NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, data.useRange);
             if (netObject != null)
             {
                 int damage = ServerGetItemDamage(data);
                 if (damage > 0)
                 {
                     DebugMsg.Notify("Melee. Damaging Network Object for Player: " + clientId, 2);
-                    ServerDamageNetworkedObject(netObject, damage);
+                    Server_DamageNetworkedObject(netObject, damage);
                 }
             }
             return true;
@@ -1709,11 +1709,11 @@ public class GameServer : NetworkedBehaviour
     //Server Punch Selected
     private bool ServerPunchSelected(ulong clientId, Vector3 pos, Vector3 rot) 
     {
-        NetworkedObject netObject = ServerRaycastRequest(pos, rot, true, 1);
+        NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, 1);
         if (netObject != null)
         {
             DebugMsg.Notify("Punch. Damaging Network Object for Player: " + clientId, 2);
-            ServerDamageNetworkedObject(netObject, 2);
+            Server_DamageNetworkedObject(netObject, 2);
         }
         return false;
     }
@@ -1750,7 +1750,7 @@ public class GameServer : NetworkedBehaviour
                 {
                     if(activePlayers[i].items != null) 
                     {
-                        Item item = GetItemFromSlot(activePlayers[i].items, slot);
+                        Item item = Server_GetItemFromSlot(activePlayers[i].items, slot);
                         if (item != null)
                         {
                             ItemData data = GetItemDataById(item.itemID);
@@ -1843,7 +1843,7 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                ServerDepleteResource(activePlayers[i].clientId, uniqueId);
+                Server_DepleteResource(activePlayers[i].clientId, uniqueId);
                 DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with Resource: " + uniqueId + ".", 2);
                 break;
             }
@@ -1884,7 +1884,7 @@ public class GameServer : NetworkedBehaviour
                         {
                             for (int e = 0; e < drop.dropItems.Count; e++)
                             {
-                                if(ServerAddItemToInventory(activePlayers[i].clientId, drop.dropItems[e])) 
+                                if(Server_AddItemToInventory(activePlayers[i].clientId, drop.dropItems[e])) 
                                 {
                                     drop.dropItems.RemoveAt(e--);
                                     
@@ -1897,7 +1897,7 @@ public class GameServer : NetworkedBehaviour
                             {
                                 if (drop.dropItems[e].currSlot == itemSlot)
                                 {
-                                    if (ServerAddItemToInventory(activePlayers[i].clientId, drop.dropItems[e]))
+                                    if (Server_AddItemToInventory(activePlayers[i].clientId, drop.dropItems[e]))
                                     {
                                         drop.dropItems.RemoveAt(e--);
                                         break;

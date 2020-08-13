@@ -1,0 +1,26 @@
+var class_user_reporting_script =
+[
+    [ "UserReportingScript", "class_user_reporting_script.html#ad941187859264bac9b177f22640a3a12", null ],
+    [ "CancelUserReport", "class_user_reporting_script.html#a371c0ae1f8706d5b470e007dd5348605", null ],
+    [ "CreateUserReport", "class_user_reporting_script.html#a42c90b74869e964b755ad343de508eee", null ],
+    [ "IsSubmitting", "class_user_reporting_script.html#a9c9f5f17ba3709b35a9acf8b6173cefa", null ],
+    [ "RaiseUserReportSubmitting", "class_user_reporting_script.html#a03844a90453620fbd5ebaf57cbf24437", null ],
+    [ "SubmitUserReport", "class_user_reporting_script.html#a651e467957341f52915e29c2a69b23a0", null ],
+    [ "CategoryDropdown", "class_user_reporting_script.html#acbe971bc8e18ee7836585a954823d0bc", null ],
+    [ "DescriptionInput", "class_user_reporting_script.html#af8a840a4c76c099659853372a2c90119", null ],
+    [ "ErrorPopup", "class_user_reporting_script.html#a49eccef3a2e3e75b52018328572849c4", null ],
+    [ "IsHotkeyEnabled", "class_user_reporting_script.html#a0bb14e16d513279a2bdb5ecbd1fb8bff", null ],
+    [ "IsInSilentMode", "class_user_reporting_script.html#ae118e9160a847848ba3d1ebd098a3b08", null ],
+    [ "IsSelfReporting", "class_user_reporting_script.html#a404e9c20fcc641be7fe9984d2ba68bdf", null ],
+    [ "ProgressText", "class_user_reporting_script.html#aa526617c6b53e08962715676007ac9e3", null ],
+    [ "SendEventsToAnalytics", "class_user_reporting_script.html#a91b4ecb6f1f45d3f36b0a3e3f98a2a1a", null ],
+    [ "SubmittingPopup", "class_user_reporting_script.html#ad034c873becb436e8e3b44e63cb838b0", null ],
+    [ "SummaryInput", "class_user_reporting_script.html#aba51febcbe42e464b0cfa30ce7b0c6a6", null ],
+    [ "ThumbnailViewer", "class_user_reporting_script.html#a345b4eb5015136c41700538b2cf76a85", null ],
+    [ "UserReportButton", "class_user_reporting_script.html#afa28121a6ee9ebedb3a91dd91ab0998f", null ],
+    [ "UserReportForm", "class_user_reporting_script.html#a6f4fb301957d274426acd3378e9b0657", null ],
+    [ "UserReportingPlatform", "class_user_reporting_script.html#a4f13902ea3ad23ef71645e8b7f602ec1", null ],
+    [ "UserReportSubmitting", "class_user_reporting_script.html#ac1f45fc9b0aa43ac3e2278a44df9b5fd", null ],
+    [ "CurrentUserReport", "class_user_reporting_script.html#a460036fc6f188bd24f4700c0c3b2237c", null ],
+    [ "State", "class_user_reporting_script.html#ac7fbc86021958bc34efd6b0158ed0465", null ]
+];

@@ -1,0 +1,25 @@
+var class_player_action_manager =
+[
+    [ "CloseDeathDropUI", "class_player_action_manager.html#a8377eadb1bc1438a4dafcc3d0b9324e5", null ],
+    [ "DragEnded", "class_player_action_manager.html#ad1b2fca9e06c626a3ced55a95f67a34e", null ],
+    [ "DragStarted", "class_player_action_manager.html#acf939b5fb425d10f90c244785373959d", null ],
+    [ "HideDeathScreen", "class_player_action_manager.html#af5c7ea07eb30f63437fb073be4f2209e", null ],
+    [ "InteractWithClickable", "class_player_action_manager.html#aee56d2f886241c43012d8ea2ffc01621", null ],
+    [ "InteractWithDeathDrop", "class_player_action_manager.html#a3cc5323e25e84928221b6ec8f73382fd", null ],
+    [ "InteractWithResource", "class_player_action_manager.html#a429fd2d62ad77f1c84453a201be5ecea", null ],
+    [ "ReloadToDurability", "class_player_action_manager.html#a9bb3272cb705520a47f8f9df014e4542", null ],
+    [ "RequestDisconnect", "class_player_action_manager.html#a12ae4b4057645aa5db99c976620dc646", null ],
+    [ "RequestToCheatItem", "class_player_action_manager.html#aa24c58420cc32c2b2442fcc1f3414697", null ],
+    [ "RequestToTeleport", "class_player_action_manager.html#abfbd8514d0ce820eaefba33f4c6e3108", null ],
+    [ "ShowDeathScreen", "class_player_action_manager.html#aa3da6f9d3988e8208391df1b562a6a11", null ],
+    [ "TakeAllDeathDrop", "class_player_action_manager.html#ac1ea09549c20ffd966d66427d64b3aa6", null ],
+    [ "TakeSingleDeathDrop", "class_player_action_manager.html#ae541827817ad1d94f5fc971ea94e4438", null ],
+    [ "UseSelectedItem", "class_player_action_manager.html#a0d7315d3ed8f312231060bc3157a4dd7", null ],
+    [ "UseSelectedItemReturn", "class_player_action_manager.html#a9a860362b26dc7f4153a460891a13021", null ],
+    [ "deathDropContainer", "class_player_action_manager.html#a169c23ac4b7866830e34aaa864b0f716", null ],
+    [ "deathDropGfx", "class_player_action_manager.html#ab109bec7e1c98f916f224e2ab7db75f8", null ],
+    [ "deathScreen", "class_player_action_manager.html#a921ab826b5fb2434c11010cc5ee3a198", null ],
+    [ "dragButton", "class_player_action_manager.html#aac9221beb3250b90d5ca07d0b62b3c20", null ],
+    [ "dragButtonText", "class_player_action_manager.html#a0c44d567674369e84d5d36eaa08b2a1d", null ],
+    [ "singleton", "class_player_action_manager.html#a2b945db249cf919e70e952027164467d", null ]
+];

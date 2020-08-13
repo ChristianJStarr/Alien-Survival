@@ -20,13 +20,23 @@ public class ControlControl : MonoBehaviour
     public Sprite handSprite;
     public Sprite shootSprite;
 
+    private void OnEnable()
+    {
+        SettingsMenu.ChangedSettings += Change;
+    }
+    
+    private void OnDisable()
+    {
+        SettingsMenu.ChangedSettings -= Change;
+    }
+
     void Start() 
     {
         Change();
     }
 
     //Change Button Opacity. Standard settingsMenu Change().
-    public void Change()
+    private void Change()
     {
         //Set opacity to stored settings. 0-255.
         SetOpacity(settings.gameControlsOpacity); 
