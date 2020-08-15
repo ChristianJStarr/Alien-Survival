@@ -4,7 +4,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 /// <summary>
-/// Web Server Handler. 
+/// Web Server System. 
 /// </summary>
 public class WebServer : MonoBehaviour
 {
@@ -35,77 +35,88 @@ public class WebServer : MonoBehaviour
     private void Start()
     {
         networkManager = NetworkingManager.Singleton;
-     
     }
+
 
     public void LoginRequest(string username, string password, Action<string> onRequestFinished)
     {
-
-
+        DebugMsg.Begin(7, "Login Request Started.", 1);
         StartCoroutine(WebServerCredential(true, username, password, returnValue =>
        {
            onRequestFinished(returnValue);
        }));
+        DebugMsg.End(7, "Login Request Finished.", 1);
     }
     public void SignupRequest(string username, string password, string authKey, Action<string> onRequestFinished)
     {
-
+        DebugMsg.Begin(8, "Signup Request Started.", 1);
         StartCoroutine(WebServerCredential(false, username, password, returnValue =>
         {
             onRequestFinished(returnValue);
         }, authKey));
+        DebugMsg.End(8, "Signup Request Finished.", 1);
     }
     public void StatRequest(int userId, string authKey, Action<bool> onRequestFinished)
     {
+        DebugMsg.Begin(9, "Stat Request Started.", 1);
         StartCoroutine(WebServerStatistics(userId, authKey, returnValue =>
        {
            onRequestFinished(returnValue);
        }));
+        DebugMsg.End(9, "Stat Request Finished.", 1);
     }
     public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
     {
+        DebugMsg.Begin(10, "Send Send Started.", 3);
         StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
+        DebugMsg.End(10, "Stat Send Finished.", 3);
     }
     public void ServerListRequest(Action<ServerList> onRequestFinished)
     {
-
-
+        DebugMsg.Begin(11, "Server List Request Started.", 2);
         StartCoroutine(WebServerMaster(null, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
+        DebugMsg.End(11, "Server List Request Finished.", 2);
     }
     public void ServerListSend(Server server, Action<bool> onRequestFinished)
     {
+        DebugMsg.Begin(12, "Server List Send Started.", 3);
         StartCoroutine(WebServerMaster(server, null, returnValue =>
         {
             onRequestFinished(returnValue);
 
         }));
+        DebugMsg.End(12, "Server List Send Finished.", 3);
     }
     public void ServerListUpdateRecent(string serverName, string serverIp, Action<bool> onRequestFinished)
     {
+        DebugMsg.Begin(13, "Server List Update Recent Started.", 4);
         StartCoroutine(WebServerMasterRecent(serverName, serverIp, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
+        DebugMsg.End(13, "Server List Update Recent Finished.", 4);
     }
     public void ServerListPlayerCount(string name, int count, Action<bool> onRequestFinished)
     {
-
-
+        DebugMsg.Begin(14, "Server List Update Player Count Started.", 2);
         StartCoroutine(WebServerMasterCount(name, count, returnValue =>
          {
              onRequestFinished(returnValue);
          }));
+        DebugMsg.End(14, "Server List Update Player Count Started.", 2);
     }
 
     public void AlienStorePurchase(int userId, string authKey, int itemId)
     {
+        DebugMsg.Begin(15, "Store Purchase Started.", 1);
         StartCoroutine(WebServerStore(userId, authKey, itemId));
+        DebugMsg.End(15, "Store Purchase Finished.", 1);
     }
 
     private IEnumerator WebServerStore(int userId, string authKey, int itemId) 
@@ -296,12 +307,15 @@ public class WebServer : MonoBehaviour
 
             if (web.downloadHandler.text.StartsWith("TRUE"))
             {
-                DebugMsg.Notify("Master Server Success: ServerList", 3);
                 string[] data = web.downloadHandler.text.Split('`');
                 ServerList serverList = new ServerList();
                 string json = "{ \"server\": " + data[1] + "}";
                 serverList.servers = JsonHelper.FromJson<Server>(json);
                 serverSuccess(serverList);
+            }
+            else if (web.downloadHandler.text.StartsWith("NONE")) 
+            {
+                //Server List Empty.
             }
             else
             {

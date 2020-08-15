@@ -113,10 +113,14 @@ public class GameServer : NetworkedBehaviour
     //Properties
     private ServerProperties storedProperties;
 
-    [SerializeField]
-    private int logLevel = 3;
+    //Temp Location for Respawn
+    public Vector3 tempPlayerPosition = new Vector3(0,-5000,0);
 
-
+   
+    
+    
+    
+    
     private void Start()
     {
         allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
@@ -132,9 +136,7 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
     //             SERVER FUNCTIONS                                    //
     //-----------------------------------------------------------------//
-    /// <summary>
-    /// Server
-    /// </summary>
+
 
     //Start the Game Server
     private void StartGameServer()
@@ -158,6 +160,8 @@ public class GameServer : NetworkedBehaviour
         {
             StartCoroutine(AutoSaveLoop());
         }
+
+        StartCoroutine(PrimaryLoop());
 
         DebugMsg.End(1, "Game Server Started.", 1);
     }
@@ -531,19 +535,19 @@ public class GameServer : NetworkedBehaviour
         {
             if (activePlayers[i].clientId == clientId)
             {
-                activePlayers[i].health = 100;
-                activePlayers[i].food = 100;
-                activePlayers[i].water = 100;
+                //Show the Death Screen
+                Server_UIShowDeathScreen(clientId);
+
+                //Teleport Player to Temp Location
+                Server_TeleportPlayerToLocation(activePlayers[i].clientId, tempPlayerPosition);
+                activePlayers[i].location = tempPlayerPosition;
+
+                //Spawn the Death Drop
                 Server_SpawnDeathDrop(activePlayers[i].items, activePlayers[i].armor, NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position, activePlayers[i].name);
                 activePlayers[i].items = activePlayers[i].armor = null;
-                GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-                Transform spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform;
-                MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
-                movement.TeleportClient(clientId, spawnpoint.position);
-                activePlayers[i].location = spawnpoint.position;
-                Server_UIDeathScreen(clientId);
+
+                //Force Request Info
                 ForceRequestInfoById(clientId);
-                
                 break;
             }
             else
@@ -551,6 +555,14 @@ public class GameServer : NetworkedBehaviour
                 DebugMsg.Notify("Unable to Set Health of Player '" + clientId + "'.", 2);
             }
         }
+    }
+
+    //Teleport Player
+    private void Server_TeleportPlayerToLocation(ulong clientId, Vector3 position) 
+    {
+        MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
+        movement.TeleportClient(clientId, position);
+        
     }
 
     //Spawn DeathDrop
@@ -740,6 +752,7 @@ public class GameServer : NetworkedBehaviour
         return value;
     }
 
+    //Server Teleport Player to Player (TEMP)
     public void Server_Teleport(string playerName, string targetName) 
     {
         ulong clientId = 0;
@@ -776,18 +789,33 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
 
     //Force Death Screen on Client
-    public void Server_UIDeathScreen(ulong clientId)
+    public void Server_UIShowDeathScreen(ulong clientId)
     {
         List<ulong> clients = new List<ulong>();
         clients.Add(clientId);
-        InvokeClientRpcOnClient(Server_UIDeathScreenRpc, clientId);
+        InvokeClientRpcOnClient(Server_UIShowDeathScreenRpc, clientId);
     }
 
     //Client RPC - Force Death Screen
     [ClientRPC]
-    private void Server_UIDeathScreenRpc()
+    private void Server_UIShowDeathScreenRpc()
     {
         PlayerActionManager.singleton.ShowDeathScreen();
+    }
+
+    //Hide Death Screen on Client
+    public void Server_UIHideDeathScreen(ulong clientId)
+    {
+        List<ulong> clients = new List<ulong>();
+        clients.Add(clientId);
+        InvokeClientRpcOnClient(Server_UIHideDeathScreenRpc, clientId);
+    }
+
+    //Client RPC - Hide Death Screen
+    [ClientRPC]
+    private void Server_UIHideDeathScreenRpc()
+    {
+        PlayerActionManager.singleton.HideDeathScreen();
     }
 
 
@@ -1275,26 +1303,6 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-    //--Request To Teleport
-    public void RequestToDie(int id, string authKey)
-    {
-        DebugMsg.Notify("Requesting to Die.", 4);
-        InvokeServerRpc(RequestToDie_Rpc, id, authKey);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToDie_Rpc(int id, string authKey)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey && activePlayers[i].health == 0)
-            {
-                Server_RespawnPlayer(activePlayers[i].clientId);
-                break;
-            }
-        }
-    }
-
 
 
 
@@ -1574,6 +1582,7 @@ public class GameServer : NetworkedBehaviour
 
 
 
+
     //-----------------------------------------------------------------//
     //             Player Request : Use Selected Item                  //
     //-----------------------------------------------------------------//
@@ -1803,6 +1812,10 @@ public class GameServer : NetworkedBehaviour
 
 
 
+
+
+
+
     //-----------------------------------------------------------------//
     //         Player Request : World Interactions                     //
     //-----------------------------------------------------------------//
@@ -1920,10 +1933,17 @@ public class GameServer : NetworkedBehaviour
 
 
 
+
+
+
+
+
     //-----------------------------------------------------------------//
-    //         Player Request :                                        //
+    //         Player Request :    Extras                              //
     //-----------------------------------------------------------------//
 
+
+    // Player Request to Disconnect
     public void RequestToDisconnect(int id, string authKey) 
     {
         InvokeServerRpc(RequestToDisconnect_Rpc, id, authKey);
@@ -1938,21 +1958,51 @@ public class GameServer : NetworkedBehaviour
             {
                 DebugMsg.Notify("Disconnecting Player '" + activePlayers[i].name + "'.", 2);
                 NetworkingManager.Singleton.DisconnectClient(activePlayers[i].clientId);
-                
-                
-                
-                
                 break;
             }
         }
     }
 
 
+    // Player Request to Respawn
+    public void RequestToRespawn(int id, string authKey) 
+    {
+        InvokeServerRpc(RequestToRespawn_Rpc, id, authKey);
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private void RequestToRespawn_Rpc(int id, string authKey) 
+    {
+        for (int i = 0; i < activePlayers.Count; i++)
+        {
+            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            {
+                GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
+                Vector3 spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
+                Server_TeleportPlayerToLocation(activePlayers[i].clientId, spawnpoint);
+                activePlayers[i].health = 100;
+                activePlayers[i].food = 100;
+                activePlayers[i].water = 100;
+                activePlayers[i].location = spawnpoint;
+                ForceRequestInfoById(activePlayers[i].clientId);
+                Server_UIHideDeathScreen(activePlayers[i].clientId);
+                DebugMsg.Notify("Respawned Player " + activePlayers[i].name, 2);
+                break;
+            }
+        }
+    }
+
+
+
+
+
+
+
     //-----------------------------------------------------------------//
     //             Client RPC : Force Request                          //
     //-----------------------------------------------------------------//
 
-
+    //Force Request Info by Client Id
     private void ForceRequestInfoById(ulong clientId, int infoDepth = 1)
     {
         List<ulong> idList = new List<ulong>();
@@ -1987,36 +2037,51 @@ public class GameServer : NetworkedBehaviour
             InvokeClientRpc("ForceRequestInfoBlueprints_Rpc", idList);
         }
     }
+
+
+    //Depth 1
     [ClientRPC]
     private void ForceRequestInfoAll_Rpc()
     {
         playerInfoManager.GetPlayer_AllInfo();
     }
+    
+    //Depth 2
     [ClientRPC]
     private void ForceRequestInfoHealth_Rpc()
     {
         playerInfoManager.GetPlayer_Health();
     }
+    
+    //Depth 3
     [ClientRPC]
     private void ForceRequestInfoFood_Rpc()
     {
         playerInfoManager.GetPlayer_Food();
     }
+    
+    //Depth 4
     [ClientRPC]
     private void ForceRequestInfoWater_Rpc()
     {
         playerInfoManager.GetPlayer_Water();
     }
+    
+    //Depth 5
     [ClientRPC]
     private void ForceRequestInfoItems_Rpc()
     {
         playerInfoManager.GetPlayer_InventoryItems();
     }
+    
+    //Depth 6
     [ClientRPC]
     private void ForceRequestInfoArmor_Rpc()
     {
         playerInfoManager.GetPlayer_InventoryArmor();
     }
+    
+    //Depth 7 
     [ClientRPC]
     private void ForceRequestInfoBlueprints_Rpc()
     {
@@ -2063,9 +2128,60 @@ public class GameServer : NetworkedBehaviour
         StartCoroutine(AutoSaveLoop());
     }
 
+    private IEnumerator PrimaryLoop() 
+    {
+        yield return new WaitForSeconds(.2F);
+        Server_DepleteAll();
+
+        //Re-Loop
+        StartCoroutine(PrimaryLoop());
+    }
+
+
+    //Deplete All Food/Water/Health from Players
+    private void Server_DepleteAll() 
+    {
+        if (activePlayers.Count > 0) 
+        {
+            DebugMsg.Begin(340, "Starting Deplete of All Players", 3);
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                PlayerInfo player = activePlayers[i];
+                if(player.food > 0) 
+                {
+                    activePlayers[i].food -= 1;
+                    ForceRequestInfoById(player.clientId, 3);
+                }
+                if (player.water > 0)
+                {
+                    activePlayers[i].water -= 1;
+                    ForceRequestInfoById(player.clientId, 4);
+                }
+                if(player.water == 0 && player.food == 0) 
+                {
+                    if(player.health > 0) 
+                    {
+                        activePlayers[i].health -= 1;
+                        ForceRequestInfoById(player.clientId, 2);
+                    }
+                    else if(player.health - 1 == 0) 
+                    {
+                        activePlayers[i].health = 0;
+                        ForceRequestInfoById(player.clientId, 2);
+                        Server_RespawnPlayer(player.clientId);
+                    }
+                    else if(!player.isDead && player.health == 0)
+                    {
+                        activePlayers[i].isDead = true;
+                        Server_RespawnPlayer(player.clientId);
+                    }
+                }
+            }
+            DebugMsg.End(340, "Finished Deplete of All Players", 3);
+        }
+    }
 
 }
-
 
 
 
@@ -2084,7 +2200,7 @@ public class PlayerInfo
     public Item[] armor;
     public int[] blueprints;
     public ulong clientId;
-
+    public bool isDead;
     public int coinsAdd;
     public int expAdd;
     public float hoursAdd;
@@ -2095,3 +2211,4 @@ public class PlayerInfo
 //1156 6/20/20
 //1692 6/25/20
 //2106 7/11/20
+//2212 8/15/20

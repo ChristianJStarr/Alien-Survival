@@ -13,26 +13,28 @@ public class FpsCounter : MonoBehaviour
 
     private void Start()
     {
-        showFps = settings.showFps;
-        fpsPanel.SetActive(showFps);
+        showFps = settings.showFps; //Get showFps bool.
+        fpsPanel.SetActive(showFps); //Activate/Deactivate fpsPanel
     }
-
-
+    
+    
     private void OnEnable()
     {
-        SettingsMenu.ChangedSettings += Change;
+        SettingsMenu.ChangedSettings += Change;//Subscribe to Settings Change Event.
     }
+    
     private void OnDisable()
     {
-        SettingsMenu.ChangedSettings -= Change;
+        SettingsMenu.ChangedSettings -= Change;//unSubscribe to Settings Change Event.
     }
 
+    //Change Settings.
     private void Change() 
     {
         showFps = settings.showFps;
         fpsPanel.SetActive(showFps);
     }
-
+    //Render FPS
     private void Update()
     {
         if (showFps) 
@@ -43,7 +45,7 @@ public class FpsCounter : MonoBehaviour
                 avgFramerate += ((Time.deltaTime / Time.timeScale) - avgFramerate) * 0.03f;
                 countText.text = ((int)(1F / avgFramerate)) + " FPS";
                 timer = Time.unscaledTime + refresh;
-            }
+            } 
         }
     }
 }

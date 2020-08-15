@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -176,11 +177,22 @@ public class PlayerActionManager : MonoBehaviour
         public void ShowDeathScreen()
         {
             deathScreen.SetActive(true);
+            StartCoroutine(AddDelay());
         }
         public void HideDeathScreen()
         {
             deathScreen.SetActive(false);
         }
+    public void RequestToRespawn() 
+    {
+        gameServer.RequestToRespawn(id, authKey);
+    }
+
+    public IEnumerator AddDelay() 
+    {
+        yield return new WaitForSeconds(2F);
+        
+    }
 
 
     //-----------------------------------------------------------------//

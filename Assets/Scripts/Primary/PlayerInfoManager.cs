@@ -83,6 +83,7 @@ public class PlayerInfoManager : MonoBehaviour
     //             Player Request : Request Own Values                 //
     //-----------------------------------------------------------------//
 
+
     //-------Get All The Player Info
     public void GetPlayer_AllInfo() 
     {
@@ -193,27 +194,11 @@ public class PlayerInfoManager : MonoBehaviour
         });
     }
 
+
     //-----------------------------------------------------------------//
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
 
-    //-------Set Player Health
-    public void SetPlayer_Health(int value)
-    {
-        gameServer.SetPlayerHealth(id, authKey, value);
-    }
-
-    //-------Set Player Food
-    public void SetPlayer_Food(int value) 
-    {
-        gameServer.SetPlayerFood(id, authKey, value);
-    }
-
-    //-------Set Player Water
-    public void SetPlayer_Water(int value) 
-    {
-        gameServer.SetPlayerWater(id, authKey, value);
-    }
 
     //-------Set Player Location
     public void SetPlayer_Location(Vector3 location) 
@@ -234,20 +219,12 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
     //-------Craft Item by Id
-    public void CraftItemById(int itemId, int amount) 
+    public void CraftItemById(int itemId, int amount)
     {
         gameServer.CraftItemById(id, authKey, itemId, amount);
     }
 
-    //-------Request to Die
-    public void RequestToDie() 
-    {
-        //Debug.Log(player.transform.localPosition);
-        SetPlayer_Health(-100);
-        gameServer.RequestToDie(id, authKey);
-    }
-
-
+    //-------Get If Enough Items
     public void GetIfEnoughItems(int itemId, int amount, System.Action<bool> callback) 
     {
         gameServer.GetIfEnoughItems(id, itemId, amount, returnValue => { callback(returnValue); });
@@ -270,29 +247,7 @@ public class PlayerInfoManager : MonoBehaviour
         yield return new WaitForSeconds(2F);
 
         StorePlayerLocation();
-        DepleteFoodWater();
         StartCoroutine(MainPlayerLoop());
-    }
-
-    //Deplete Food & Water
-    private void DepleteFoodWater() 
-    {
-        if(depleteRate == depleteCount) 
-        {
-            depleteCount = 1;
-            if (storedPlayerInfo.food > 0)
-            {
-                SetPlayer_Food(-1 * depleteIntensity);
-            }
-            if (storedPlayerInfo.water > 0)
-            {
-                SetPlayer_Water(-1 * depleteIntensity);
-            }
-        }
-        else 
-        {
-            depleteCount++;
-        }
     }
 
 
