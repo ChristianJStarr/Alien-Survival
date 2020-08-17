@@ -71,7 +71,19 @@ public class PlayerInfoManager : MonoBehaviour
         }
         
     }
+    //-----------------------------------------------------------------//
+    //                      Clickable - Storage                        //
+    //-----------------------------------------------------------------//
 
+    public void ShowStorage(string data)
+    {
+        inventoryGfx.InvButton(data);
+    }
+
+    public void UpdateExtraUIData(string data) 
+    {
+        inventoryGfx.UpdateExtraUIData(data);
+    }
     //-------Backpack Initialize
     public void InitializeBackpackEffect(Backpack backpack) 
     {

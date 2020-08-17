@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
-
+using System.Collections;
 
 public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
 {
@@ -17,14 +17,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     public ItemData itemData;
     public InventoryGfx inventoryGfx;
     public Slider slider;
-    Vector3 iconPos;
-
-    private void Start()
-    {
-        iconPos = icon.gameObject.transform.position;
-    }
-
-
+    public TempHoverSlot tempHoverIcon;
 
 
     //Drag: On Drag
@@ -32,10 +25,12 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     {
         if (item != null)
         {
-            icon.gameObject.transform.position = Input.mousePosition;
+            MoveTempIcon();
+     
             if (dragType == 1)
             {
                 SetTooltip();
+                inventoryGfx.CheckHoverObject();
             }
             if (dragType == 2)
             {
@@ -46,7 +41,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     //Drag: End Drag
     public void OnEndDrag(PointerEventData eventData)
     {
-        icon.gameObject.transform.position = iconPos;
+        ResetTempIcon();
         if (dragType == 2)
         {
             PlayerActionManager.singleton.DragEnded();
@@ -61,7 +56,45 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
         }
     }
 
+    private void MoveTempIcon() 
+    {
+        if (!tempHoverIcon.image.enabled) 
+        {
+            tempHoverIcon.image.enabled = true;
+            icon.enabled = false;
+            slider.gameObject.SetActive(false);
+            slot_Amount.text = "";
+        }
+        if (tempHoverIcon.image.sprite != icon.sprite)
+        {
+            tempHoverIcon.image.sprite = icon.sprite;
+        }
+        tempHoverIcon.gameObject.transform.position = Input.mousePosition; 
+    }
 
+    private void ResetTempIcon()
+    {
+        tempHoverIcon.image.enabled = false;
+        if (item != null) 
+        {
+            StartCoroutine(EnableIconDelay());
+        }
+    }
+
+    //Enable Icon Delay
+    private IEnumerator EnableIconDelay() 
+    {
+        yield return new WaitForSeconds(.5F);
+        if(item != null) 
+        {
+            icon.enabled = true;
+            slider.gameObject.SetActive(true);
+            if (item.itemStack > 1)
+            {
+                slot_Amount.text = item.itemStack.ToString();
+            }
+        }
+    }
 
     //Update Item to Slot
     public void AddItem(Item newItem, ItemData data)
@@ -149,7 +182,6 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
         gameObject.SetActive(!gameObject.activeSelf);
     }
     
-
     //Set Tooltip
     public void SetTooltip() 
     {

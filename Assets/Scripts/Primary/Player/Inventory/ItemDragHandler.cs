@@ -6,9 +6,12 @@ using UnityEngine.EventSystems;
 public class ItemDragHandler : MonoBehaviour, IDropHandler
 {
     public RectTransform inventoryBounds;
-    public RectTransform inventoryBounds2;
-    public RectTransform inventoryBounds3;
-    public RectTransform inventoryBounds4;
+    public RectTransform hotBarBounds;
+
+    public RectTransform[] rightSlideMenu;
+    public RectTransform leftSlideMenu;
+
+
     public RectTransform deathDropBounds;
     private InventoryGfx inventoryGfx;
     private PlayerInfoManager playerInfoManager;
@@ -22,65 +25,107 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
     //On Item Drop
     public void OnDrop(PointerEventData eventData)
     {
+        DebugMsg.Begin(230, "Drop Event Started", 4);
+
         GameObject drop = eventData.pointerDrag;
         ItemSlot parent = drop.GetComponentInParent<ItemSlot>();
         if (parent == null)
         {
+            DebugMsg.End(230, "Drop Event Finished", 4);
             return;
         }
         Item item = parent.getItem();
         if (parent.dragType == 1)
         {
-            if (!RectTransformUtility.RectangleContainsScreenPoint(inventoryBounds, Input.mousePosition)
-            && !RectTransformUtility.RectangleContainsScreenPoint(inventoryBounds2, Input.mousePosition)
-            && !RectTransformUtility.RectangleContainsScreenPoint(inventoryBounds3, Input.mousePosition)
-            && !RectTransformUtility.RectangleContainsScreenPoint(inventoryBounds4, Input.mousePosition))
+            if (HoveringOverSlots()) // Dragging Over Standard Inventory Slots
             {
-                if (parent.getItem() != null)
-                {
-                    playerInfoManager.RemoveItemBySlot(item.currSlot);
-                }
-            }
-            else
-            {
-                drop.gameObject.SetActive(false);
                 var raycastResults = new List<RaycastResult>();
+                
                 EventSystem.current.RaycastAll(eventData, raycastResults);
-                drop.gameObject.SetActive(true);
+                
                 if (raycastResults.Count > 0)
                 {
                     GameObject obj = raycastResults[0].gameObject;
                     if (parent.getItem() != null)
                     {
+                        ItemSlot newSlot = null;
+                        
                         if (obj.name == "Image")
                         {
-                            ItemSlot itemSlot = obj.GetComponentInParent<ItemSlot>();
-                            if (itemSlot != null)
-                            {
-                                obj = itemSlot.gameObject;
-                            }
+                            newSlot = obj.GetComponentInParent<ItemSlot>();
                         }
-                        ItemSlot objSlot = obj.GetComponent<ItemSlot>();
-                        ItemSlot dropSlot = drop.GetComponent<ItemSlot>();
-                        if (objSlot != null && dropSlot != null)
+                        else if(newSlot == null) 
                         {
-                            int newSlot = objSlot.slotNumber;
-                            int curSlot = dropSlot.slotNumber;
-                            playerInfoManager.MoveItemBySlots(curSlot, newSlot);
+                            newSlot = obj.GetComponent<ItemSlot>();
                         }
+                        if (newSlot != null)
+                        {
+                            playerInfoManager.MoveItemBySlots(parent.slotNumber, newSlot.slotNumber);
+                        }
+                        DebugMsg.End(230, "Drop Event Finished", 4);
                     }
                 }
             }
+            else //Drop Item
+            {
+                if (parent.getItem() != null)
+                {
+                    DebugMsg.End(230, "Drop Event Finished", 4);
+                    playerInfoManager.RemoveItemBySlot(item.currSlot);
+                }
+            }
         }
-        else if(parent.dragType == 2) 
+        else if (parent.dragType == 2)
         {
             if (!RectTransformUtility.RectangleContainsScreenPoint(deathDropBounds, Input.mousePosition))
             {
                 if (parent.getItem() != null)
                 {
+                    DebugMsg.End(230, "Drop Event Finished", 4);
                     PlayerActionManager.singleton.TakeSingleDeathDrop(item.currSlot);
                 }
             }
         }
     }
+
+    private bool HoveringOverRightMenu() 
+    {
+        bool isHovering = false;
+        if(rightSlideMenu != null && rightSlideMenu.Length > 0) 
+        {
+            foreach (RectTransform item in rightSlideMenu)
+            {
+                if (!isHovering)
+                    isHovering = RectTransformUtility.RectangleContainsScreenPoint(leftSlideMenu, Input.mousePosition);
+            }
+        }
+        return isHovering;
+    }
+
+    private bool HoveringOverLeftMenu() 
+    {
+        return (RectTransformUtility.RectangleContainsScreenPoint(leftSlideMenu, Input.mousePosition));
+    }
+
+    private bool HoveringOverInventory() 
+    {
+        return (RectTransformUtility.RectangleContainsScreenPoint(inventoryBounds, Input.mousePosition)
+            || RectTransformUtility.RectangleContainsScreenPoint(hotBarBounds, Input.mousePosition));
+    }
+
+    private bool HoveringOverSlots() 
+    {
+        bool isHovering = false;
+        isHovering = HoveringOverRightMenu();
+        if (!isHovering) 
+        {
+            isHovering = HoveringOverLeftMenu();   
+        }
+        if (!isHovering)
+        {
+            isHovering = HoveringOverInventory();
+        }
+        return isHovering;
+    }
+
 }

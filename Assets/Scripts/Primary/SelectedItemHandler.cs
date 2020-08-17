@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityStandardAssets.CrossPlatformInput;
 
 public class SelectedItemHandler : MonoBehaviour
 {
@@ -38,23 +36,7 @@ public class SelectedItemHandler : MonoBehaviour
         inventory = FindObjectOfType<InventoryGfx>();
         reticle = FindObjectOfType<Reticle>();
         controls = inventory.GetComponent<ControlControl>();
-
-    }
-    private void Update()
-    {
-        if (CrossPlatformInputManager.GetButtonDown("Use")) 
-        {
-            Use();
-            isHoldingUse = true;
-        }
-        if (CrossPlatformInputManager.GetButtonUp("Use"))
-        {
-            isHoldingUse = false;
-        }
-        if (CrossPlatformInputManager.GetButtonDown("Reload"))
-        {
-            actionManager.ReloadToDurability(selectedSlot);
-        }
+        inventory.SelectedItemHandover(this);
     }
 
 
@@ -67,12 +49,12 @@ public class SelectedItemHandler : MonoBehaviour
     //Use Selected Item
     public void Use() 
     {
-        actionManager.UseSelectedItem(selectedSlot, aimTransform, this);
+        actionManager.UseSelectedItem(selectedSlot, aimTransform);
     }
 
+    //Selected Item Return Response
     public void SelectedReturn(bool success) 
     {
-        Debug.Log("Shooting");
         if (success) 
         {
             if (tempAnimator != null)
@@ -94,6 +76,8 @@ public class SelectedItemHandler : MonoBehaviour
         }
     }
 
+    //Show Reticle ToolTip
+
     private void ShowReticleNotify(string notify) 
     {
         if(reticle == null) 
@@ -103,101 +87,50 @@ public class SelectedItemHandler : MonoBehaviour
         reticle.ShowErrorNotify(notify);
     }
 
-
     //Select a Slot (int)
     public void SelectSlot(int slot)
     {
-
         if(inventory == null) 
         {
             inventory = FindObjectOfType<InventoryGfx>();
         }
-            
-            selectedSlot = slot;
+        if(inventory != null) 
+        {
             selectedItem = inventory.SelectSlot(slot);
-            if (selectedItem != null)
+            if(selectedItem != null) 
             {
-                if (selectedItem.isHoldable)
+                if (selectedItem.isPlaceable) 
                 {
-                    HoldItem();
+                    ShowPlaceableItem();
                 }
-                else
+                else if (selectedItem.isHoldable) 
                 {
-                    if (holdItem != null)
-                    {
-                        holdItem.SetActive(false);
-                        holdItemCache.Add(holdItem);
-                        leftHand = null;
-                        rightHand = null;
-                    }
+                    DeactivateBuilderOverlay();
+                    ShowHoldableItem();
+                }
+                else {
+                    DeactivateBuilderOverlay();
+                    ClearHoldItem();
                 }
             }
             else
             {
-
                 if (controls != null)
                 {
                     controls.SwapUse(0);
                 }
-                if (holdItem != null)
-                {
-                    holdItem.SetActive(false);
-                    holdItemCache.Add(holdItem);
-                    leftHand = null;
-                    rightHand = null;
-                }
+                ClearHoldItem();
+                DeactivateBuilderOverlay();
             }
-        //else 
-        //{
-        //    if (selectedItem != null)
-        //    {
-        //        if (selectedItem.isHoldable)
-        //        {
-        //            HoldItem();
-        //        }
-        //        else
-        //        {
-        //            if (holdItem != null)
-        //            {
-        //                holdItem.SetActive(false);
-        //                holdItemCache.Add(holdItem);
-        //                leftHand = null;
-        //                rightHand = null;
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-
-        //        if (controls != null)
-        //        {
-        //            controls.SwapUse(0);
-        //        }
-        //        if (holdItem != null)
-        //        {
-        //            holdItem.SetActive(false);
-        //            holdItemCache.Add(holdItem);
-        //            leftHand = null;
-        //            rightHand = null;
-        //        }
-        //    }
+        }
     }
 
     //Hold Item Function
-    private void HoldItem() 
+    private void ShowHoldableItem() 
     {
-        if (holdItem != null)
-        {
-            holdItem.SetActive(false);
-            holdItemCache.Add(holdItem);
-            leftHand = null;
-            rightHand = null;
-        }
-        selectedItemData = inventory.FindItemData(selectedItem.itemID);
-        if(controls != null) 
-        {
-            controls.SwapUse(selectedItemData.useType);
-        }
+        selectedItemData = inventory.FindItemData(selectedItem.itemID); //Get ItemData from ItemID
+        ClearHoldItem(); //Clear Hold Item
+        SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
         bool selected = false;
         foreach (GameObject obj in holdItemCache)
         {
@@ -210,14 +143,35 @@ public class SelectedItemHandler : MonoBehaviour
                 break;
             }
         }
-
         if (handAnchor != null && selected == false)
         {
             holdItem = Instantiate(selectedItemData.holdableObject, handAnchor);
             UpdateTargets();
         }
-
         tempAnimator = holdItem.GetComponent<Animator>();
+    }
+
+    //Show Placeable Item
+    private void ShowPlaceableItem()
+    {
+        selectedItemData = inventory.FindItemData(selectedItem.itemID); //Get ItemData from ItemID
+        ClearHoldItem(); //Clear Hold Item
+        SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
+
+        //Get Prefab from ItemData and Spawn it infront of player when activated
+        ActivateBuilderOverlay();
+    }
+
+    //Activate Builder
+    private void ActivateBuilderOverlay() 
+    {
+        reticle.ActivateBuilderOverlay(selectedItemData, selectedSlot);
+    }
+    
+    //Deactivate Builder
+    private void DeactivateBuilderOverlay() 
+    {
+        reticle.DeactivateBuilderOverlay();
     }
 
     //Update Animator Targets
@@ -274,4 +228,26 @@ public class SelectedItemHandler : MonoBehaviour
         }
         
     }
+
+    //Clear HoldItem
+    private void ClearHoldItem() 
+    {
+        if (holdItem != null)
+        {
+            holdItem.SetActive(false);
+            holdItemCache.Add(holdItem);
+            leftHand = null;
+            rightHand = null;
+        }
+    }
+
+    //Set Control Use Type
+    private void SetControlUseType(int useType) 
+    {
+        if (controls != null)
+        {
+            controls.SwapUse(useType);
+        }
+    }
+
 }

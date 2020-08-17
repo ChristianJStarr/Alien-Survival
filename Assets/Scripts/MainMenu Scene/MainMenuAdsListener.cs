@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Advertisements;
+using UnityEngine.SceneManagement;
 
 public class MainMenuAdsListener : MonoBehaviour, IUnityAdsListener
 {
@@ -22,28 +23,31 @@ public class MainMenuAdsListener : MonoBehaviour, IUnityAdsListener
     }
     public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
     {
-        if (showResult == ShowResult.Finished)
+        if (SceneManager.GetActiveScene().name == "MainMenu")
         {
-            ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
-            if (serverConnect != null)
+            if (showResult == ShowResult.Finished)
             {
-                serverConnect.ConnectToServer(storedIp, storedPort);
+                ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+                if (serverConnect != null)
+                {
+                    serverConnect.ConnectToServer(storedIp, storedPort);
+                }
             }
-        }
-        else if (showResult == ShowResult.Skipped)
-        {
-            ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
-            if (serverConnect != null)
+            else if (showResult == ShowResult.Skipped)
             {
-                serverConnect.ConnectToServer(storedIp, storedPort);
+                ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+                if (serverConnect != null)
+                {
+                    serverConnect.ConnectToServer(storedIp, storedPort);
+                }
             }
-        }
-        else if (showResult == ShowResult.Failed)
-        {
-            ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
-            if (serverConnect != null)
+            else if (showResult == ShowResult.Failed)
             {
-                serverConnect.ConnectToServer(storedIp, storedPort);
+                ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+                if (serverConnect != null)
+                {
+                    serverConnect.ConnectToServer(storedIp, storedPort);
+                }
             }
         }
     }

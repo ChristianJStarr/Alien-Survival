@@ -5,27 +5,39 @@ using UnityEngine;
 
 public class DebugMsg : MonoBehaviour
 {
-    [SerializeField] private static bool debuggingOn = true;
-    [SerializeField] private static int _logLevel = 4;
-    [SerializeField] private static bool showTimings = true;
+    private static bool debuggingOn = true;
+    private static int _logLevel = 2;
+    private static bool showTimings = true;
 
 
-    private static Dictionary<int, Stopwatch> timerCharts = new Dictionary<int, Stopwatch>();
-
-
+    private static Dictionary<int, Stopwatch> timerCharts;
+    private void Start() 
+    {
+        if (timerCharts == null)
+        {
+            timerCharts = new Dictionary<int, Stopwatch>();
+        }
+    }
 
     public static void Begin(int id, string message, int logLevel) 
     {
+        if (timerCharts == null)
+        {
+            timerCharts = new Dictionary<int, Stopwatch>();
+        }
         if (debuggingOn) 
         {
             if (logLevel <= _logLevel)
             {
                 if (showTimings)
                 {
-                    Stopwatch watch = new Stopwatch();
-                    watch.Start();
-                    timerCharts.Add(id, watch);
-                    Messenger(message);
+                    if (!timerCharts.ContainsKey(id))
+                    {
+                        Stopwatch watch = new Stopwatch();
+                        watch.Start();
+                        timerCharts.Add(id, watch);
+                        Messenger(message);
+                    }
                 }
                 else
                 {
@@ -54,7 +66,11 @@ public class DebugMsg : MonoBehaviour
                 }
                 else 
                 {
-                    Messenger(message);
+                    if (timerCharts.ContainsKey(id))
+                    {
+                        Messenger(message);
+                        timerCharts.Remove(id);
+                    }
                 }      
             }
         }

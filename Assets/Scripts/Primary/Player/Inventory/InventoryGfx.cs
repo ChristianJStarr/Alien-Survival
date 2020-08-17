@@ -4,17 +4,19 @@ using UnityStandardAssets.Characters.FirstPerson;
 using TMPro;
 using System.Linq;
 using System.Collections.Generic;
+using System;
+using System.Collections;
 
 public class InventoryGfx : MonoBehaviour
 {
     public TopToolTipHandler toolTipHandler;
-    public GameObject inventoryUI, inventoryBkg, playerMenu, craftMenu, bounds, bounds2, bounds3, hotBarButtons, tint, playerViewCamera;
+    public GameObject inventoryUI, inventoryBkg, bounds, bounds2, bounds3, hotBarButtons, tint, tint2, playerViewCamera, storageCrateSlotContainer;
     public ControlControl controls;
     public Transform itemsParent, armorSlotsContainer, hotBarParent;
     public Slider splitSlider;
     public TextMeshProUGUI splitText;
     public Item toolTipItem;
-    public ItemSlot[] itemSlots, armorSlots;
+    public ItemSlot[] itemSlots, armorSlots, storageCrateSlots;
     public bool invOpen = false;
     FirstPersonController fps;
     CraftingMenu craftingMenu;
@@ -27,19 +29,26 @@ public class InventoryGfx : MonoBehaviour
     private int[] blueprints;
     private ItemData[] allItems;
 
-    private bool craftingActive;
-    private bool armorActive;
 
-    public RectTransform armorRect;
-    public RectTransform craftingRect;
+    //Inventory UI Slide Menus
+    private Vector2 leftTarget = new Vector3(-354F, -41.99303F);
+    private Vector2 rightTarget = new Vector3(-618, -41.99601F);
 
-    private Vector2 armorTarget = new Vector3(-354F, -41.99303F);
-    private Vector2 craftingTarget = new Vector3(-618, -41.99601F);
+    public InventorySlideModule[] rightSlideMenus;
+    public RectTransform leftSlideMenus;
 
-    private bool armorMove;
-    private bool craftingMove;
-    
-    
+    private int activeSlideMenu;
+    private bool rightMove = false;
+    private bool leftMove = false;
+    private bool leftActive = false;
+    private bool rightActive = false;
+
+    private bool checkingHover = false;
+    //Extra UI Data
+    private UIData storedUIData;
+
+    private int uiType = 0;
+
     private void Start()
     {
 
@@ -48,18 +57,23 @@ public class InventoryGfx : MonoBehaviour
         ItemSlot[] itemSlotsTemp = itemsParent.GetComponentsInChildren<ItemSlot>(true);
         List<ItemSlot> hotBarSlotsTemp = hotBarParent.GetComponentsInChildren<ItemSlot>(true).ToList();
         armorSlots = armorSlotsContainer.GetComponentsInChildren<ItemSlot>(true);
+        storageCrateSlots = storageCrateSlotContainer.GetComponentsInChildren<ItemSlot>(true);
         foreach (ItemSlot slot in itemSlotsTemp)
         {
             hotBarSlotsTemp.Add(slot);
         }
         itemSlots = hotBarSlotsTemp.ToArray();
-        for (int i = 0; i < itemSlots.Length; i++)
+        for (int i = 0; i < itemSlots.Length; i++) //33 0-32
         {
-            itemSlots[i].slotNumber = i + 1;
+            itemSlots[i].slotNumber = i + 1; // 1-33
         }
-        for (int i = 0; i < armorSlots.Length; i++)
+        for (int i = 0; i < armorSlots.Length; i++) //5 0-4
         {
-            armorSlots[i].slotNumber = i + 34;
+            armorSlots[i].slotNumber = i + 34; //34-38
+        }
+        for (int i = 0; i < storageCrateSlots.Length; i++) //18 0-17
+        {
+            storageCrateSlots[i].slotNumber = i + 39; //39-56
         }
     }
     private void Update()
@@ -70,11 +84,11 @@ public class InventoryGfx : MonoBehaviour
     //Update Player Info
     public void Incoming(PlayerInfo playerInfo)
     {
-        
+
         items = playerInfo.items;
         armor = playerInfo.armor;
         blueprints = playerInfo.blueprints;
-        if(craftingMenu == null) 
+        if (craftingMenu == null)
         {
             craftingMenu = GetComponent<CraftingMenu>();
         }
@@ -86,27 +100,100 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
-    //Button: Crafting Menu
-    public void ButtonCraftingMenu()
+
+    public void CheckHoverObject()
     {
-        craftingActive = !craftingActive;
-        SlideMenu(true, craftingActive);
-        if (armorActive) 
+        if (HoveringOverLeftMenu())
         {
-            armorActive = false;
-            SlideMenu(false, false);
+            if (!leftActive) 
+            {
+                ToggleSlideMenu(true);
+            }
+        }
+        else if (HoveringOverRightMenu())
+        {
+            if (!rightActive) 
+            {
+                ToggleSlideMenu(false);
+            }
+        }
+        else if (leftActive)
+        {
+            if (!checkingHover)
+            {
+                StartCoroutine(CheckHoverObjectWait());
+            }
+        }
+        else if (rightActive) 
+        {
+            if (!checkingHover)
+            {
+                StartCoroutine(CheckHoverObjectWait());
+            }
         }
     }
-    
-    //Button: Armor Menu
-    public void ButtonArmorMenu() 
+
+    private IEnumerator CheckHoverObjectWait() 
     {
-        armorActive = !armorActive;
-        SlideMenu(false, armorActive);
-        if (craftingActive)
+        checkingHover = true;
+        yield return new WaitForSeconds(.4F);
+        if (!HoveringOverLeftMenu())
         {
-            craftingActive = false;
-            SlideMenu(true, false);
+            if (leftActive)
+            {
+                ToggleSlideMenu(true);
+            }
+        }
+        if (!HoveringOverRightMenu())
+        {
+            if (rightActive)
+            {
+                ToggleSlideMenu(false);
+            }
+        }
+        checkingHover = false;
+    }
+
+    private bool HoveringOverRightMenu()
+    {
+        bool isHovering = false;
+        if (rightSlideMenus != null && rightSlideMenus.Length > 0)
+        {
+            foreach (InventorySlideModule item in rightSlideMenus)
+            {
+                if (!isHovering && item.gameObject.activeSelf && item.allowActivateOnHover)
+                {
+                    isHovering = RectTransformUtility.RectangleContainsScreenPoint(item.rect, Input.mousePosition);
+                }
+            }
+        }
+        return isHovering;
+    }
+
+    private bool HoveringOverLeftMenu()
+    {
+        return (RectTransformUtility.RectangleContainsScreenPoint(leftSlideMenus, Input.mousePosition));
+    }
+
+
+    //Button: Slide Menu
+    public void ToggleSlideMenu(bool left)
+    {
+        if (left) 
+        {
+            SlideMenu(left, !leftActive);
+            if (rightActive) 
+            {
+                SlideMenu(!left, false);
+            }
+        }
+        else //right 
+        {
+            SlideMenu(left, !rightActive);
+            if (leftActive)
+            {
+                SlideMenu(!left, false);
+            }
         }
     }
 
@@ -119,68 +206,83 @@ public class InventoryGfx : MonoBehaviour
     //Update Menu Positions
     private void UpdateMenus() 
     {
-        if(armorMove) 
-        {
-            if (armorRect.anchoredPosition != armorTarget)
+            if (leftMove)
             {
-                armorRect.anchoredPosition = Vector2.MoveTowards(armorRect.anchoredPosition, armorTarget, 6000 * Time.deltaTime);
+                if (leftSlideMenus.anchoredPosition != leftTarget)
+                {
+                    leftSlideMenus.anchoredPosition = Vector2.MoveTowards(leftSlideMenus.anchoredPosition, leftTarget, 6000 * Time.deltaTime);
+                }
+                else
+                {
+                    leftMove = false;
+                }
             }
-            else 
+            if (rightMove)
             {
-                armorMove = false;
+                RectTransform rect = rightSlideMenus[activeSlideMenu].rect;
+                if (rect.anchoredPosition != rightTarget)
+                {
+                    rect.anchoredPosition = Vector2.MoveTowards(rect.anchoredPosition, rightTarget, 6000 * Time.deltaTime);
+                }
+                else
+                {
+                    rightMove = false;
+                }
             }
-        }
-        if(craftingMove) 
-        {
-            if (craftingRect.anchoredPosition != craftingTarget)
+            if (leftActive || rightActive)
             {
-                craftingRect.anchoredPosition = Vector2.MoveTowards(craftingRect.anchoredPosition, craftingTarget, 6000 * Time.deltaTime);
-            }
-            else 
-            {
-                craftingMove = false;
-            }
-        }
-        if (armorActive || craftingActive)
-        {
-            tint.SetActive(true);
-        }
-        else
-        {
-            tint.SetActive(false);
-        }
-    }
-
-    //Slide Menus 
-    private void SlideMenu(bool craftingMenu, bool state) 
-    {
-        if (craftingMenu) 
-        {
-            Vector2 target;
-            if (state) 
-            {
-                target = new Vector2(-618F, -41.99601F);
-            }
-            else 
-            {
-                target = new Vector2(456.8462F, -41.99601F);
-            }
-            craftingTarget = target;
-            craftingMove = true;
-        }
-        else 
-        {
-            Vector2 target;
-            if (state)
-            {
-                target = new Vector2(489.6F, -41.99303F);
+                tint2.SetActive(true);
             }
             else
             {
-                target = new Vector2(-354F, -41.99303F);
+                tint2.SetActive(false);
             }
-            armorTarget = target;
-            armorMove = true;
+    }
+
+    //Set Right Menu
+    private void SetRightMenu(int menuId, bool active) 
+    {
+        activeSlideMenu = menuId;
+        foreach (InventorySlideModule module in rightSlideMenus)
+        {
+            if (module.gameObject.activeSelf) 
+            {
+                module.gameObject.SetActive(false);
+            }
+        }
+        rightSlideMenus[menuId].gameObject.SetActive(active);
+    }
+
+    //Slide Menus 
+    private void SlideMenu(bool left, bool state) 
+    {
+        if (!left) //Right
+        {
+            InventorySlideModule module = rightSlideMenus[uiType];
+            if (state) 
+            {
+                rightTarget = module.onPos;
+            }
+            else 
+            {
+                rightTarget = module.offPos;
+            }
+            rightMove = true;
+            rightActive = state;
+        }
+        else //Left
+        {
+            
+            if (state)
+            {
+                leftTarget = new Vector2(507, -38);
+            }
+            else
+            {
+                leftTarget = new Vector2(-354.1534F, -38);
+            }
+            leftMove = true;
+            leftActive = state;
         }
     }
 
@@ -214,16 +316,32 @@ public class InventoryGfx : MonoBehaviour
     }
 
     //Button: Inventory Open/Close
-    public void InvButton() 
+    public void InvButton(string data = null) 
     {
-        
+        uiType = 0;
+        UIData uiData = null;
+        if (!String.IsNullOrEmpty(data))
+        {
+            uiData = JsonUtility.FromJson<UIData>(data);
+            if (uiData != null)
+            {
+                uiType = uiData.type;
+                invOpen = false;
+            }
+        }
 
+
+
+        SetRightMenu(uiType, !invOpen);
+        activeSlideMenu = uiType;
         if (invOpen)
         {
             invOpen = false;
             controls.Show();
             toolTipHandler.gameObject.SetActive(false);
-            
+            SlideMenu(true, false);
+            SlideMenu(false, false);
+            tint.SetActive(false);
             if(playerViewCamera != null) 
             {
                 playerViewCamera.SetActive(false);
@@ -239,10 +357,11 @@ public class InventoryGfx : MonoBehaviour
                 playerViewCamera.SetActive(true);
             }
         }
+        tint.SetActive(invOpen);
         hotBarButtons.SetActive(!invOpen);
         inventoryBkg.SetActive(invOpen);
-        playerMenu.SetActive(invOpen);
-        craftMenu.SetActive(invOpen);
+        leftSlideMenus.gameObject.SetActive(invOpen);
+        
         for (int i = 0; i < itemSlots.Length; i++)
         {
             if (i > 5)
@@ -254,6 +373,82 @@ public class InventoryGfx : MonoBehaviour
         {
             armorSlots[i].Toggle();  
         }
+
+        //Show StorageCrate
+        if(uiType == 1) 
+        {
+            OpenStorageCrateUI(uiData);   
+        }
+        //Show Smelting
+        if(uiType == 2)
+        {
+            OpenSmeltUI(uiData);
+        }
+    }
+
+    //Update Extra UI Data
+    public void UpdateExtraUIData(string data)
+    {
+        UIData uiData = JsonUtility.FromJson<UIData>(data);
+
+        if(uiData.type == 1) //Storage
+        {
+            UpdateStorageCrateUI(uiData.itemArray);
+        }
+        else if (uiData.type == 2) //Smelt
+        {
+            UpdateSmeltUI(uiData);
+        }
+        else if (uiData.type == 3)
+        {
+
+        }
+    }
+
+    //Open UI Storage Crate
+    public void OpenStorageCrateUI(UIData crateData) 
+    {
+        ToggleSlideMenu(false);
+        UpdateStorageCrateUI(crateData.itemArray);
+    }
+
+    //Update UI Storage Crate
+    private void UpdateStorageCrateUI(Item[] datas)
+    {
+        foreach (ItemSlot slot in storageCrateSlots)
+        {
+            slot.ClearSlot();
+        }
+        if (datas != null)
+        {
+            foreach (Item item in datas)
+            {
+                foreach (ItemSlot slot in storageCrateSlots)
+                {
+                    if (item.currSlot == slot.slotNumber)
+                    {
+                        ItemData data = FindItemData(item.itemID);
+                        if (data != null)
+                        {
+                            slot.AddItem(item, FindItemData(item.itemID));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    //Open UI Smelting
+    private void OpenSmeltUI(UIData smeltData) 
+    {
+        
+    }
+    private void UpdateSmeltUI(UIData smeltData) 
+    {
+    
     }
 
     //Update the UI
@@ -320,4 +515,11 @@ public class InventoryGfx : MonoBehaviour
         }
         return itemData;
     }
+}
+
+
+public class UIData 
+{
+    public int type = 0;
+    public Item[] itemArray = null;
 }

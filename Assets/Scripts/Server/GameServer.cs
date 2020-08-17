@@ -35,6 +35,7 @@ public class GameServer : NetworkedBehaviour
 
                 writer.WriteStringPacked(instance.special);
 
+                writer.WriteBool(instance.isPlaceable);
                 writer.WriteBool(instance.isCraftable);
                 writer.WriteBool(instance.isHoldable);
                 writer.WriteBool(instance.isArmor);
@@ -55,6 +56,7 @@ public class GameServer : NetworkedBehaviour
                 
                 item.special = reader.ReadStringPacked().ToString();
 
+                item.isPlaceable = reader.ReadBool();
                 item.isCraftable = reader.ReadBool();
                 item.isHoldable = reader.ReadBool();
                 item.isArmor = reader.ReadBool();
@@ -63,29 +65,9 @@ public class GameServer : NetworkedBehaviour
             }
         });
 
-        ////Serialization for <Vector3> Object. 
-        //SerializationManager.RegisterSerializationHandlers<Vector3>((Stream stream, Vector3 instance) =>
-        //{
-        //    using (PooledBitWriter writer = PooledBitWriter.Get(stream))
-        //    {
-        //        float[] flarray= { instance.x, instance.y, instance.z };
-        //        writer.WriteFloatArrayPacked(flarray);
 
-        //    }
-        //}, (Stream stream) =>
-        //{
-        //    using (PooledBitReader reader = PooledBitReader.Get(stream))
-        //    {
-        //        float[] flarray = reader.ReadFloatArrayPacked();
-        //        Vector3 item = new Vector3
-        //        {
-        //            x = flarray[0],
-        //            y = flarray[1],
-        //            z = flarray[2]
-        //        };
-        //        return item;
-        //    }
-        //});
+
+        
     }
 
     #endregion
@@ -116,7 +98,8 @@ public class GameServer : NetworkedBehaviour
     //Temp Location for Respawn
     public Vector3 tempPlayerPosition = new Vector3(0,-5000,0);
 
-   
+    //Temp Invent ory
+    private Item[] tempInventory;
     
     
     
@@ -277,6 +260,7 @@ public class GameServer : NetworkedBehaviour
         item.maxItemStack = itemData.maxItemStack;
         item.currSlot = 44;
         item.armorType = itemData.armorType;
+        item.isPlaceable = itemData.isPlaceable;
         item.isCraftable = itemData.isCraftable;
         item.isHoldable = itemData.isHoldable;
         item.isArmor = itemData.isArmor;
@@ -604,7 +588,7 @@ public class GameServer : NetworkedBehaviour
     {
         for (int i = 0; i < activeResources.Count; i++)
         {
-            if(activeResources[i].unique == unique) 
+            if(activeResources[i].uniqueId == unique) 
             {
                 int amountLeft = activeResources[i].gatherAmount - activeResources[i].gatherPerAmount;
                 if (amountLeft >= 0) 
@@ -818,6 +802,27 @@ public class GameServer : NetworkedBehaviour
         PlayerActionManager.singleton.HideDeathScreen();
     }
 
+
+
+    private void Server_UIShowStorage(ulong clientId, string data) 
+    {
+        InvokeClientRpcOnClient(Server_UIShowStorageRpc, clientId, data);        
+    }
+    [ClientRPC]
+    private void Server_UIShowStorageRpc(string data) 
+    {
+        playerInfoManager.ShowStorage(data);
+    }
+
+    private void Server_UIUpdateStorage(ulong clientId, string data)
+    {
+        InvokeClientRpcOnClient(Server_UIUpdateStorageRpc, clientId, data);
+    }
+    [ClientRPC]
+    private void Server_UIUpdateStorageRpc(string data)
+    {
+        playerInfoManager.UpdateExtraUIData(data);
+    }
 
 
 
@@ -1831,11 +1836,48 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void InteractWithClickable_Rpc(int id, string authKey, string uniqueId)
     {
+        DebugMsg.Begin(24, "Starting Clickable Interaction", 3);
+        
         for (int i = 0; i < activePlayers.Count; i++)
         {
             if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
             {
-                clickableSystem.InteractWithClickable(activePlayers[i], uniqueId);
+                Clickable clickable = clickableSystem.FindClickableByUnique(uniqueId);
+                if (clickable == null)
+                    return;
+                //Pickup Object
+                if (clickable.clickType == 1)
+                {
+                    if(Server_AddNewItemToInventory(activePlayers[i].clientId, Convert.ToInt32(clickable.data), 1)) 
+                    {
+                        //Pickup success
+                        clickableSystem.RemoveClickable(clickable);
+                    }
+                    else 
+                    {
+                        //Do Nothing - Not enough space
+                    }
+                    DebugMsg.End(24, "Finished Clickable Interaction", 3);
+                }
+                else if (clickable.clickType == 2)
+                {
+                    string[] datas = clickable.data.Split(',');
+                    int itemId = Convert.ToInt32(datas[0]);
+                    int amount = Convert.ToInt32(datas[1]);
+                    if(Server_AddNewItemToInventory(activePlayers[i].clientId, itemId, 1)) 
+                    {
+                        clickableSystem.RemoveClickable(clickable);
+                    }
+                    else 
+                    {
+                        //Do Nothing - Not enough space
+                    }
+                    DebugMsg.End(24, "Finished Clickable Interaction", 3);
+                }
+                else if (clickable.clickType == 3)
+                {
+                    Server_UIShowStorage(activePlayers[i].clientId, clickable.data);
+                }
                 DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with Clickable: " + uniqueId + ".", 2);
                 break;
             }
@@ -1932,9 +1974,109 @@ public class GameServer : NetworkedBehaviour
 
 
 
+    //-- Place Placeable Object
+
+    public void Client_PlacePlaceableObject(int id, string authKey, int itemId, int itemSlot, Transform loc) 
+    {
+        DebugMsg.Notify("Requesting to Place Placeable", 2);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(id);
+                writer.WriteStringPacked(authKey);
+                writer.WriteInt32Packed(itemId);
+                writer.WriteInt32Packed(itemSlot);
+                writer.WriteSinglePacked(loc.position.x);
+                writer.WriteSinglePacked(loc.position.y);
+                writer.WriteSinglePacked(loc.position.z);
+                writer.WriteSinglePacked(loc.localRotation.x);
+                writer.WriteSinglePacked(loc.localRotation.y);
+                writer.WriteSinglePacked(loc.localRotation.z);
+                InvokeServerRpcPerformance(Client_PlacePlaceableObjectRpc, writeStream);
+            }
+        }
+    }
+
+    [ServerRPC(RequireOwnership = false)]
+    private void Client_PlacePlaceableObjectRpc(ulong clientId, Stream stream) 
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            int id = reader.ReadInt32Packed();
+            string authKey = reader.ReadStringPacked().ToString();
+            int itemId = reader.ReadInt32Packed();
+            int itemSlot = reader.ReadInt32Packed();
+            float xPos = reader.ReadSinglePacked();
+            float yPos = reader.ReadSinglePacked();
+            float zPos = reader.ReadSinglePacked();
+            float xRot = reader.ReadSinglePacked();
+            float yRot = reader.ReadSinglePacked();
+            float zRot = reader.ReadSinglePacked();
+            Vector3 objPos = new Vector3(xPos, yPos, zPos);
+
+            DebugMsg.Begin(20, "Trying to Place Placeable", 2);
+
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+                {
+                    ItemData selectedData = GetItemDataById(itemId);
+                    if (selectedData.isPlaceable) 
+                    {
+                        tempInventory = inventorySystem.RemoveItemFromInventoryBySlot(itemSlot, activePlayers[i].items, returnValue => 
+                        {
+                            if(returnValue != null && returnValue.itemID == itemId) 
+                            {
+                                
+                            }
+                        });
+
+                        if (tempInventory != null)
+                        {
+                            activePlayers[i].items = tempInventory;
+                            ForceRequestInfoById(clientId, 5);
+                            GameObject placeableObject = Instantiate(selectedData.placeableItem);
+                            placeableObject.transform.position = objPos;
+                            placeableObject.transform.localRotation = Quaternion.Euler(zRot, yRot, zRot);
+                            CollideSensor collide = placeableObject.GetComponent<CollideSensor>();
+
+                            if (collide.isOverlapping)
+                            {
+                                DebugMsg.End(20, "Could Not Place Placeable", 2);
+                                Destroy(placeableObject);
+                                InvokeClientRpcOnClient(UseSelectedItemReturn, clientId, false);
+                            }
+                            else
+                            {
+
+                                NetworkedObject networkObject = placeableObject.GetComponent<NetworkedObject>();
+                                networkObject.Spawn();
+                                Server_RegisterClickable(placeableObject, selectedData);
+                                InvokeClientRpcOnClient(UseSelectedItemReturn, clientId, true);
+                                DebugMsg.End(20, "Placed Placeable Successfully", 2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
-
+    private void Server_RegisterClickable(GameObject clickableObject, ItemData data) 
+    {
+        Clickable clickable = clickableObject.GetComponent<Clickable>();
+        if (clickable != null)
+        {
+            if(clickable.clickType == 3) 
+            {
+                UIData newData = new UIData();
+                newData.type = clickable.uiType;
+                clickableSystem.RegisterClickable(clickable, newData);
+            }
+        }
+    }
 
 
 
@@ -2130,7 +2272,7 @@ public class GameServer : NetworkedBehaviour
 
     private IEnumerator PrimaryLoop() 
     {
-        yield return new WaitForSeconds(.2F);
+        yield return new WaitForSeconds(5F);
         Server_DepleteAll();
 
         //Re-Loop

@@ -14,6 +14,7 @@ public class Item
 
     public bool isCraftable = false;
     public bool isHoldable = false;
+    public bool isPlaceable = false;
     public bool isArmor = false;
     public bool showInInventory = true;
 

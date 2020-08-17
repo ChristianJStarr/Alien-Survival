@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
@@ -25,6 +26,11 @@ public class SettingsMenu : MonoBehaviour
     public ScrollRect scrollRect;
 
     private bool realignScroll = false;
+
+
+    private PauseControl pauseControl;
+    private MainMenuScript mainMenuScript;
+
 
     void Start() 
     {
@@ -53,7 +59,7 @@ public class SettingsMenu : MonoBehaviour
 
         //SetDebug
         SetToggleBool(showFps, settings.showFps);
-        SetToggleBool(showFps, settings.showConsole);
+        SetToggleBool(showConsole, settings.showConsole);
     }
 
 
@@ -127,6 +133,34 @@ public class SettingsMenu : MonoBehaviour
             objectDis.value = terrainDis.value;
         }
     }
+
+
+    public void BackButton() 
+    {
+        if(SceneManager.GetActiveScene().name == "Primary") 
+        {
+            if(pauseControl == null) 
+            {
+                pauseControl = FindObjectOfType<PauseControl>();
+            }
+            if(pauseControl != null) 
+            {
+                pauseControl.ButtonSettings();
+            }   
+        }
+        else 
+        {
+            if (mainMenuScript == null)
+            {
+                mainMenuScript = FindObjectOfType<MainMenuScript>();
+            }
+            if (mainMenuScript != null)
+            {
+                mainMenuScript.CloseMenu();
+            }
+        }
+    }
+
     
     //Apply Settings Values
     public void ApplySettings() 
@@ -191,6 +225,9 @@ public class SettingsMenu : MonoBehaviour
         
 
         ChangedSettings();
+
+
+        BackButton();
     }
 
     //Get correct pipeline asset based off current settings.

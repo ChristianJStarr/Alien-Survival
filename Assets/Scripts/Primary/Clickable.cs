@@ -1,17 +1,18 @@
-﻿using UnityEngine;
+﻿using MLAPI;
+using MLAPI.NetworkedVar;
 
-public class Clickable : MonoBehaviour
+public class Clickable : NetworkedBehaviour
 {
-    public string unique;
-    public int itemId;
+    [SyncedVar(SendTickrate = 0)]
     public string toolTip;
+    [SyncedVar(SendTickrate = 0)]
+    public string uniqueId;
+    //Click Types
+    // -1- Pickup Single
+    // -2- Pickup Stack
+    // -3- Inventory
+    public int clickType;
+    public int uiType;
+    public string data;
 
-    //Types
-    // 1 - Pickup object
-    public int type;
-    public string special;
-
-
-    public int amountPer;
-    public int maxAmount;
 }

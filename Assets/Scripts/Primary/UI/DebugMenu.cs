@@ -42,7 +42,10 @@ public class DebugMenu : MonoBehaviour
     {
         for (int i = 0; i < slides.Count; i++)
         {
-            Destroy(slides[i].gameObject);
+            if(slides[i] != null)
+            {
+                Destroy(slides[i].gameObject);
+            }
         }
 
         gameServer.GetAllConnectedClients(returnValue => 

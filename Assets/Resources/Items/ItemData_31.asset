@@ -15,15 +15,25 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 05c7216c78d4dd34ebe2bac9c1e274d7, type: 3}
   itemID: 31
   craftAmount: 1
-  name: Storage Cabinet
+  maxItemStack: 1
+  armorType: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  name: Storage Crate
   description: This is an Pipe
   recipe:
   - 39-10
-  maxItemStack: 1
-  armorType: 0
   isCraftable: 1
+  isPlaceable: 1
   isHoldable: 0
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 2484251566122948729, guid: e7d12c21d459b7a4385a66da66dd44d3,
+    type: 3}

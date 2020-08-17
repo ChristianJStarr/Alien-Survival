@@ -27,10 +27,12 @@ public class ItemData : ScriptableObject
     public string[] recipe;
 
     public bool isCraftable = false;
+    public bool isPlaceable = false;
     public bool isHoldable = false;
     public bool isArmor = false;
     public bool isDragging = false;
     public bool showInInventory = true;
     public bool startMaxDurability = false;
     public GameObject holdableObject;
+    public GameObject placeableItem;
 }
