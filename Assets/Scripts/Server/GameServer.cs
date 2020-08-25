@@ -1185,6 +1185,28 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+    //Request Network Ping
+    public void GetPlayerPing(ulong clientId, Action<int> callback)
+    {
+        DebugMsg.Notify("Requesting Ping.", 2);
+        StartCoroutine(GetPlayerPing_Wait(clientId, returnValue =>
+        {
+            int ping = (int)((NetworkingManager.Singleton.NetworkTime - returnValue) * 1000);
+            callback(ping);
+        }));
+    }
+    private IEnumerator GetPlayerPing_Wait(ulong clientId, Action<float> callback)
+    {
+        RpcResponse<float> response = InvokeServerRpc(GetPlayerPing_Rpc, clientId);
+        while (!response.IsDone) { yield return null; }
+        callback(response.Value);
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private float GetPlayerPing_Rpc(ulong clientId)
+    {
+        //calculate ping for clientId
+        return NetworkingManager.Singleton.NetworkTime;
+    }
 
 
 
@@ -1192,97 +1214,135 @@ public class GameServer : NetworkedBehaviour
     //             Client RPC : Force Request                          //
     //-----------------------------------------------------------------//
 
-    //Force Request Info by Client Id
-    public void ForceRequestInfoById(ulong clientId, int infoDepth = 1)
-    {
-        List<ulong> idList = new List<ulong>();
-        idList.Add(clientId);
-        DebugMsg.Notify("Forcing Player '" + clientId + "' to Request Info. Depth: " + infoDepth, 2);
-        if (infoDepth == 1)
-        {
-            InvokeClientRpc("ForceRequestInfoAll_Rpc", idList);
-        }
-        if (infoDepth == 2)
-        {
-            InvokeClientRpc("ForceRequestInfoHealth_Rpc", idList);
-        }
-        if (infoDepth == 3)
-        {
-            InvokeClientRpc("ForceRequestInfoFood_Rpc", idList);
-        }
-        if (infoDepth == 4)
-        {
-            InvokeClientRpc("ForceRequestInfoWater_Rpc", idList);
-        }
-        if (infoDepth == 5)
-        {
-            InvokeClientRpc("ForceRequestInfoItems_Rpc", idList);
-        }
-        if (infoDepth == 6)
-        {
-            InvokeClientRpc("ForceRequestInfoArmor_Rpc", idList);
-        }
-        if (infoDepth == 7)
-        {
-            InvokeClientRpc("ForceRequestInfoBlueprints_Rpc", idList);
-        }
-    }
+    //------DEPTH KEY------//
+    //   1 - ALL           //
+    //   2 - HEALTH        //
+    //   3 - FOOD          //
+    //   4 - WATER         //
+    //   5 - ITEMS         //
+    //   6 - ARMOR         //
+    //   7 - BLUEPRINTS    //
 
-    //Depth 1
-    [ClientRPC]
-    private void ForceRequestInfoAll_Rpc()
+    public void ForceRequestInfoById(ulong clientId, int depth = 1) 
     {
-        playerInfoManager.GetPlayer_AllInfo();
-    }
-    
-    //Depth 2
-    [ClientRPC]
-    private void ForceRequestInfoHealth_Rpc()
-    {
-        playerInfoManager.GetPlayer_Health();
-    }
-    
-    //Depth 3
-    [ClientRPC]
-    private void ForceRequestInfoFood_Rpc()
-    {
-        playerInfoManager.GetPlayer_Food();
-    }
-    
-    //Depth 4
-    [ClientRPC]
-    private void ForceRequestInfoWater_Rpc()
-    {
-        playerInfoManager.GetPlayer_Water();
-    }
-    
-    //Depth 5
-    [ClientRPC]
-    private void ForceRequestInfoItems_Rpc()
-    {
-        playerInfoManager.GetPlayer_InventoryItems();
-    }
-    
-    //Depth 6
-    [ClientRPC]
-    private void ForceRequestInfoArmor_Rpc()
-    {
-        playerInfoManager.GetPlayer_InventoryArmor();
-    }
-    
-    //Depth 7 
-    [ClientRPC]
-    private void ForceRequestInfoBlueprints_Rpc()
-    {
-        playerInfoManager.GetPlayer_InventoryBlueprints();
-    }
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(depth);
+                if (depth == 1) //All
+                {
+                    PlayerInfo player = pis.GetPlayerInfo(clientId);
+                    if (player != null)
+                    {
+                        writer.WriteInt32Packed(player.health);
+                        writer.WriteInt32Packed(player.food);
+                        writer.WriteInt32Packed(player.water);
+                        writer.WriteVector3Packed(player.location);
+                        writer.WriteStringPacked(ItemArrayToJson(player.items));
+                        writer.WriteStringPacked(ItemArrayToJson(player.armor));
+                        writer.WriteIntArrayPacked(player.blueprints);
+                    }
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                }
+                else if (depth == 2) //Health
+                {
+                    writer.WriteInt32Packed(pis.GetPlayerHealth(clientId));
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                }
+                else if (depth == 3) //Food
+                {
+                    writer.WriteInt32Packed(pis.GetPlayerFood(clientId));
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                }
+                else if (depth == 4) //Water
+                {
+                    writer.WriteInt32Packed(pis.GetPlayerWater(clientId));
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                }
+                else if (depth == 5) //Items
+                {
+                    writer.WriteStringPacked(ItemArrayToJson(pis.GetPlayerItems(clientId)));
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                }
+                else if (depth == 6) //Armor
+                {
+                    writer.WriteStringPacked(ItemArrayToJson(pis.GetPlayerArmor(clientId)));
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
 
-
-
+                }
+                else if (depth == 7) //Blueprints
+                {
+                    writer.WriteIntArrayPacked(pis.GetPlayerBlueprints(clientId));
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                }
+            }
+        }
+    }
+    [ClientRPC]
+    private void SendInfoToPlayer_Rpc(ulong clientId, Stream stream) 
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            int depth = reader.ReadInt32Packed();
+            if(depth == 1)//All
+            {
+                PlayerInfo info = new PlayerInfo()
+                {
+                    health = reader.ReadInt32Packed(),
+                    food = reader.ReadInt32Packed(),
+                    water = reader.ReadInt32Packed(),
+                    location = reader.ReadVector3Packed(),
+                    items = ItemArrayFromJson(reader.ReadStringPacked().ToString()),
+                    armor = ItemArrayFromJson(reader.ReadStringPacked().ToString()),
+                    blueprints = reader.ReadIntArrayPacked()
+                };
+                playerInfoManager.UpdateAll(info);
+            }
+            else if(depth == 2)//Health
+            {
+                int health = reader.ReadInt32Packed();
+                playerInfoManager.UpdateHealth(health);
+            }
+            else if (depth == 3)//Food
+            {
+                int food = reader.ReadInt32Packed();
+                playerInfoManager.UpdateFood(food);
+            }
+            else if (depth == 4)//Water
+            {
+                int water = reader.ReadInt32Packed();
+                playerInfoManager.UpdateWater(water);
+            }
+            else if (depth == 5)//Items
+            {
+                Item[] items = ItemArrayFromJson(reader.ReadStringPacked().ToString());
+                playerInfoManager.UpdateItems(items);
+            }
+            else if (depth == 6)//Armor
+            {
+                Item[] armor = ItemArrayFromJson(reader.ReadStringPacked().ToString());
+                playerInfoManager.UpdateArmor(armor);
+            }
+            else if (depth == 7) //Blueprints
+            {
+                int[] blueprints = reader.ReadIntArrayPacked();
+                playerInfoManager.UpdateBlueprints(blueprints);
+            }
+        }
+    }
+    private string ItemArrayToJson(Item[] items)
+    {
+        return JsonHelper.ToJson(items);
+    }
+    private Item[] ItemArrayFromJson(string json) 
+    {
+        return JsonHelper.FromJson<Item>(json);
+    }
 
 
     //-----------------------------------------------------------------//
-    //             EH                                                  //
+    //                          LOOPS                                  //
     //-----------------------------------------------------------------//
 
     //Auto Save Loop

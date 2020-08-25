@@ -12,7 +12,7 @@ public class SettingsMenu : MonoBehaviour
 
     public Settings settings; // Game Settings data.
     public Slider ui, menu, ambient, effects, xSense, ySense, opacity, terrainDis, objectDis; //All settings sliders
-    public ToggleGroup quality, shadows, aliasing, postpro, showFps, showConsole; //All settings toggle groups.
+    public ToggleGroup quality, shadows, aliasing, postpro, showFps, showPing, showConsole; //All settings toggle groups.
     public GameObject qualityContainer, manualContainer;
     public Button qualityModeButton_Manual, qualityModeButton_Auto;
 
@@ -60,6 +60,7 @@ public class SettingsMenu : MonoBehaviour
         //SetDebug
         SetToggleBool(showFps, settings.showFps);
         SetToggleBool(showConsole, settings.showConsole);
+        SetToggleBool(showPing, settings.showPing);
     }
 
 
@@ -212,6 +213,14 @@ public class SettingsMenu : MonoBehaviour
         else if (showFps.ActiveToggles().FirstOrDefault().name == "hide")
         {
             settings.showFps = false;
+        }
+        if (showPing.ActiveToggles().FirstOrDefault().name == "show")
+        {
+            settings.showPing = true;
+        }
+        else if (showPing.ActiveToggles().FirstOrDefault().name == "hide")
+        {
+            settings.showPing = false;
         }
         if (showConsole.ActiveToggles().FirstOrDefault().name == "show")
         {

@@ -40,7 +40,6 @@ public class PlayerInfoManager : MonoBehaviour
                 clientId = NetworkingManager.Singleton.LocalClientId;
                 authKey = PlayerPrefs.GetString("authKey");
                 StartCoroutine(MainPlayerLoop());
-                GetPlayer_AllInfo();
                 player = FindObjectOfType<FirstPersonController>().gameObject;
             }
 
@@ -53,9 +52,9 @@ public class PlayerInfoManager : MonoBehaviour
 
 
     //-------Update Inventory
-    private void UpdateInventory()
+    private void UpdatedInventory()
     {
-        DebugMsg.Notify("InfoManager : Updating Inventory.", 1);
+        DebugMsg.Notify("InfoManager : Updating Inventory.", 3);
         if (inventoryGfx != null && storedPlayerInfo != null)
         {
             inventoryGfx.Incoming(storedPlayerInfo);
@@ -63,15 +62,18 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
     //-------Update Top Bar
-    private void UpdateTopBar()
+    private void UpdatedTopbar()
     {
-        DebugMsg.Notify("InfoManager : Updating Top Bar.", 1);
+        DebugMsg.Notify("InfoManager : Updating Top Bar.", 3);
         if (topbar != null && storedPlayerInfo != null)
         {
             topbar.Incoming(storedPlayerInfo);
         }
         
     }
+    
+    
+    
     //-----------------------------------------------------------------//
     //                      Clickable - Storage                        //
     //-----------------------------------------------------------------//
@@ -92,120 +94,69 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
 
-    //-----------------------------------------------------------------//
-    //             Player Request : Request Own Values                 //
-    //-----------------------------------------------------------------//
 
 
-    //-------Get All The Player Info
-    public void GetPlayer_AllInfo() 
+    //-----------------------------------------------------------------//
+    //             Update PlayerInfo Called From Server                //
+    //-----------------------------------------------------------------//
+   
+    public void UpdateAll(PlayerInfo info)
     {
-        gameServer.GetPlayerInventoryItems(clientId, returnValue1 =>
+        storedPlayerInfo = info;
+        UpdatedInventory();
+        UpdatedTopbar();
+        if (firstRequest && loadAwake != null)
         {
-            storedPlayerInfo.items = returnValue1;
-            gameServer.GetPlayerInventoryArmor(clientId, returnValue2 =>
-            {
-                storedPlayerInfo.armor = returnValue2;
-                gameServer.GetPlayerInventoryBlueprints(clientId, returnValue3 =>
-                {
-                    storedPlayerInfo.blueprints = returnValue3;
-                    gameServer.GetPlayerHealth(clientId, returnValue4 =>
-                    {
-                        storedPlayerInfo.health = returnValue4;
-                        gameServer.GetPlayerFood(clientId, returnValue5 =>
-                        {
-                            storedPlayerInfo.food = returnValue5;
-                            gameServer.GetPlayerWater(clientId, returnValue6 =>
-                            {
-                                storedPlayerInfo.water = returnValue6;
-                                UpdateTopBar();
-                                UpdateInventory();
-                                if (firstRequest && loadAwake != null) 
-                                {
-                                    loadAwake.ReadyWake();
-                                    firstRequest = false;
-                                }
-                            });
-                        });
-                    });
-                });
-            });
-        });
+            loadAwake.ReadyWake();
+            firstRequest = false;
+        }
     }
-    
-    //-------Get Player Inventory Items
-    public void GetPlayer_InventoryItems() 
+    public void UpdateHealth(int health) 
     {
-        gameServer.GetPlayerInventoryItems(clientId, returnValue => 
+        if (storedPlayerInfo.health > health)
         {
-            storedPlayerInfo.items = returnValue;
-            UpdateInventory();
-        });
+            if (playerBackpack != null)
+            {
+                playerBackpack.UpdateBackpackGlow(1);
+            }
+        }
+        else if (storedPlayerInfo.health < health)
+        {
+            if (playerBackpack != null)
+            {
+                playerBackpack.UpdateBackpackGlow(2);
+            }
+        }
+        storedPlayerInfo.health = health;
+        UpdatedTopbar();
     }
-    
-    //-------Get Player Inventory Armor
-    public void GetPlayer_InventoryArmor()
-        {
-        gameServer.GetPlayerInventoryArmor(clientId, returnValue =>
-            {
-                storedPlayerInfo.armor = returnValue;
-                UpdateInventory();
-            });
-        }
-    
-    //-------Get Player Inventory Blueprints
-    public void GetPlayer_InventoryBlueprints()
-        {
-        gameServer.GetPlayerInventoryBlueprints(clientId, returnValue =>
-            {
-                storedPlayerInfo.blueprints = returnValue;
-                UpdateInventory();
-            });
-        }
-    
-    //-------Get Player Health
-    public void GetPlayer_Health()
-        {
-        gameServer.GetPlayerHealth(clientId, returnValue =>
-            {
-                if(storedPlayerInfo.health > returnValue) 
-                {
-                    if (playerBackpack != null)
-                    {
-                        playerBackpack.UpdateBackpackGlow(1);
-                    }
-                }
-                else if(storedPlayerInfo.health < returnValue) 
-                {
-                    if (playerBackpack != null)
-                    {
-                        playerBackpack.UpdateBackpackGlow(2);
-                    }
-                }
-                storedPlayerInfo.health = returnValue;
-                UpdateTopBar();
-            });
-        }
-    
-    //-------Get Player Inventory Items
-    public void GetPlayer_Food()
-        {
-        gameServer.GetPlayerFood(clientId, returnValue =>
-            {
-                storedPlayerInfo.food = returnValue;
-                UpdateTopBar();
-            });
-        }
-    
-    //-------Get Player Inventory Items
-    public void GetPlayer_Water()
+    public void UpdateFood(int food) 
     {
-        gameServer.GetPlayerWater(clientId, returnValue =>
-            {
-            storedPlayerInfo.water = returnValue;
-            UpdateTopBar();
-        });
+        storedPlayerInfo.food = food;
+        UpdatedTopbar();
     }
+    public void UpdateWater(int water) 
+    {
+        storedPlayerInfo.water = water;
+        UpdatedTopbar();
+    }
+    public void UpdateItems(Item[] items) 
+    {
+        storedPlayerInfo.items = items;
+        UpdatedInventory();
+    }
+    public void UpdateArmor(Item[] armor) 
+    {
+        storedPlayerInfo.armor = armor;
+        UpdatedInventory();
+    }
+    public void UpdateBlueprints(int[] blueprints) 
+    {
+        storedPlayerInfo.blueprints = blueprints;
+        UpdatedInventory();
+    }
+
+
 
 
     //-----------------------------------------------------------------//
@@ -242,21 +193,17 @@ public class PlayerInfoManager : MonoBehaviour
     //                      Client Side Loops                          //
     //-----------------------------------------------------------------//
 
-
-    //Food and Water Deplete Speed
-    private int depleteRate = 1;
-    private int depleteCount = 1;
-    private int depleteIntensity = 1;
-
     //-------Main Player Loop
     private IEnumerator MainPlayerLoop() 
     {
         yield return new WaitForSeconds(2F);
 
+        //Store Player Location
         StorePlayerLocation();
+        
+        //Restart Infinite Loop
         StartCoroutine(MainPlayerLoop());
     }
-
 
     //-------Store Location
     private void StorePlayerLocation()
@@ -271,6 +218,7 @@ public class PlayerInfoManager : MonoBehaviour
             if (fps != null) 
             {
                 player = fps.gameObject;
+                SetPlayer_Location(player.transform.position);
             } 
         }
     }

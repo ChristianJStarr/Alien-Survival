@@ -37,7 +37,6 @@ public class ServerConnect : MonoBehaviour
     public bool devServer = false; //If development Server
     private ServerProperties storedProperties; //Stored Server Properties
     [SerializeField]
-    private int logLevel = 3; //LogLevel
     private string storedIp = "";
 
     private string command = "";

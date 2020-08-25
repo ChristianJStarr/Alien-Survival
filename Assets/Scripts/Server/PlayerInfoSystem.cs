@@ -102,17 +102,21 @@ public class PlayerInfoSystem : MonoBehaviour
 
         //Save temp list to json file.
     }
-    private void PlayerInfoHasChanged(ulong clientId, int depth = 0)
-    {
-        gameServer.ForceRequestInfoById(clientId, depth);
-    }
-
-
+   
 
     //-----------------------------------------------------------------//
     //         BASE-LEVEL PLAYERINFO MODIFICATION | GET & SET          //
     //-----------------------------------------------------------------//
 
+    //Full PlayerInfo
+    public PlayerInfo GetPlayerInfo(ulong clientId) 
+    {
+        if (Confirm(clientId)) 
+        {
+            return active[clientId];
+        }
+        return null;
+    }
 
 
     //Player Name
@@ -140,6 +144,7 @@ public class PlayerInfoSystem : MonoBehaviour
         if (active.ContainsKey(clientId))
         {
             active[clientId].items = items;
+            ForceRequestInfoById(clientId, 5);
         }
     }
 
@@ -158,6 +163,8 @@ public class PlayerInfoSystem : MonoBehaviour
         if (active.ContainsKey(clientId))
         {
             active[clientId].armor = armor;
+
+            ForceRequestInfoById(clientId, 6);
         }
     }
 
@@ -193,12 +200,15 @@ public class PlayerInfoSystem : MonoBehaviour
                         tempBp.Remove(itemId);
                     }
                 }
+                active[clientId].blueprints = tempBp.ToArray();
+                ForceRequestInfoById(clientId, 7);
             }
             else
             {
                 if (add)
                 {
                     active[clientId].blueprints = new int[] { itemId };
+                    ForceRequestInfoById(clientId, 7);
                 }
             }
         }
@@ -221,10 +231,13 @@ public class PlayerInfoSystem : MonoBehaviour
             if (subtract)
             {
                 active[clientId].health += amount;
+                ForceRequestInfoById(clientId, 2);
             }
             else
             {
                 active[clientId].health = amount;
+
+                ForceRequestInfoById(clientId, 2);
             }
         }
     }
@@ -246,10 +259,12 @@ public class PlayerInfoSystem : MonoBehaviour
             if (subtract)
             {
                 active[clientId].food += amount;
+                ForceRequestInfoById(clientId, 3);
             }
             else
             {
                 active[clientId].food = amount;
+                ForceRequestInfoById(clientId, 3);
             }
         }
     }
@@ -271,10 +286,12 @@ public class PlayerInfoSystem : MonoBehaviour
             if (subtract)
             {
                 active[clientId].water += amount;
+                ForceRequestInfoById(clientId, 4);
             }
             else
             {
                 active[clientId].water = amount;
+                ForceRequestInfoById(clientId, 4);
             }
         }
     }
@@ -394,16 +411,7 @@ public class PlayerInfoSystem : MonoBehaviour
     //         BASE-LEVEL PLAYERINFO QUICK SET FUNCTIONS               //
     //-----------------------------------------------------------------//
 
-    //Clear Player Items
-    public void ClearPlayerInventory(ulong clientId)
-    {
-        if (active.ContainsKey(clientId))
-        {
-            active[clientId].items = null;
-            active[clientId].armor = null;
-        }
-    }
-
+    
     //Reset Info For Respawn
     public void ResetPlayerInfo(ulong clientId, Vector3 location) 
     {
@@ -411,12 +419,26 @@ public class PlayerInfoSystem : MonoBehaviour
         active[clientId].food = 100;
         active[clientId].water = 100;
         active[clientId].location = location;
+        ForceRequestInfoById(clientId);
     }
 
 
     //-----------------------------------------------------------------//
     //         INVENTORY MODIFICATION | InventorySortTool              //
     //-----------------------------------------------------------------//
+
+    //Clear Player Items
+    public void ClearPlayerInventory(ulong clientId)
+    {
+        if (active.ContainsKey(clientId))
+        {
+            active[clientId].items = null;
+            active[clientId].armor = null;
+
+            ForceRequestInfoById(clientId, 5);
+            ForceRequestInfoById(clientId, 6);
+        }
+    }
 
     //Add New Item
     public void Inventory_AddNew(ulong clientId, int itemId, int amount, Action<bool> callback) 
@@ -436,6 +458,7 @@ public class PlayerInfoSystem : MonoBehaviour
                     else
                     {
                         Inventory_Add(clientId, sit.CreateItemFromData(itemData, amount), returnValue => { callback(returnValue); });
+
                         break;
                     }
                 }
@@ -451,6 +474,7 @@ public class PlayerInfoSystem : MonoBehaviour
         {
             item.currSlot = 44;
             active[clientId].items = sit.AddItemToInventory(item, active[clientId].items, returnValue => { success(returnValue); });
+            ForceRequestInfoById(clientId, 5);
         }
     }
 
@@ -474,7 +498,8 @@ public class PlayerInfoSystem : MonoBehaviour
 
                     if (inventory != null)
                     {
-                        SetPlayerItems(clientId, inventory);
+                        active[clientId].items = inventory;
+                        ForceRequestInfoById(clientId, 5);
                         value = true;
                     }
                 }
@@ -484,14 +509,16 @@ public class PlayerInfoSystem : MonoBehaviour
                     inventory = sit.ChangeItemDurability(temp, oldItem.itemStack, newItemData.maxDurability, newSlot);
                     if (inventory != null)
                     {
-                        SetPlayerItems(clientId, inventory);
+                        active[clientId].items = inventory;
+                        ForceRequestInfoById(clientId, 5);
                         value = true;
                     }
                 }
                 //Else Swap or Move the Item(s)
                 if (!value)
                 {
-                    SetPlayerItems(clientId, sit.MoveItemInInventory(oldSlot, newSlot, inventory));
+                    active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
+                    ForceRequestInfoById(clientId, 5);
                 }
             }
         }
@@ -503,6 +530,7 @@ public class PlayerInfoSystem : MonoBehaviour
         if (Confirm(clientId, authKey))
         {
             active[clientId].items = sit.RemoveItemFromInventoryBySlot(slot, active[clientId].items, returnValue => { droppedItem(returnValue); });
+            ForceRequestInfoById(clientId, 5);
         }
     }
 
@@ -512,6 +540,7 @@ public class PlayerInfoSystem : MonoBehaviour
         if (Confirm(clientId, authKey))
         {
             active[clientId].items = sit.CraftItem(active[clientId].items, itemId, amount);
+            ForceRequestInfoById(clientId, 5);
         }
     }
 
@@ -641,7 +670,7 @@ public class PlayerInfoSystem : MonoBehaviour
     //                           SYSTEM LOOPS                          //
     //-----------------------------------------------------------------//
 
-
+    //Resource Depletion Loop
     private IEnumerator ResourceDepletionLoop() 
     {
         yield return new WaitForSeconds(1f);
@@ -656,8 +685,14 @@ public class PlayerInfoSystem : MonoBehaviour
             StartCoroutine(ResourceDepletionLoop());
         }
     }
+    
+    //Auto-Save Called by Primary GameServer Loop
+    public void AutoSave()
+    {
+        SaveAllPlayerInfo();
+    }
 
-
+    //Resource Depletion Task
     private void ResourceDeplete(ulong clientId) 
     {
         PlayerInfo player = active[clientId];
@@ -696,15 +731,22 @@ public class PlayerInfoSystem : MonoBehaviour
     }
 
 
+    //------DEPTH KEY------//
+    //   1 - ALL           //
+    //   2 - HEALTH        //
+    //   3 - FOOD          //
+    //   4 - WATER         //
+    //   5 - ITEMS         //
+    //   6 - ARMOR         //
+    //   7 - BLUEPRINTS    //
+
+    //Force Request Info
     private void ForceRequestInfoById(ulong clientId, int depth = 1) 
     {
         gameServer.ForceRequestInfoById(clientId, depth);
     }
 
-    public void AutoSave() 
-    {
-        SaveAllPlayerInfo();
-    }
+    
 }
 
 

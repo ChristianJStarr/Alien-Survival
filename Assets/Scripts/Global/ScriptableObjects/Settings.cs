@@ -27,6 +27,7 @@ public class Settings : ScriptableObject
 
     //Debug
     public bool showFps = false;
+    public bool showPing = false;
     public bool showConsole = false;
 
     //Control Layout
