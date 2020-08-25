@@ -73,7 +73,7 @@ public class DebugMenu : MonoBehaviour
 
     private void UpdateItems() 
     {
-        ItemData[] itemDatas = gameServer.GetAllItemData();
+        ItemData[] itemDatas = InvUI.GetAllItemDatas();
         if(itemDatas != null) 
         {
             foreach (ItemData item in itemDatas)
@@ -106,9 +106,8 @@ public class DebugMenu : MonoBehaviour
 
     public void SpawnItem() 
     {
-        if(selectedItem != 0) 
+        if (selectedItem != 0)
         {
-            PlayerActionManager.singleton.RequestToCheatItem(selectedItem);
         }
     }
     
@@ -116,7 +115,6 @@ public class DebugMenu : MonoBehaviour
     {
         if(selectedPlayer != 999999) 
         {
-           PlayerActionManager.singleton.RequestToTeleport(selectedPlayer);
         }
     }
 }

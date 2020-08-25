@@ -63,18 +63,9 @@ public class InventoryGfx : MonoBehaviour
             hotBarSlotsTemp.Add(slot);
         }
         itemSlots = hotBarSlotsTemp.ToArray();
-        for (int i = 0; i < itemSlots.Length; i++) //33 0-32
-        {
-            itemSlots[i].slotNumber = i + 1; // 1-33
-        }
-        for (int i = 0; i < armorSlots.Length; i++) //5 0-4
-        {
-            armorSlots[i].slotNumber = i + 34; //34-38
-        }
-        for (int i = 0; i < storageCrateSlots.Length; i++) //18 0-17
-        {
-            storageCrateSlots[i].slotNumber = i + 39; //39-56
-        }
+
+        //Assign Slot_Numbers to Item Slots
+        AssignSlotNumbersToSlots();
     }
     private void Update()
     {
@@ -100,7 +91,28 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Assign Slot Numbers To Slots
+    private void AssignSlotNumbersToSlots() 
+    {
+        int slotNumber = 1;
+        for (int i = 0; i < itemSlots.Length; i++) //33 0-32
+        {
+            itemSlots[i].slotNumber = slotNumber; // 1-33
+            slotNumber++;
+        }
+        for (int i = 0; i < armorSlots.Length; i++) //5 0-4
+        {
+            armorSlots[i].slotNumber = slotNumber; //34-38
+            slotNumber++;
+        }
+        for (int i = 0; i < storageCrateSlots.Length; i++) //18 0-17
+        {
+            storageCrateSlots[i].slotNumber = slotNumber; //39-56
+            slotNumber++;
+        }
+    }
 
+    //Check the Hover Object
     public void CheckHoverObject()
     {
         if (HoveringOverLeftMenu())
@@ -133,6 +145,7 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Wait for Check Hover Objecet
     private IEnumerator CheckHoverObjectWait() 
     {
         checkingHover = true;
@@ -154,6 +167,7 @@ public class InventoryGfx : MonoBehaviour
         checkingHover = false;
     }
 
+    //If Hovering Over Right Menu
     private bool HoveringOverRightMenu()
     {
         bool isHovering = false;
@@ -170,11 +184,11 @@ public class InventoryGfx : MonoBehaviour
         return isHovering;
     }
 
+    //If Hovering Over Left Menu
     private bool HoveringOverLeftMenu()
     {
         return (RectTransformUtility.RectangleContainsScreenPoint(leftSlideMenus, Input.mousePosition));
     }
-
 
     //Button: Slide Menu
     public void ToggleSlideMenu(bool left)
@@ -293,7 +307,7 @@ public class InventoryGfx : MonoBehaviour
         {
             toolTipHandler.gameObject.SetActive(true);
         }
-        toolTipHandler.SetData(FindItemData(item.itemID), item);
+        toolTipHandler.SetData(InvUI.FindItemDataById(item.itemID), item);
     }
 
     //Select a slot
@@ -415,108 +429,147 @@ public class InventoryGfx : MonoBehaviour
     //Update UI Storage Crate
     private void UpdateStorageCrateUI(Item[] datas)
     {
-        foreach (ItemSlot slot in storageCrateSlots)
-        {
-            slot.ClearSlot();
-        }
+        InvUI.ClearSlots(storageCrateSlots);
         if (datas != null)
         {
-            foreach (Item item in datas)
-            {
-                foreach (ItemSlot slot in storageCrateSlots)
-                {
-                    if (item.currSlot == slot.slotNumber)
-                    {
-                        ItemData data = FindItemData(item.itemID);
-                        if (data != null)
-                        {
-                            slot.AddItem(item, FindItemData(item.itemID));
-                        }
-                        break;
-                    }
-                }
-            }
+            InvUI.SortSlots(datas, storageCrateSlots);
         }
     }
-
-
 
     //Open UI Smelting
     private void OpenSmeltUI(UIData smeltData) 
     {
         
     }
+   
+    //Update UI Smelting
     private void UpdateSmeltUI(UIData smeltData) 
     {
     
     }
 
-    //Update the UI
+    //Update the Standard Inventory UI
     private void UpdateUI()
     {
-        foreach (ItemSlot slot in itemSlots)
-        {
-            slot.ClearSlot();
-        }
-        foreach (ItemSlot slot in armorSlots)
-        {
-            slot.ClearSlot();
-        }
-
+        //Inventory Slots
+        InvUI.ClearSlots(itemSlots);
         if (items != null)
         {
-            foreach (Item item in items)
-            {
-                foreach (ItemSlot slot in itemSlots)
-                {
-                    if (item.currSlot == slot.slotNumber)
-                    {
-                        ItemData data = FindItemData(item.itemID);
-                        if (data != null)
-                        {
-                            slot.AddItem(item, FindItemData(item.itemID));
-                        }
-                        break;
-                    }
-                }
-            }
+            InvUI.SortSlots(items, itemSlots);
         }
+
+        //Armor Slots
+        InvUI.ClearSlots(armorSlots);
         if (armor != null) 
         {
-            foreach (Item item in armor)
+            InvUI.SortSlots(armor, armorSlots);
+        }
+    }
+
+}
+
+
+public class InvUI
+{
+    private static ItemData[] itemDatas;
+
+    //TOOL: Sort Slots
+    public static void SortSlots(Item[] items, ItemSlot[] slots)
+    {
+        foreach (Item item in items)
+        {
+            foreach (ItemSlot slot in slots)
             {
-                foreach (ItemSlot slot in armorSlots)
+                if (item.currSlot == slot.slotNumber)
                 {
-                    if (item.currSlot == slot.slotNumber)
+                    ItemData data = FindItemDataById(item.itemID);
+                    if (data != null)
                     {
-                        ItemData data = FindItemData(item.itemID);
-                        if(data != null)
-                        {
-                            slot.AddItem(item, FindItemData(item.itemID));
-                        }
-                        break;
+                        slot.AddItem(item, data);
                     }
+                    break;
                 }
             }
         }
     }
 
-    //Find ItemData by ID
-    public ItemData FindItemData(int id) 
+
+    //TOOL: Get Item Data from ID
+    public static ItemData FindItemDataById(int id)
     {
-        ItemData itemData = null;
-        foreach (ItemData data in allItems) 
+        if (CheckItemDataList())
         {
-            if(data.itemID == id) 
+            ItemData itemData = null;
+            foreach (ItemData data in itemDatas)
             {
-                itemData = data;
-                break;
-            }   
+                if (data.itemID == id)
+                {
+                    itemData = data;
+                    break;
+                }
+            }
+            return itemData;
         }
-        return itemData;
+        else
+        {
+            return null;
+        }
     }
+
+    //TOOL: Get All Item Datas
+    public static ItemData[] GetAllItemDatas() 
+    {
+        if (CheckItemDataList())
+        {
+            return itemDatas;
+        }
+        return null;
+    }
+
+    //Check and Initialize Item Data List
+    private static bool CheckItemDataList() 
+    {
+        if (itemDatas == null)
+        {
+            itemDatas = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
+            if(itemDatas != null) 
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        else 
+        {
+            return true;
+        }
+    }
+
+
+    //TOOL: Clear Slots
+    public static void ClearSlots(ItemSlot[] slots) 
+    {
+        if(slots != null && slots.Length > 0) 
+        {
+            foreach (ItemSlot slot in slots)
+            {
+                slot.ClearSlot();
+            }
+        }
+    }
+
 }
 
+
+
+
+
+
+/// <summary>
+/// *
+/// </summary>
 
 public class UIData 
 {

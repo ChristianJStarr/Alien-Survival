@@ -4,16 +4,15 @@ using UnityEngine.SceneManagement;
 
 public class PrimaryAdListener : MonoBehaviour, IUnityAdsListener
 {
+    private GameServer gameServer;
     private string gameId = "3507995";
     private string myPlacementId = "rewardedVideo";
     private bool testMode = true;
-
-    private int id;
     private string authKey;
 
     void Start()
     {
-        id = PlayerPrefs.GetInt("userId");
+        gameServer = GameServer.singleton;
         authKey = PlayerPrefs.GetString("authKey");
         Advertisement.AddListener(this);
         Advertisement.Initialize(gameId, testMode);
@@ -28,15 +27,15 @@ public class PrimaryAdListener : MonoBehaviour, IUnityAdsListener
         {
             if (showResult == ShowResult.Finished)
             {
-                GameServer.singleton.RequestToRespawn(id, authKey);
+                gameServer.RequestToRespawn(authKey);
             }
             else if (showResult == ShowResult.Skipped)
             {
-                GameServer.singleton.RequestToRespawn(id, authKey);
+                gameServer.RequestToRespawn(authKey);
             }
             else if (showResult == ShowResult.Failed)
             {
-                GameServer.singleton.RequestToRespawn(id, authKey);
+                gameServer.RequestToRespawn(authKey);
             }
         }
     }

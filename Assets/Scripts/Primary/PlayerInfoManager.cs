@@ -23,7 +23,8 @@ public class PlayerInfoManager : MonoBehaviour
     private PlayerInfo storedPlayerInfo;
     private GameObject player;
     private Backpack playerBackpack;
-    private int id;
+    private int userId;
+    private ulong clientId;
     private string authKey;
     private bool firstRequest = true;
 
@@ -36,7 +37,7 @@ public class PlayerInfoManager : MonoBehaviour
                 storedPlayerInfo = new PlayerInfo();
                 topbar = FindObjectOfType<Topbar>();
                 gameServer = FindObjectOfType<GameServer>();
-                id = PlayerPrefs.GetInt("userId");
+                clientId = NetworkingManager.Singleton.LocalClientId;
                 authKey = PlayerPrefs.GetString("authKey");
                 StartCoroutine(MainPlayerLoop());
                 GetPlayer_AllInfo();
@@ -99,22 +100,22 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get All The Player Info
     public void GetPlayer_AllInfo() 
     {
-        gameServer.GetPlayerInventoryItems(id, returnValue1 =>
+        gameServer.GetPlayerInventoryItems(clientId, returnValue1 =>
         {
             storedPlayerInfo.items = returnValue1;
-            gameServer.GetPlayerInventoryArmor(id, returnValue2 =>
+            gameServer.GetPlayerInventoryArmor(clientId, returnValue2 =>
             {
                 storedPlayerInfo.armor = returnValue2;
-                gameServer.GetPlayerInventoryBlueprints(id, returnValue3 =>
+                gameServer.GetPlayerInventoryBlueprints(clientId, returnValue3 =>
                 {
                     storedPlayerInfo.blueprints = returnValue3;
-                    gameServer.GetPlayerHealth(id, returnValue4 =>
+                    gameServer.GetPlayerHealth(clientId, returnValue4 =>
                     {
                         storedPlayerInfo.health = returnValue4;
-                        gameServer.GetPlayerFood(id, returnValue5 =>
+                        gameServer.GetPlayerFood(clientId, returnValue5 =>
                         {
                             storedPlayerInfo.food = returnValue5;
-                            gameServer.GetPlayerWater(id, returnValue6 =>
+                            gameServer.GetPlayerWater(clientId, returnValue6 =>
                             {
                                 storedPlayerInfo.water = returnValue6;
                                 UpdateTopBar();
@@ -135,7 +136,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Items
     public void GetPlayer_InventoryItems() 
     {
-        gameServer.GetPlayerInventoryItems(id, returnValue => 
+        gameServer.GetPlayerInventoryItems(clientId, returnValue => 
         {
             storedPlayerInfo.items = returnValue;
             UpdateInventory();
@@ -145,7 +146,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Armor
     public void GetPlayer_InventoryArmor()
         {
-        gameServer.GetPlayerInventoryArmor(id, returnValue =>
+        gameServer.GetPlayerInventoryArmor(clientId, returnValue =>
             {
                 storedPlayerInfo.armor = returnValue;
                 UpdateInventory();
@@ -155,7 +156,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Blueprints
     public void GetPlayer_InventoryBlueprints()
         {
-        gameServer.GetPlayerInventoryBlueprints(id, returnValue =>
+        gameServer.GetPlayerInventoryBlueprints(clientId, returnValue =>
             {
                 storedPlayerInfo.blueprints = returnValue;
                 UpdateInventory();
@@ -165,7 +166,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Health
     public void GetPlayer_Health()
         {
-        gameServer.GetPlayerHealth(id, returnValue =>
+        gameServer.GetPlayerHealth(clientId, returnValue =>
             {
                 if(storedPlayerInfo.health > returnValue) 
                 {
@@ -189,7 +190,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Items
     public void GetPlayer_Food()
         {
-        gameServer.GetPlayerFood(id, returnValue =>
+        gameServer.GetPlayerFood(clientId, returnValue =>
             {
                 storedPlayerInfo.food = returnValue;
                 UpdateTopBar();
@@ -199,7 +200,7 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Get Player Inventory Items
     public void GetPlayer_Water()
     {
-        gameServer.GetPlayerWater(id, returnValue =>
+        gameServer.GetPlayerWater(clientId, returnValue =>
             {
             storedPlayerInfo.water = returnValue;
             UpdateTopBar();
@@ -215,34 +216,28 @@ public class PlayerInfoManager : MonoBehaviour
     //-------Set Player Location
     public void SetPlayer_Location(Vector3 location) 
     {
-        gameServer.SetPlayerLocation(id, authKey, location);
+        gameServer.SetPlayerLocation(authKey, location);
     }
 
     //-------Move Item by Slot
     public void MoveItemBySlots(int curSlot, int newSlot) 
     {
-        gameServer.MovePlayerItemBySlot(id, authKey, curSlot, newSlot);
+        gameServer.MovePlayerItemBySlot(clientId, authKey, curSlot, newSlot);
     }
 
     //-------Remove Item by Slot
     public void RemoveItemBySlot(int curSlot) 
     {
-        gameServer.RemovePlayerItemBySlot(id, authKey, curSlot);
+        gameServer.RemovePlayerItemBySlot(clientId, authKey, curSlot);
     }
 
     //-------Craft Item by Id
     public void CraftItemById(int itemId, int amount)
     {
-        gameServer.CraftItemById(id, authKey, itemId, amount);
+        gameServer.CraftItemById(clientId, authKey, itemId, amount);
     }
 
-    //-------Get If Enough Items
-    public void GetIfEnoughItems(int itemId, int amount, System.Action<bool> callback) 
-    {
-        gameServer.GetIfEnoughItems(id, itemId, amount, returnValue => { callback(returnValue); });
-    }
-
-
+ 
     //-----------------------------------------------------------------//
     //                      Client Side Loops                          //
     //-----------------------------------------------------------------//

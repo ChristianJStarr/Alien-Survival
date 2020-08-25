@@ -128,7 +128,7 @@ public class SelectedItemHandler : MonoBehaviour
     //Hold Item Function
     private void ShowHoldableItem() 
     {
-        selectedItemData = inventory.FindItemData(selectedItem.itemID); //Get ItemData from ItemID
+        selectedItemData = InvUI.FindItemDataById(selectedItem.itemID); //Get ItemData from ItemID
         ClearHoldItem(); //Clear Hold Item
         SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
         bool selected = false;
@@ -154,7 +154,7 @@ public class SelectedItemHandler : MonoBehaviour
     //Show Placeable Item
     private void ShowPlaceableItem()
     {
-        selectedItemData = inventory.FindItemData(selectedItem.itemID); //Get ItemData from ItemID
+        selectedItemData = InvUI.FindItemDataById(selectedItem.itemID); //Get ItemData from ItemID
         ClearHoldItem(); //Clear Hold Item
         SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
 

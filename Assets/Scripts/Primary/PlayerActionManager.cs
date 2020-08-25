@@ -18,12 +18,13 @@ public class PlayerActionManager : MonoBehaviour
 
     #endregion
 
-    private int id;
+    private ulong clientId;
     private string authKey;
     private GameServer gameServer;
 
 
     //DeathDropUI
+    
     public GameObject deathDropContainer;
     public GameObject deathDropGfx;
     public GameObject deathScreen;
@@ -40,7 +41,6 @@ public class PlayerActionManager : MonoBehaviour
     
     void Start()
     {
-        id = PlayerPrefs.GetInt("userId");
         authKey = PlayerPrefs.GetString("authKey");
         gameServer = GameServer.singleton;
         deathDropItemSlots = deathDropContainer.GetComponentsInChildren<ItemSlot>(true);
@@ -62,7 +62,7 @@ public class PlayerActionManager : MonoBehaviour
     {
         if(gameServer != null) 
         {
-            gameServer.InteractWithClickable(id, authKey, uniqueId);
+            gameServer.InteractWithClickable(clientId, authKey, uniqueId);
         }
     }
 
@@ -72,37 +72,23 @@ public class PlayerActionManager : MonoBehaviour
     {
         if (gameServer != null)
         {
-            gameServer.InteractWithResource(id, authKey, uniqueId);
+            gameServer.InteractWithResource(clientId, authKey, uniqueId);
         }
     }
 
 
     //Interact with DeathDrop
-    public void InteractWithDeathDrop(string uniqueId, Item[] drops) 
+    public void InteractWithDeathDrop(string uniqueId, Item[] drops)
     {
-        foreach (ItemSlot slot in deathDropItemSlots)
-        {
-            slot.ClearSlot();
-        }
-        currentDeathDropUnique = uniqueId;
         for (int i = 0; i < drops.Length; i++)
         {
             drops[i].currSlot = i + 1;
         }
-        foreach (ItemSlot slot in deathDropItemSlots)
-        {
-            foreach(Item drop in drops) 
-            {
-                if(drop.currSlot == slot.slotNumber) 
-                {
-                    slot.AddItem(drop, gameServer.GetItemDataById(drop.itemID));
-                    break;
-                }
-                
-            }   
-        }
-        ToggleDeathDropUI(true);
+        InvUI.ClearSlots(deathDropItemSlots);
+        InvUI.SortSlots(drops, deathDropItemSlots);
+        currentDeathDropUnique = uniqueId;
         currentDeathDropItems = drops;
+        ToggleDeathDropUI(true);
     }
     private void ToggleDeathDropUI(bool value)
     {
@@ -115,7 +101,7 @@ public class PlayerActionManager : MonoBehaviour
     }
     public void TakeAllDeathDrop()
     {
-        gameServer.InteractWithDeathDrop(id, authKey, currentDeathDropUnique, 100, returnValue =>
+        gameServer.InteractWithDeathDrop(clientId, authKey, currentDeathDropUnique, 100, returnValue =>
         {
             if (returnValue != null)
             {
@@ -138,7 +124,7 @@ public class PlayerActionManager : MonoBehaviour
     }
     public void TakeSingleDeathDrop(int slotNumber)
     {
-        gameServer.InteractWithDeathDrop(id, authKey, currentDeathDropUnique, slotNumber, returnValue =>
+        gameServer.InteractWithDeathDrop(clientId, authKey, currentDeathDropUnique, slotNumber, returnValue =>
         {
             if (returnValue != null)
             {
@@ -184,7 +170,7 @@ public class PlayerActionManager : MonoBehaviour
     }
     public void RequestToRespawn() 
     {
-        gameServer.RequestToRespawn(id, authKey);
+        gameServer.RequestToRespawn(authKey);
     }
 
    
@@ -201,7 +187,7 @@ public class PlayerActionManager : MonoBehaviour
         {
             itemHandler = FindObjectOfType<SelectedItemHandler>();
         }
-        gameServer.UseSelectedItem(id, authKey, slot, aim);
+        gameServer.UseSelectedItem(authKey, slot, aim);
     }
 
     public void UseSelectedItemReturn(bool value) 
@@ -220,14 +206,14 @@ public class PlayerActionManager : MonoBehaviour
     //Add to Durability (Reload)
     public void ReloadToDurability(int slot) 
     {
-        gameServer.ReloadToDurability(id, authKey, slot);
+        gameServer.ReloadToDurability(authKey, slot);
     }
 
 
     //Place placeable object
     public void PlacePlaceable(Transform location, int itemId, int itemSlot) 
     {
-        gameServer.Client_PlacePlaceableObject(id, authKey, itemId, itemSlot, location);
+        gameServer.Client_PlacePlaceableObject(authKey, itemId, itemSlot, location);
     }
 
 
@@ -242,24 +228,12 @@ public class PlayerActionManager : MonoBehaviour
     //-----------------------------------------------------------------//
 
 
-    //Request to Teleport
-    public void RequestToTeleport(ulong targetClient) 
-    {
-        gameServer.RequestToTeleport(id, authKey, targetClient);
-    }
-    //Request to Cheat Item
-    public void RequestToCheatItem(int itemId) 
-    {
-        gameServer.RequestToCheatItem(id, authKey, itemId);
-    }
-
- 
 
 
 
     public void RequestDisconnect() 
     {
-        gameServer.RequestToDisconnect(id, authKey);
+        gameServer.RequestToDisconnect(authKey);
     }
    
 }

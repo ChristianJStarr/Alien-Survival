@@ -285,88 +285,53 @@ public class ServerConnect : MonoBehaviour
     private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkingManager.ConnectionApprovedDelegate callback)
     {
         if(gameServer == null) { gameServer = GameServer.singleton; }
-        bool approve = true;
-        bool noData = true;
+        bool approve = false;
         string connectData = System.Text.Encoding.ASCII.GetString(connectionData);
         string[] connectDataSplit = connectData.Split(',');
-        int id = Convert.ToInt32(connectDataSplit[0]);
+        int userId = Convert.ToInt32(connectDataSplit[0]);
         string authKey = connectDataSplit[1].ToString();
         string username = connectDataSplit[2].ToString();
         GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
         Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
+        //Check if player has stored PlayerInfo
 
-        //Check if player has active PlayerInfo
-        if (gameServer.activePlayers != null)
+        if (gameServer.MovePlayerToActive(clientId, userId, authKey))
         {
-            for (int i = 0; i < gameServer.activePlayers.Count; i++)
+            gameServer.InitializePlayerInfo(clientId);
+            Vector3 location = gameServer.GetPlayerLocation(clientId);
+            if (location != Vector3.zero)
             {
-                if (gameServer.activePlayers[i].id == id)
-                {
-                    Debug.Log(id);
-                    DebugMsg.Notify("Player '" + username + "' Tried to Connect but has Active Player Info.", 1);
-                    approve = false;
-                    break;
-                }
+                spawnPoint = location;
             }
+            else //if (player.IsDead) 
+            {
+                //respawn player
+            }
+            approve = true;
         }
-
-
-        if (approve)
+        else
         {
-            //Check if player has stored PlayerInfo
-            if (gameServer.inactivePlayers != null)
+            PlayerInfo newPlayer = new PlayerInfo
             {
-                for (int i = 0; i < gameServer.inactivePlayers.Count; i++)
-                {
-                    PlayerInfo player = gameServer.inactivePlayers[i];
-                    if (player.id == id)
-                    {
-                        if (player.authKey == authKey)
-                        {
-                            player.time = DateTime.Now;
-                            gameServer.ActiveManage(player, true);
-                            gameServer.InactiveManage(player, false);
-                            spawnPoint = player.location;
-                            noData = false;
-                            break;
-                        }
-                        else
-                        {
-                            DebugMsg.Notify("Player '" + username + "' Tried to Connect with Invalid AuthKey.", 1);
-                            approve = false;
-                            noData = false;
-                            break;
-                        }
-                    }
-                }
-            }
-            //Else make new PlayerInfo for this player
-            if (noData)
+                name = username,
+                authKey = authKey,
+                id = userId,
+                health = 100,
+                food = 100,
+                water = 100,
+                location = spawnPoint,
+                clientId = clientId,
+                coinsAdd = 0,
+                expAdd = 0,
+                hoursAdd = 0,
+                time = DateTime.Now
+            };
+            if (gameServer.CreatePlayer(newPlayer)) 
             {
-                PlayerInfo newPlayer = new PlayerInfo
-                {
-                    name = username,
-                    authKey = authKey,
-                    id = id,
-                    health = 100,
-                    food = 100,
-                    water = 100,
-                    location = spawnPoint,
-                    clientId = clientId,
-                    coinsAdd = 0,
-                    expAdd = 0,
-                    hoursAdd = 0,
-                    time = DateTime.Now
-                };
-                gameServer.ActiveManage(newPlayer, true);
-                DebugMsg.Notify("Created New Player Data for '" + username + "'.", 1);
-                approve = true;
+                approve = true;       
             }
-        }
-        
-        bool createPlayerObject = true;
-        ulong? prefabHash = SpawnManager.GetPrefabHashFromGenerator("Alien");
-        callback(createPlayerObject, prefabHash, approve, spawnPoint, Quaternion.identity);
+        } 
+        callback(true, SpawnManager.GetPrefabHashFromGenerator("Alien"), approve, spawnPoint, Quaternion.identity);
     }
     
     //Callback: Server Started

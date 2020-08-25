@@ -53,7 +53,7 @@ public class GameServer : NetworkedBehaviour
                 item.currSlot = reader.ReadInt32Packed();
                 item.armorType = reader.ReadInt32Packed();
                 item.durability = reader.ReadInt32Packed();
-                
+
                 item.special = reader.ReadStringPacked().ToString();
 
                 item.isPlaceable = reader.ReadBool();
@@ -67,48 +67,41 @@ public class GameServer : NetworkedBehaviour
 
 
 
-        
+
     }
 
     #endregion
     public GameObject deathDropPrefab;
     public GameObject[] particlePrefabs;
 
-    //Player lists
-    public List<PlayerInfo> activePlayers;
-    public List<PlayerInfo> inactivePlayers;
 
-    //Object lists
-    private List<GameObject> activeGameObjects;
-    private List<Resource> activeResources;
+    // -- SYSTEMS
+    private PlayerInfoSystem pis;
+    private WorldAISystem worldAISystem;
+    private WorldObjectSystem worldObjectSystem;
 
-    //Systems
+    // -- MANAGERS
     private PlayerInfoManager playerInfoManager;
     private PlayerActionManager playerActionManager;
-    private ServerSaveData serverSaveData;
-    private InventorySystem inventorySystem;
     private ClickableSystem clickableSystem;
-
-    //Item Datas
-    private ItemData[] allItems;
 
     //Properties
     private ServerProperties storedProperties;
 
     //Temp Location for Respawn
-    public Vector3 tempPlayerPosition = new Vector3(0,-5000,0);
+    public Vector3 tempPlayerPosition = new Vector3(0, -5000, 0);
 
     //Temp Invent ory
     private Item[] tempInventory;
-    
-    
-    
-    
+
+
     private void Start()
     {
-        allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         playerInfoManager = PlayerInfoManager.singleton;
         playerActionManager = PlayerActionManager.singleton;
+
+
+
         if (IsServer)
         {
             StartGameServer();
@@ -125,76 +118,76 @@ public class GameServer : NetworkedBehaviour
     private void StartGameServer()
     {
         DebugMsg.Begin(1, "Starting Game Server.", 1);
-        
-        activePlayers = new List<PlayerInfo>();
-        inactivePlayers = new List<PlayerInfo>();
-        serverSaveData = Resources.Load("Data/ServerSaveData") as ServerSaveData;
-        if (serverSaveData.playerData != null)
-        {
-            inactivePlayers = serverSaveData.playerData;
-            activeGameObjects = serverSaveData.objData;
-        }
-        activeResources = FindObjectsOfType<Resource>().ToList();
-        inventorySystem = GetComponent<InventorySystem>();
-        clickableSystem = GetComponent<ClickableSystem>();
-        LoadGameObjects();
+
+        //Store properties
         storedProperties = ServerConnect.singleton.GetServerProperties();
-        if (storedProperties != null)
+        if (storedProperties == null)
         {
-            StartCoroutine(AutoSaveLoop());
+            DebugMsg.End(1, "Failed to Retrieve Server Properties", 1);
+            return;
         }
 
-        StartCoroutine(PrimaryLoop());
+        //Start Player Info System
+        pis = GetComponent<PlayerInfoSystem>();
+        if (pis == null || !pis.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start Player Info System", 1);
+            return;
+        }
 
+        //Start World AI System
+        worldAISystem = GetComponent<WorldAISystem>();
+        if (worldAISystem == null || !worldAISystem.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start World AI System", 1);
+            return;
+        }
+
+        //Start World Object System
+        worldObjectSystem = GetComponent<WorldObjectSystem>();
+        if (worldObjectSystem == null || !worldObjectSystem.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start World Object System", 1);
+            return;
+        }
+
+        clickableSystem = GetComponent<ClickableSystem>();
+
+        //Start Loops
+        StartCoroutine(AutoSaveLoop());
         DebugMsg.End(1, "Game Server Started.", 1);
     }
-    
+
     //Stop the Game Server
     public void StopGameServer()
     {
         DebugMsg.Begin(2, "Stopping Game Server.", 1);
 
-        inactivePlayers.Concat(activePlayers).ToList();
-        if (serverSaveData != null)
-        {
-            serverSaveData.playerData = inactivePlayers;
-            serverSaveData.objData = activeGameObjects;
-            DebugMsg.Notify("Saving Server Data.", 1);
-            NetworkingManager.Singleton.StopServer();
-        }
+        NetworkingManager.Singleton.StopServer();
 
-        DebugMsg.End(2, "Stopped Game Server.", 1);
+        pis.StopSystem();
+
+
+        DebugMsg.End(2, "Finsihed Stopping Game Server.", 1);
+
     }
-    
-    //Manage Active Player List
-    public void ActiveManage(PlayerInfo info, bool add)
+
+    //Create New Player
+    public bool CreatePlayer(PlayerInfo playerInfo)
     {
-        if (add)
-        {
-            activePlayers.Add(info);
-        }
-        else
-        {
-            activePlayers.Remove(info);
-        }
+        return pis.CreatePlayer(playerInfo);
     }
-    
-    //Manage Inactive Player List
-    public void InactiveManage(PlayerInfo info, bool add)
+
+    //Get Player Location
+    public Vector3 GetPlayerLocation(ulong clientId)
     {
-        if (add)
-        {
-            inactivePlayers.Add(info);
-        }
-        else
-        {
-            inactivePlayers.Remove(info);
-        }
+        return pis.GetPlayerLocation(clientId);
     }
 
-
-
-
+    public void InitializePlayerInfo(ulong clientId) 
+    {
+        pis.SetPlayerTime(clientId, DateTime.Now);
+    }
 
     //-----------------------------------------------------------------//
     //             CLIENT CALLBACKS                                    //
@@ -203,22 +196,14 @@ public class GameServer : NetworkedBehaviour
     //Player has Connected callback.
     public void PlayerConnected_Player(ulong networkId)
     {
-        InvokeServerRpc(HandoverNetworkId, PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), networkId);
+        InvokeServerRpc(HandoverNetworkId, OwnerClientId, PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), networkId);
     }
 
     //Player has Connectd handover.
     [ServerRPC(RequireOwnership = false)]
-    private void HandoverNetworkId(int id, string authKey, ulong networkId)
+    private void HandoverNetworkId(ulong clientId, int id, string authKey, ulong networkId)
     {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                DebugMsg.Notify("Handing Over Player Network ID '" + activePlayers[i].name + "' to Active Players.", 3);
-                activePlayers[i].networkId = networkId;
-                break;
-            }
-        }
+        pis.SetPlayerNetworkId(clientId, id, authKey, networkId);
     }
 
     //Player has Disconnected callback.
@@ -230,61 +215,9 @@ public class GameServer : NetworkedBehaviour
 
 
 
-
     //-----------------------------------------------------------------//
     //             SERVER SIDE TOOLS                                   //
     //-----------------------------------------------------------------//
-
-
-    //Get ItemData by Item ID
-    public ItemData GetItemDataById(int id)
-    {
-        ItemData itemData = null;
-        foreach (ItemData data in allItems)
-        {
-            if (data.itemID == id)
-            {
-                itemData = data;
-                break;
-            }
-        }
-        return itemData;
-    }
-
-    //Create Item from Item Data
-    private Item CreateItemFromData(ItemData itemData, int id, int amount)
-    {
-        Item item = new Item();
-        item.itemID = id;
-        item.itemStack = amount;
-        item.maxItemStack = itemData.maxItemStack;
-        item.currSlot = 44;
-        item.armorType = itemData.armorType;
-        item.isPlaceable = itemData.isPlaceable;
-        item.isCraftable = itemData.isCraftable;
-        item.isHoldable = itemData.isHoldable;
-        item.isArmor = itemData.isArmor;
-        item.showInInventory = itemData.showInInventory;
-        if (itemData.startMaxDurability)
-        {
-            item.durability = itemData.maxDurability;
-        }
-
-        return item;
-    }
-
-    //Get All ItemData
-    public ItemData[] GetAllItemData()
-    {
-        if (allItems != null && allItems.Length > 0)
-        {
-            return allItems;
-        }
-        else
-        {
-            return null;
-        }
-    }
 
     //Generate UniqueID
     public string GenerateUnique()
@@ -317,228 +250,40 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-
-
     //-----------------------------------------------------------------//
     //             Server Action : Change Player Info                  //
     //-----------------------------------------------------------------//
-
-    //Health
-    public void Server_SetHealth(ulong clientId, int amount)
+    
+    //Move Player To Active List
+    public bool MovePlayerToActive(ulong clientId, int userId, string authKey) 
     {
-        DebugMsg.Notify("Setting Health of Player '" + clientId + "'.", 2);
-
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                activePlayers[i].health += amount;
-                ForceRequestInfoById(clientId, 2);
-                break;
-            }
-            else
-            {
-                DebugMsg.Notify("Unable to Set Health of Player '" + clientId + "'.", 2);
-            }
-        }
+        return pis.MovePlayerToActive(clientId, userId, authKey);
     }
-
-    //Inventory Items Add by ID
-    public bool Server_AddNewItemToInventory(ulong clientId, int id, int amount)
-    {
-        DebugMsg.Notify("Adding Item(s) to Player '" + clientId + "'.", 3);
-        
-        bool returnValue = false;
-        ItemData itemData = GetItemDataById(id);
-        if (itemData != null)
-        {
-            while (amount > 0)
-            {
-                if (amount > itemData.maxItemStack)
-                {
-                    amount -= itemData.maxItemStack;
-                    Server_AddItemToInventory(clientId, CreateItemFromData(itemData, id, itemData.maxItemStack));
-                }
-                else
-                {
-                    returnValue = Server_AddItemToInventory(clientId, CreateItemFromData(itemData, id, amount));
-                    break;
-                }
-            }
-        }
-        return returnValue;
-    }
-
-    //Inventory Items Add by Item
-    public bool Server_AddItemToInventory(ulong clientId, Item item)
-    {
-        DebugMsg.Notify("Adding Item(s) to Player '" + clientId + "'.", 3);
-
-        item.currSlot = 44;
-        bool wasPlaced = false;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                activePlayers[i].items = inventorySystem.AddItemToInventory(item, activePlayers[i].items, returnValue => 
-                {
-                    wasPlaced = returnValue;
-                });
-                ForceRequestInfoById(clientId, 5);
-                break;
-            }
-        }
-        return wasPlaced;
-    }
-
-    //Inventory Items Add by Item
-    public void Server_CraftItemToInventory(ulong clientId, ItemData item, int amount)
-    {
-        DebugMsg.Notify("Crafting Item to Player '" + clientId + "'.", 3);
-
-        if (item != null)
-        {
-            for (int i = 0; i < activePlayers.Count; i++)
-            {
-                if (activePlayers[i].clientId == clientId)
-                {
-                    Item[] newInventory = activePlayers[i].items;
-                    while (amount > 0)
-                    {
-                        if (amount > item.maxItemStack)
-                        {
-                            amount -= item.maxItemStack;
-                            newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, item.maxItemStack), newInventory, returnValue => { });
-                        }
-                        else
-                        {
-                            newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, amount), newInventory, returnValue => { });
-                            break;
-                        }
-                    }
-                    activePlayers[i].items = inventorySystem.RemoveItemsByRecipe(item.recipe, amount, newInventory, allItems);
-                    ForceRequestInfoById(clientId, 5);
-                    break;
-                }
-                else
-                {
-                    DebugMsg.Notify("Unable to Craft Item to Player '" + clientId + "'.", 3);
-                }
-            }
-        }
-    }
-
-    //Inventory Items Remove
-    public void Server_RemoveItemFromInventory(ulong clientId, int itemId, int amount)
-    {
-        DebugMsg.Notify("Removing Item from Player '" + clientId + "'.", 2);
-
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                Item[] newInventory = inventorySystem.RemoveItemFromInventory(itemId, amount, activePlayers[i].items);
-                if(newInventory != null) 
-                {
-                    activePlayers[i].items = newInventory;
-                    ForceRequestInfoById(clientId, 5);
-                }
-                break;
-            }
-            else
-            {
-                DebugMsg.Notify("Unable to Add Item to Player '" + clientId + "'.", 2);
-            }
-        }
-    }
-
-    //Inventory Blueprints Add
-    public void Server_AddBlueprint(ulong clientId, Item newBp)
-    {
-        DebugMsg.Notify("Adding Blueprint to Player '" + clientId + "'.", 2);
-
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                activePlayers[i].blueprints = inventorySystem.AddBlueprintToBlueprints(newBp.itemID, activePlayers[i].blueprints);
-                ForceRequestInfoById(clientId, 7);
-                break;
-            }
-            else
-            {
-                DebugMsg.Notify("Unable to Add Blueprint to Player '" + clientId + "'.", 1);
-            }
-        }
-    }
-
-    //Inventory Blueprints Whipe
-    public void Server_WipeBlueprints(ulong clientId)
-    {
-        DebugMsg.Notify("Wiping Blueprints of Player '" + clientId + "'.", 2);
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                activePlayers[i].blueprints = null;
-                ForceRequestInfoById(clientId, 7);
-                break;
-            }
-            else
-            {
-                DebugMsg.Notify("Unable to Wipe Blueprints of Player '" + clientId + "'.", 2);
-            }
-        }
-    }
-
+   
     //Move Player To Inactive List
     public PlayerInfo Server_MovePlayerToInactive(ulong clientId)
     {
-        PlayerInfo info = null;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                inactivePlayers.Add(activePlayers[i]);
-                info = activePlayers[i];
-                
-                info.hoursAdd = (float)DateTime.Now.Subtract(info.time).TotalMinutes / 60;
-
-                activePlayers.Remove(activePlayers[i]);
-                break;
-            }
-        }
-        return info;
+        return pis.MovePlayerToInactive(clientId);
     }
 
     //Respawn Player
     public void Server_RespawnPlayer(ulong clientId)
     {
         DebugMsg.Notify("Respawning Player '" + clientId + "'.", 2);
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                //Show the Death Screen
-                Server_UIShowDeathScreen(clientId);
 
-                //Teleport Player to Temp Location
-                Server_TeleportPlayerToLocation(activePlayers[i].clientId, tempPlayerPosition);
-                activePlayers[i].location = tempPlayerPosition;
+        //Show the Death Screen
+        Server_UIShowDeathScreen(clientId);
 
-                //Spawn the Death Drop
-                Server_SpawnDeathDrop(activePlayers[i].items, activePlayers[i].armor, NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position, activePlayers[i].name);
-                activePlayers[i].items = activePlayers[i].armor = null;
+        //Teleport Player to Temp Location
+        Server_TeleportPlayerToLocation(clientId, tempPlayerPosition);
+        pis.SetPlayerLocation(clientId, tempPlayerPosition);
 
-                //Force Request Info
-                ForceRequestInfoById(clientId);
-                break;
-            }
-            else
-            {
-                DebugMsg.Notify("Unable to Set Health of Player '" + clientId + "'.", 2);
-            }
-        }
+        //Spawn the Death Drop
+        Server_SpawnDeathDrop(pis.GetPlayerItems(clientId), pis.GetPlayerArmor(clientId), NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position, pis.GetPlayerName(clientId));
+        pis.ClearPlayerInventory(clientId);
+
+        //Force Request Info
+        ForceRequestInfoById(clientId);
     }
 
     //Teleport Player
@@ -583,31 +328,6 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-    //Server Deplete Resource
-    private void Server_DepleteResource(ulong clientId, string unique)
-    {
-        for (int i = 0; i < activeResources.Count; i++)
-        {
-            if(activeResources[i].uniqueId == unique) 
-            {
-                int amountLeft = activeResources[i].gatherAmount - activeResources[i].gatherPerAmount;
-                if (amountLeft >= 0) 
-                {
-                    if (Server_AddNewItemToInventory(clientId, activeResources[i].gatherItemId, activeResources[i].gatherPerAmount)) 
-                    {
-                        if (amountLeft == 0)
-                        {
-                            //Destroy Resource
-                            Destroy(activeResources[i].gameObject);
-                            break;
-                        }
-                        activeResources[i].gatherAmount -= activeResources[i].gatherPerAmount;
-                    }
-                }
-            }
-        }
-    }
-
     //Server Raycast Request
     private NetworkedObject Server_RaycastRequest(Vector3 aimPos, Vector3 aimRot, bool spawnParticle, int range)
     {
@@ -641,127 +361,48 @@ public class GameServer : NetworkedBehaviour
     //Server Damage Networked Object
     private void Server_DamageNetworkedObject(NetworkedObject netObject, int amount)
     {
-        bool damaged = false;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].networkId == netObject.NetworkId)
-            {
-                Server_SetHealth(activePlayers[i].clientId, -1 * amount);
-                damaged = true;
-                break;
-            }
-        }
-        if (!damaged)
-        {
-            //Damage AI through AI Controller by NetworkID
-        }
-    }
-
-    //Server Get Item From Slot #
-    private Item Server_GetItemFromSlot(Item[] items, int slot)
-    {
-        foreach (Item item in items)
-        {
-            if (item.currSlot == slot)
-            {
-                return item;
-            }
-        }
-        return null;
-    }
-    
-    //Server Change Item Durability
-    private bool Server_ChangeItemDurability(ulong clientId, int amount, int maxDurability, int slot)
-    {
-        bool wasTaken = false;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                Item[] items = inventorySystem.ChangeItemDurability(activePlayers[i].items, amount, maxDurability, slot);
-                if (items != null)
-                {
-                    wasTaken = true;
-                    activePlayers[i].items = items;
-                    ForceRequestInfoById(clientId, 5);
-                }
-                else
-                {
-                    wasTaken = false;
-                }
-            }
-        }
-        return wasTaken;
-    }
-
-    //Server Add to Durability 
-    private bool Server_AddToDurability(ulong clientId, int slot, int resSlot)
-    {
-        bool value = false;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                Item item = Server_GetItemFromSlot(activePlayers[i].items, slot);
-                Item res = Server_GetItemFromSlot(activePlayers[i].items, resSlot);
-                if (item != null && res != null)
-                {
-                    ItemData data = GetItemDataById(item.itemID);
-                    if (item.durability + res.itemStack > data.maxDurability && data.durabilityId == res.itemID)
-                    {
-                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(resSlot, activePlayers[i].items, callback => { });
-                        inventory = inventorySystem.ChangeItemDurability(inventory, data.maxDurability - item.durability, data.maxDurability, slot);
-                        if (inventory != null)
-                        {
-                            activePlayers[i].items = inventory;
-                            ForceRequestInfoById(clientId, 5);
-                            value = true;
-                        }
-                    }
-                    else if(data.durabilityId == res.itemID)
-                    {
-                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(resSlot, activePlayers[i].items, callback => { });
-                        inventory = inventorySystem.ChangeItemDurability(inventory, res.itemStack, data.maxDurability, slot);
-                        if (inventory != null)
-                        {
-                            activePlayers[i].items = inventory;
-                            ForceRequestInfoById(clientId, 5);
-                            value = true;
-                        }
-                    }
-                }
-                break;
-            }
-        }
-        return value;
+        //bool damaged = false;
+        //for (int i = 0; i < activePlayers.Count; i++)
+        //{
+        //    if (activePlayers[i].networkId == netObject.NetworkId)
+        //    {
+        //        Server_SetHealth(activePlayers[i].clientId, -1 * amount);
+        //        damaged = true;
+        //        break;
+        //    }
+        //}
+        //if (!damaged)
+        //{
+        //    //Damage AI through AI Controller by NetworkID
+        //}
     }
 
     //Server Teleport Player to Player (TEMP)
     public void Server_Teleport(string playerName, string targetName) 
     {
-        ulong clientId = 0;
-        ulong targetId = 0;
+        //ulong clientId = 0;
+        //ulong targetId = 0;
 
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].name == playerName)
-            {
-                clientId = activePlayers[i].clientId;
-            }
-            else if (activePlayers[i].name == targetName) 
-            {
-                targetId = activePlayers[i].clientId;
-            }
-        }
+        //for (int i = 0; i < activePlayers.Count; i++)
+        //{
+        //    if (activePlayers[i].name == playerName)
+        //    {
+        //        clientId = activePlayers[i].clientId;
+        //    }
+        //    else if (activePlayers[i].name == targetName) 
+        //    {
+        //        targetId = activePlayers[i].clientId;
+        //    }
+        //}
 
-        if(clientId != 0 && targetId != 0) 
-        {
-            MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
-            if (movement != null)
-            {
-                movement.TeleportClient(clientId, NetworkingManager.Singleton.ConnectedClients[targetId].PlayerObject.transform.position);
-            }
-        }
+        //if(clientId != 0 && targetId != 0) 
+        //{
+        //    MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
+        //    if (movement != null)
+        //    {
+        //        movement.TeleportClient(clientId, NetworkingManager.Singleton.ConnectedClients[targetId].PlayerObject.transform.position);
+        //    }
+        //}
     
     }
 
@@ -802,8 +443,6 @@ public class GameServer : NetworkedBehaviour
         PlayerActionManager.singleton.HideDeathScreen();
     }
 
-
-
     private void Server_UIShowStorage(ulong clientId, string data) 
     {
         InvokeClientRpcOnClient(Server_UIShowStorageRpc, clientId, data);        
@@ -827,305 +466,136 @@ public class GameServer : NetworkedBehaviour
 
 
     //-----------------------------------------------------------------//
-    //             Server Action : Handle GameObjs                     //
-    //-----------------------------------------------------------------//
-
-
-    //Load all Game Objects.
-    private void LoadGameObjects()
-    {
-        DebugMsg.Notify("Loading Game Objects.", 2);
-        if (activeGameObjects != null)
-        {
-            if (activeGameObjects.Count > 0)
-            {
-                foreach (GameObject obj in activeGameObjects)
-                {
-                    GameObject newObject = Instantiate(obj, obj.transform.position, obj.transform.rotation);
-                    Clickable clickable = newObject.GetComponent<Clickable>();
-                    Placeable placeable = newObject.GetComponent<Placeable>();
-                    if (clickable != null)
-                    {
-
-                    }
-                    else if (placeable != null)
-                    {
-
-                    }
-                }
-            }
-        }
-    }
-
-
-
-
-
-
-    //-----------------------------------------------------------------//
     //             Player Request : Retrieve Player Info               //
     //-----------------------------------------------------------------//
 
-
     //--Request Health
-    public void GetPlayerHealth(int id, Action<int> callback)
+    public void GetPlayerHealth(ulong clientId, Action<int> callback)
     {
         DebugMsg.Notify("Requesting Health.", 2);
-        StartCoroutine(GetPlayerHealth_Wait(id, returnValue =>
+        StartCoroutine(GetPlayerHealth_Wait(clientId, returnValue =>
         {
             DebugMsg.Notify("Requesting Health Success. Amount: " + returnValue, 2);
             callback(returnValue);
         }));
     }
 
-    private IEnumerator GetPlayerHealth_Wait(int id, Action<int> callback)
+    private IEnumerator GetPlayerHealth_Wait(ulong clientId, Action<int> callback)
     {
-        RpcResponse<int> response = InvokeServerRpc(GetPlayerHealth_Rpc, id);
+        RpcResponse<int> response = InvokeServerRpc(GetPlayerHealth_Rpc, clientId);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
 
     [ServerRPC(RequireOwnership = false)]
-    private int GetPlayerHealth_Rpc(int id)
+    private int GetPlayerHealth_Rpc(ulong clientId)
     {
-        int value = 200;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id)
-            {
-                value = activePlayers[i].health;
-                break;
-            }
-        }
-        if (value == 200)
-        {
-            DebugMsg.Notify("Unable to Get Health of Player ID: " + id, 1);
-            value = 100;
-        }
-        return value;
+        return pis.GetPlayerHealth(clientId);
     }
-
+    
 
     //--Request Water
-    public void GetPlayerWater(int id, Action<int> callback)
+    public void GetPlayerWater(ulong clientId, Action<int> callback)
     {
         DebugMsg.Notify("Requesting Water.", 2);
-        StartCoroutine(GetPlayerWater_Wait(id, returnValue =>
+        StartCoroutine(GetPlayerWater_Wait(clientId, returnValue =>
         {
             DebugMsg.Notify("Requesting Water Success. Amount: " + returnValue, 2);
             callback(returnValue);
         }));
     }
 
-    private IEnumerator GetPlayerWater_Wait(int id, Action<int> callback)
+    private IEnumerator GetPlayerWater_Wait(ulong clientId, Action<int> callback)
     {
-        RpcResponse<int> response = InvokeServerRpc(GetPlayerWater_Rpc, id);
+        RpcResponse<int> response = InvokeServerRpc(GetPlayerWater_Rpc, clientId);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
 
     [ServerRPC(RequireOwnership = false)]
-    private int GetPlayerWater_Rpc(int id)
+    private int GetPlayerWater_Rpc(ulong clientId)
     {
-        int value = 200;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id)
-            {
-                value = activePlayers[i].water;
-                break;
-            }
-        }
-        if (value == 200)
-        {
-            DebugMsg.Notify("Unable to Get Water of Player ID: " + id, 1);
-            value = 100;
-        }
-        return value;
+        return pis.GetPlayerWater(clientId);
     }
 
 
     //--Request Food
-    public void GetPlayerFood(int id, Action<int> callback)
+    public void GetPlayerFood(ulong clientId, Action<int> callback)
     {
         DebugMsg.Notify("Requesting Food.", 2);
-        StartCoroutine(GetPlayerFood_Wait(id, returnValue =>
+        StartCoroutine(GetPlayerFood_Wait(clientId, returnValue =>
         {
             DebugMsg.Notify("Requesting Food Success. Amount: " + returnValue, 2);
             callback(returnValue);
         }));
     }
-
-    private IEnumerator GetPlayerFood_Wait(int id, Action<int> callback)
+    private IEnumerator GetPlayerFood_Wait(ulong clientId, Action<int> callback)
     {
-        RpcResponse<int> response = InvokeServerRpc(GetPlayerFood_Rpc, id);
+        RpcResponse<int> response = InvokeServerRpc(GetPlayerFood_Rpc, clientId);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private int GetPlayerFood_Rpc(int id)
+    private int GetPlayerFood_Rpc(ulong clientId)
     {
-        int value = 200;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id)
-            {
-                value = activePlayers[i].food;
-                break;
-            }
-        }
-        if (value == 200)
-        {
-            DebugMsg.Notify("Unable to Get Food of Player ID: " + id, 1);
-            value = 100;
-        }
-        return value;
+        return pis.GetPlayerFood(clientId);
     }
 
 
     //--Request Inventory items
-    public void GetPlayerInventoryItems(int id, Action<Item[]> callback)
+    public void GetPlayerInventoryItems(ulong clientId, Action<Item[]> callback)
     {
         DebugMsg.Notify("Requesting Inventory Items.", 2);
-        StartCoroutine(GetPlayerInventoryItems_Wait(id, returnValue => { callback(returnValue); }));
+        StartCoroutine(GetPlayerInventoryItems_Wait(clientId, returnValue => { callback(returnValue); }));
     }
-
-    private IEnumerator GetPlayerInventoryItems_Wait(int id, Action<Item[]> callback)
+    private IEnumerator GetPlayerInventoryItems_Wait(ulong clientId, Action<Item[]> callback)
     {
-        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryItems_Rpc, id);
+        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryItems_Rpc, clientId);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private Item[] GetPlayerInventoryItems_Rpc(int id)
+    private Item[] GetPlayerInventoryItems_Rpc(ulong clientId)
     {
-        Item[] value = null;
-        bool unable = true;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id)
-            {
-                unable = false;
-                value = activePlayers[i].items;
-                break;
-            }
-        }
-        if (unable)
-        {
-            DebugMsg.Notify("Unable to Get Items of Player ID: " + id, 1);
-        }
-        return value;
+        return pis.GetPlayerItems(clientId);
     }
 
 
     //--Request Inventory armor
-    public void GetPlayerInventoryArmor(int id, Action<Item[]> callback)
+    public void GetPlayerInventoryArmor(ulong clientId, Action<Item[]> callback)
     {
         DebugMsg.Notify("Requesting Inventory Armor.", 2);
-        StartCoroutine(GetPlayerInventoryArmor_Wait(id, returnValue => { callback(returnValue); }));
+        StartCoroutine(GetPlayerInventoryArmor_Wait(clientId, returnValue => { callback(returnValue); }));
     }
-
-    private IEnumerator GetPlayerInventoryArmor_Wait(int id, Action<Item[]> callback)
+    private IEnumerator GetPlayerInventoryArmor_Wait(ulong clientId, Action<Item[]> callback)
     {
-        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryArmor_Rpc, id);
+        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryArmor_Rpc, clientId);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private Item[] GetPlayerInventoryArmor_Rpc(int id)
+    private Item[] GetPlayerInventoryArmor_Rpc(ulong clientId)
     {
-        Item[] value = null;
-        bool unable = true;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id)
-            {
-                unable = false;
-                value = activePlayers[i].armor;
-                break;
-            }
-        }
-        if (unable)
-        {
-            DebugMsg.Notify("Unable to Get Armor of Player ID: " + id, 1);
-        }
-        return value;
+        return pis.GetPlayerArmor(clientId);
     }
 
 
     //--Request Inventory blueprints
-    public void GetPlayerInventoryBlueprints(int id, Action<int[]> callback)
+    public void GetPlayerInventoryBlueprints(ulong clientId, Action<int[]> callback)
     {
         DebugMsg.Notify("Requesting Inventory Blueprints", 2);
-        StartCoroutine(GetPlayerInventoryBlueprints_Wait(id, returnValue => { callback(returnValue); }));
+        StartCoroutine(GetPlayerInventoryBlueprints_Wait(clientId, returnValue => { callback(returnValue); }));
     }
-
-    private IEnumerator GetPlayerInventoryBlueprints_Wait(int id, Action<int[]> callback)
+    private IEnumerator GetPlayerInventoryBlueprints_Wait(ulong clientId, Action<int[]> callback)
     {
-        RpcResponse<int[]> response = InvokeServerRpc(GetPlayerInventoryBlueprints_Rpc, id);
+        RpcResponse<int[]> response = InvokeServerRpc(GetPlayerInventoryBlueprints_Rpc, clientId);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private int[] GetPlayerInventoryBlueprints_Rpc(int id)
+    private int[] GetPlayerInventoryBlueprints_Rpc(ulong clientId)
     {
-        int[] value = null;
-        bool unable = true;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id)
-            {
-                unable = false;
-                value = activePlayers[i].blueprints;
-                break;
-            }
-        }
-        if (unable)
-        {
-            DebugMsg.Notify("Unable to Get Blueprints of Player ID: " + id, 1);
-        }
-        return value;
-    }
-
-
-    //--Request if have enough
-    public void GetIfEnoughItems(int id, int itemId, int amount, Action<bool> callback)
-    {
-        DebugMsg.Notify("Requesting If Enough Items", 2);
-        StartCoroutine(GetIfEnoughItems_Wait(id, itemId, amount, returnValue => { callback(returnValue); }));
-    }
-
-    private IEnumerator GetIfEnoughItems_Wait(int id, int itemId, int amount, Action<bool> callback)
-    {
-        RpcResponse<bool> response = InvokeServerRpc(GetIfEnoughItems_Rpc, id, itemId, amount);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private bool GetIfEnoughItems_Rpc(int id, int itemId, int amount)
-    {
-        bool enough = true;
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id)
-            {
-                if(inventorySystem.RemoveItemFromInventory(itemId, amount, activePlayers[i].items) == null)
-                {
-                    enough = false;
-                }
-                break;
-            }
-        }
-        if (enough)
-        {
-            DebugMsg.Notify("Player has Enough Items. ID: " + id, 1);
-        }
-        return enough;
+        return pis.GetPlayerBlueprints(clientId);
     }
 
 
@@ -1135,27 +605,16 @@ public class GameServer : NetworkedBehaviour
         DebugMsg.Notify("Requesting Name of Client Id", 2);
         StartCoroutine(GetNameByClientId_Wait(clientId, returnValue => { callback(returnValue); }));
     }
-
     private IEnumerator GetNameByClientId_Wait(ulong clientId, Action<string> callback)
     {
         RpcResponse<string> response = InvokeServerRpc(GetNameByClientId_Rpc, clientId);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-
     [ServerRPC(RequireOwnership = false)]
     private string GetNameByClientId_Rpc(ulong clientId)
     {
-        string name = "";
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].clientId == clientId)
-            {
-                name = activePlayers[i].name;
-                break;
-            }
-        }
-        return name;
+        return pis.GetPlayerName(clientId);
     }
 
 
@@ -1165,14 +624,12 @@ public class GameServer : NetworkedBehaviour
         DebugMsg.Notify("Requesting a List of All Clients.", 2);
         StartCoroutine(GetAllConnectedClients_Wait(returnValue => { callback(returnValue); }));
     }
-
     private IEnumerator GetAllConnectedClients_Wait(Action<ulong[]> callback)
     {
         RpcResponse<ulong[]> response = InvokeServerRpc(GetAllConnectedClients_Rpc);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-
     [ServerRPC(RequireOwnership = false)]
     private ulong[] GetAllConnectedClients_Rpc()
     {
@@ -1189,99 +646,17 @@ public class GameServer : NetworkedBehaviour
 
 
 
-
-
-
-
     //-----------------------------------------------------------------//
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
-
-    //--Set Player Health
-    public void SetPlayerHealth(int id, string authKey, int health)
-    {
-        DebugMsg.Notify("Requesting to Modify Health.", 4);
-        InvokeServerRpc(SetPlayerHealth_Rpc, id, authKey, health);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void SetPlayerHealth_Rpc(int id, string authKey, int health)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                activePlayers[i].health += health;
-                if(activePlayers[i].health < 0) 
-                {
-                    activePlayers[i].health = 0;
-                    Server_RespawnPlayer(activePlayers[i].clientId);
-                }
-                else if(activePlayers[i].health == 0) 
-                {
-                    Server_RespawnPlayer(activePlayers[i].clientId);
-                }
-                DebugMsg.Notify("Setting Health of Player '" + activePlayers[i].name + "'.", 4);
-                ForceRequestInfoById(activePlayers[i].clientId, 2);
-                break;
-            }
-        }
-    }
-
-
-    //--Set Player Water
-    public void SetPlayerWater(int id, string authKey, int water)
-    {
-        DebugMsg.Notify("Requesting to Modify Water.", 4);
-        InvokeServerRpc(SetPlayerWater_Rpc, id, authKey, water);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void SetPlayerWater_Rpc(int id, string authKey, int water)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                activePlayers[i].water = Mathf.Clamp(activePlayers[i].water += water, 0, 100);
-                DebugMsg.Notify("Setting Water of Player '" + activePlayers[i].name + "'.", 4);
-                ForceRequestInfoById(activePlayers[i].clientId, 4);
-                break;
-            }
-        }
-    }
-
-
-    //--Set Player Food
-    public void SetPlayerFood(int id, string authKey, int food)
-    {
-        DebugMsg.Notify("Requesting to Modify Food.", 4);
-        InvokeServerRpc(SetPlayerFood_Rpc, id, authKey, food);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void SetPlayerFood_Rpc(int id, string authKey, int food)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                activePlayers[i].food = Mathf.Clamp(activePlayers[i].food += food, 0, 100);
-                DebugMsg.Notify("Setting Food of Player '" + activePlayers[i].name + "'.", 4);
-                ForceRequestInfoById(activePlayers[i].clientId, 3);
-                break;
-            }
-        }
-    }
-
-
+    
     //--Set Player Location
-    public void SetPlayerLocation(int id, string authKey, Vector3 location)
+    public void SetPlayerLocation(string authKey, Vector3 location)
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
             using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
-                writer.WriteInt32Packed(id);
                 writer.WriteStringPacked(authKey);
                 writer.WriteSinglePacked(location.x);
                 writer.WriteSinglePacked(location.y);
@@ -1290,80 +665,17 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-
     [ServerRPC(RequireOwnership = false)]
     private void SetPlayerLocation_Rpc(ulong clientId, Stream stream)
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            for (int i = 0; i < activePlayers.Count; i++)
+            if(pis.Confirm(clientId, reader.ReadStringPacked().ToString()))
             {
-                if (activePlayers[i].id == reader.ReadInt32Packed() && activePlayers[i].authKey == reader.ReadStringPacked().ToString())
-                {
-                    activePlayers[i].location = new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked());
-                    DebugMsg.Notify("Setting Location of Player '" + activePlayers[i].name + "'.", 4);
-                    break;
-                }
+               pis.SetPlayerLocation(clientId, new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked()));
             }
         }
     }
-
-
-
-
-
-
-    //-----------------------------------------------------------------//
-    //         Player Request : Debug Menu                             //
-    //-----------------------------------------------------------------//
-
-
-    //--Request To Telport
-    public void RequestToTeleport(int id, string authKey, ulong targetClientId)
-    {
-        DebugMsg.Notify("Requesting to Teleport.", 2);
-        InvokeServerRpc(RequestToTeleport_Rpc, id, authKey, targetClientId);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToTeleport_Rpc(int id, string authKey, ulong targetClientId)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                MovementManager movement = NetworkingManager.Singleton.ConnectedClients[activePlayers[i].clientId].PlayerObject.GetComponent<MovementManager>();
-                if(movement != null) 
-                {
-                    movement.TeleportClient(activePlayers[i].clientId, NetworkingManager.Singleton.ConnectedClients[targetClientId].PlayerObject.transform.position);
-                }
-                break;
-            }
-        }
-    }
-
-    //--Request To Cheat Item
-    public void RequestToCheatItem(int id, string authKey, int itemId)
-    {
-        DebugMsg.Notify("Requesting to Cheat Item.", 2);
-        InvokeServerRpc(RequestToCheatItem_Rpc, id, authKey, itemId);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToCheatItem_Rpc(int id, string authKey, int itemId)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                Server_AddNewItemToInventory(activePlayers[i].clientId, itemId, 1);
-            }
-        }
-    }
-
-
-
-
 
 
 
@@ -1372,218 +684,47 @@ public class GameServer : NetworkedBehaviour
     //         Player Request : Inventory Items Modification           //
     //-----------------------------------------------------------------//
 
-    //--Move Player Inventory Item by Slot
-    public void MovePlayerItemBySlot(int id, string authKey, int curSlot, int newSlot)
+    //--Move Player Item
+    public void MovePlayerItemBySlot(ulong clientId, string authKey, int oldSlot, int newSlot)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
-        if (curSlot > 33 || newSlot > 33)
-        {
-            InvokeServerRpc(MovePlayerItemArmorBySlot_Rpc, id, authKey, curSlot, newSlot);
-        }
-        else
-        {
-            InvokeServerRpc(MovePlayerItemBySlot_Rpc, id, authKey, curSlot, newSlot);
-        }
-
+        InvokeServerRpc(MovePlayerItemBySlot_Rpc, clientId, authKey, oldSlot, newSlot);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private void MovePlayerItemBySlot_Rpc(int id, string authKey, int curSlot, int newSlot)
+    private void MovePlayerItemBySlot_Rpc(ulong clientId, string authKey, int oldSlot, int newSlot)
     {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                bool value = false;
-                Item item = Server_GetItemFromSlot(activePlayers[i].items, newSlot);
-                Item res = Server_GetItemFromSlot(activePlayers[i].items, curSlot);
-                if (item != null && res != null)
-                {
-                    ItemData data = GetItemDataById(item.itemID);
-                    if (item.durability + res.itemStack <= data.maxDurability && data.durabilityId == res.itemID)
-                    {
-                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(curSlot, activePlayers[i].items, callback => { });
-                        inventory = inventorySystem.ChangeItemDurability(inventory, res.itemStack, data.maxDurability, newSlot);
-                        if (inventory != null)
-                        {
-                            activePlayers[i].items = inventory;
-                            value = true;
-                        }
-                    }
-                    else if (data.durabilityId == res.itemID)
-                    {
-                        Item[] inventory = inventorySystem.RemoveItemFromInventoryBySlot(curSlot, activePlayers[i].items, callback => { }, data.maxDurability - item.durability);
-                        inventory = inventorySystem.ChangeItemDurability(inventory, res.itemStack, data.maxDurability, newSlot);
-                        if (inventory != null)
-                        {
-                            activePlayers[i].items = inventory;
-                            value = true;
-                        }
-                    }
-                }
-                if (!value) 
-                {
-                    activePlayers[i].items = inventorySystem.MoveItemInInventory(curSlot, newSlot, activePlayers[i].items);
-                }
-                DebugMsg.Notify("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 4);
-
-                ForceRequestInfoById(activePlayers[i].clientId, 5);
-                break;
-            }
-        }
+        pis.Inventory_MoveItem(clientId, authKey, oldSlot, newSlot);
     }
 
-    [ServerRPC(RequireOwnership = false)]
-    private void MovePlayerItemArmorBySlot_Rpc(int id, string authKey, int curSlot, int newSlot)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                ItemArmorArrays arrays = inventorySystem.MoveArmorInInventory(curSlot, newSlot, activePlayers[i].items, activePlayers[i].armor);
-                activePlayers[i].items = arrays.items;
-                ForceRequestInfoById(activePlayers[i].clientId);
-                break;
-            }
-        }
-    }
-
-
-    //--Remove Player Inventory Item by Slot
-    public void RemovePlayerItemBySlot(int id, string authKey, int curSlot)
+    //--Remove Player Item
+    public void RemovePlayerItemBySlot(ulong clientId, string authKey, int slot)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
-        InvokeServerRpc(RemovePlayerItemBySlot_Rpc, id, authKey, curSlot);
+        InvokeServerRpc(RemovePlayerItemBySlot_Rpc, clientId, authKey, slot);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private void RemovePlayerItemBySlot_Rpc(int id, string authKey, int curSlot)
+    private void RemovePlayerItemBySlot_Rpc(ulong clientId, string authKey, int slot)
     {
-        for (int i = 0; i < activePlayers.Count; i++)
+        pis.Inventory_RemoveItem(clientId, authKey, slot, returnedItem => 
         {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            if(returnedItem != null) 
             {
-                activePlayers[i].items = inventorySystem.RemoveItemFromInventoryBySlot(curSlot, activePlayers[i].items, returnValue =>
-                {
-                    if (returnValue != null)
-                    {
-                            //Instantiate Item by ID
-                        }
-                });
-                DebugMsg.Notify("Modifying Inventory of Player '" + activePlayers[i].name + "'.", 2);
-                ForceRequestInfoById(activePlayers[i].clientId, 5);
-                break;
+                //Drop returnedItem.itemID;
             }
-        }
+        });
     }
 
-
-    //--Remove Player Craft Item by ID
-    public void CraftItemById(int id, string authKey, int itemId, int amount)
+    //--Craft Item
+    public void CraftItemById(ulong clientId, string authKey, int itemId, int amount)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
-        InvokeServerRpc(CraftItemById_Rpc, id, authKey, itemId, amount);
+        InvokeServerRpc(CraftItemById_Rpc, clientId, authKey, itemId, amount);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private void CraftItemById_Rpc(int id, string authKey, int itemId, int amount)
+    private void CraftItemById_Rpc(ulong clientId, string authKey, int itemId, int amount)
     {
-        for (int i = 0; i < activePlayers.Count; i++)
-        {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                List<InventoryResource> invResource = new List<InventoryResource>();
-                foreach (Item itemRes in activePlayers[i].items)
-                {
-                    bool placed = false;
-                    foreach (InventoryResource invItem in invResource)
-                    {
-                        if (invItem.itemId == itemRes.itemID)
-                        {
-                            invItem.itemAmount += itemRes.itemStack;
-                            placed = true;
-                            break;
-                        }
-                        else
-                        {
-                            placed = false;
-                        }
-                    }
-                    if (!placed)
-                    {
-                        InventoryResource newRes = new InventoryResource();
-                        newRes.itemId = itemRes.itemID;
-                        newRes.itemAmount = itemRes.itemStack;
-                        invResource.Add(newRes);
-                    }
-                }
-                ItemData item = GetItemDataById(itemId);
-                int recipeAmount = item.recipe.Length;
-                int recipeAvail = 0;
-                foreach (string recipe in item.recipe)
-                {
-                    string[] data = recipe.Split('-');
-                    int itemd = Convert.ToInt32(data[0]);
-                    int itemAmount = Convert.ToInt32(data[1]);
-                    if (CraftItemByIdCheck(itemd, itemAmount, invResource))
-                    {
-                        recipeAvail++;
-                    }
-                }
-                if (recipeAvail == recipeAmount)
-                {
-                    Item[] newInventory = activePlayers[i].items;
-
-                    if (amount * item.craftAmount > item.maxItemStack)
-                    {
-                        while (amount > 0)
-                        {
-                            if (amount > item.maxItemStack)
-                            {
-                                amount -= item.maxItemStack;
-                                newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, item.maxItemStack), newInventory, returnValue => { });
-                            }
-                            else
-                            {
-                                newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, amount * item.craftAmount), newInventory, returnValue => { });
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        newInventory = inventorySystem.AddItemToInventory(CreateItemFromData(item, item.itemID, amount * item.craftAmount), newInventory, returnValue => { });
-                    }
-                    activePlayers[i].items = inventorySystem.RemoveItemsByRecipe(item.recipe, amount, newInventory, allItems);
-                    ForceRequestInfoById(activePlayers[i].clientId, 5);
-                }
-                else
-                {
-                    //Not enough?
-                }
-                break;
-            }
-        }
+       pis.Inventory_CraftItem(clientId, authKey, itemId, amount);
     }
-    private bool CraftItemByIdCheck(int id, int amount, List<InventoryResource> invResource)
-    {
-        bool hasItem = false;
-        foreach (InventoryResource item in invResource)
-        {
-            if (item.itemId == id && item.itemAmount >= amount)
-            {
-                hasItem = true;
-                break;
-            }
-        }
-        return hasItem;
-    }
-
-
-
-
-
-
 
 
 
@@ -1593,7 +734,7 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
 
     //CLIENT : Use Selected Item
-    public void UseSelectedItem(int id, string authKey, int itemSlot, Transform aim) 
+    public void UseSelectedItem(string authKey, int itemSlot, Transform aim) 
     {
         DebugMsg.Notify("Requesting to Use Selected Item", 2);
         Vector3 rot = aim.TransformDirection(Vector3.forward);
@@ -1601,7 +742,6 @@ public class GameServer : NetworkedBehaviour
         {
             using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
-                writer.WriteInt32Packed(id);
                 writer.WriteStringPacked(authKey);
                 writer.WriteInt32Packed(itemSlot);
                 writer.WriteSinglePacked(aim.position.x);
@@ -1615,7 +755,6 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-
     //SERVER : Use Selected Item 
     [ServerRPC(RequireOwnership = false)]
     private void UseSelectedItem_Rpc(ulong clientId, Stream stream)
@@ -1623,7 +762,6 @@ public class GameServer : NetworkedBehaviour
         bool success = false;
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            int id = reader.ReadInt32Packed();
             string authKey = reader.ReadStringPacked().ToString();
             int itemSlot = reader.ReadInt32Packed();
             float xPos = reader.ReadSinglePacked();
@@ -1635,39 +773,30 @@ public class GameServer : NetworkedBehaviour
           
             Vector3 aimPos = new Vector3(xPos, yPos, zPos);
             Vector3 aimRot = new Vector3(xRot, yRot, zRot);
-
-
-            for (int i = 0; i < activePlayers.Count; i++)
+            Item selectedItem = pis.Inventory_GetItemFromSlot(clientId, itemSlot);
+            if (selectedItem != null)
             {
-                if (activePlayers[i].id == id && activePlayers[i].authKey == authKey) 
+                ItemData selectedData = pis.Inventory_GetItemData(selectedItem.itemID);
+                if (selectedData.useType == 1)
                 {
-                    Item selectedItem = Server_GetItemFromSlot(activePlayers[i].items, itemSlot);
-                    if (selectedItem != null) 
-                    {
-                        ItemData selectedData = GetItemDataById(selectedItem.itemID);
-                        if(selectedData.useType == 1) 
-                        {
-                            success = ServerShootSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
-                        }
-                        if (selectedData.useType == 2)
-                        {
-                            success = ServerMeleeSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
-                        }
-                        if (selectedData.useType == 3)
-                        {
-                            success = ServerPlaceSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
-                        }
-                    }
-                    else 
-                    {
-                        success = ServerPunchSelected(clientId, aimPos, aimRot);
-                    }
+                    success = ServerShootSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
                 }
+                if (selectedData.useType == 2)
+                {
+                    success = ServerMeleeSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+                }
+                if (selectedData.useType == 3)
+                {
+                    success = ServerPlaceSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+                }
+            }
+            else
+            {
+                success = ServerPunchSelected(clientId, aimPos, aimRot);
             }
         }
             InvokeClientRpcOnClient(UseSelectedItemReturn, clientId, success);
     }
-
     [ClientRPC]
     private void UseSelectedItemReturn(bool success) 
     {
@@ -1677,7 +806,7 @@ public class GameServer : NetworkedBehaviour
     //Server Shoot Selected
     private bool ServerShootSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
     {
-        bool wasTaken = Server_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot);
+        bool wasTaken = pis.Inventory_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot);
         if (item.durability > 0 && wasTaken)
         {
             NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, data.useRange);
@@ -1697,7 +826,7 @@ public class GameServer : NetworkedBehaviour
     //Server Melee Seleceted
     private bool ServerMeleeSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
     {
-        if (item.durability > 0 && Server_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
+        if (item.durability > 0 && pis.Inventory_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
         {
             NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, data.useRange);
             if (netObject != null)
@@ -1733,14 +862,13 @@ public class GameServer : NetworkedBehaviour
     }
 
     //CLIENT : Add to Durability
-    public void ReloadToDurability(int id, string authKey, int slot)
+    public void ReloadToDurability(string authKey, int slot)
     {
         DebugMsg.Notify("Requesting to Reload", 2);
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
             using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
-                writer.WriteInt32Packed(id);
                 writer.WriteStringPacked(authKey);
                 writer.WriteInt32Packed(slot);
                 InvokeServerRpcPerformance(ReloadToDurability_Rpc, writeStream);
@@ -1754,68 +882,11 @@ public class GameServer : NetworkedBehaviour
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            int id = reader.ReadInt32Packed();
             string authKey = reader.ReadStringPacked().ToString();
             int slot = reader.ReadInt32Packed();
-
-            for (int i = 0; i < activePlayers.Count; i++)
-            {
-                if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-                {
-                    if(activePlayers[i].items != null) 
-                    {
-                        Item item = Server_GetItemFromSlot(activePlayers[i].items, slot);
-                        if (item != null)
-                        {
-                            ItemData data = GetItemDataById(item.itemID);
-                            if (item.durability < data.maxDurability)
-                            {
-                                int needed = data.maxDurability - item.durability;
-                                int available = inventorySystem.GetMaxAvailableInventory(data.durabilityId, activePlayers[i].items);
-                                int final = 0;
-                                if (available <= needed)
-                                {
-                                    final = available;
-                                }
-                                else if (available > needed)
-                                {
-                                    final = needed;
-                                }
-                                Item[] inventory = inventorySystem.RemoveItemFromInventory(data.durabilityId, final, activePlayers[i].items);
-                                if (inventory != null)
-                                {
-                                    inventory = inventorySystem.ChangeItemDurability(inventory, final, data.maxDurability, slot);
-                                    if (inventory != null)
-                                    {
-                                        DebugMsg.Notify("Reloading for Player: " + clientId, 2);
-                                        activePlayers[i].items = inventory;
-                                        ForceRequestInfoById(clientId, 5);
-                                    }
-                                    else
-                                    {
-                                        DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
-                                    }
-                                }
-                                else
-                                {
-                                    DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
-                                }
-                            }
-                            else
-                            {
-                                DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
-                            }
-                        }
-                    }
-                    break;
-                }
-            }
+            pis.Inventory_ReloadToDurability(clientId, authKey, slot);
         }
     }
-
-
-
-
 
 
 
@@ -1825,165 +896,157 @@ public class GameServer : NetworkedBehaviour
     //         Player Request : World Interactions                     //
     //-----------------------------------------------------------------//
 
-
     //--Interact with Clickable
-    public void InteractWithClickable(int id, string authKey, string uniqueId)
+    public void InteractWithClickable(ulong clientId, string authKey, string uniqueId)
     {
         DebugMsg.Notify("Requesting to Interact with Clickable.", 2);
-        InvokeServerRpc(InteractWithClickable_Rpc, id, authKey, uniqueId);
+        InvokeServerRpc(InteractWithClickable_Rpc, clientId, authKey, uniqueId);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private void InteractWithClickable_Rpc(int id, string authKey, string uniqueId)
+    private void InteractWithClickable_Rpc(ulong clientId, string authKey, string uniqueId)
     {
         DebugMsg.Begin(24, "Starting Clickable Interaction", 3);
         
-        for (int i = 0; i < activePlayers.Count; i++)
+        if(pis.Confirm(clientId, authKey)) 
         {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            Clickable clickable = clickableSystem.FindClickableByUnique(uniqueId);
+            if (clickable == null)
+                return;
+            //Pickup Object
+            if (clickable.clickType == 1)
             {
-                Clickable clickable = clickableSystem.FindClickableByUnique(uniqueId);
-                if (clickable == null)
-                    return;
-                //Pickup Object
-                if (clickable.clickType == 1)
+                pis.Inventory_AddNew(clientId, Convert.ToInt32(clickable.data), 1, itemPlaced => 
                 {
-                    if(Server_AddNewItemToInventory(activePlayers[i].clientId, Convert.ToInt32(clickable.data), 1)) 
-                    {
-                        //Pickup success
-                        clickableSystem.RemoveClickable(clickable);
-                    }
-                    else 
-                    {
-                        //Do Nothing - Not enough space
-                    }
-                    DebugMsg.End(24, "Finished Clickable Interaction", 3);
-                }
-                else if (clickable.clickType == 2)
-                {
-                    string[] datas = clickable.data.Split(',');
-                    int itemId = Convert.ToInt32(datas[0]);
-                    int amount = Convert.ToInt32(datas[1]);
-                    if(Server_AddNewItemToInventory(activePlayers[i].clientId, itemId, 1)) 
+                    if (itemPlaced) 
                     {
                         clickableSystem.RemoveClickable(clickable);
                     }
-                    else 
+                    DebugMsg.End(24, "Finished Clickable Interaction", 3);
+                });
+                
+            }
+            else if (clickable.clickType == 2)
+            {
+                string[] datas = clickable.data.Split(',');
+                int itemId = Convert.ToInt32(datas[0]);
+                int amount = Convert.ToInt32(datas[1]);
+                pis.Inventory_AddNew(clientId, itemId, amount, itemPlaced => 
+                { 
+                    if (itemPlaced) 
                     {
-                        //Do Nothing - Not enough space
+                        clickableSystem.RemoveClickable(clickable);
                     }
                     DebugMsg.End(24, "Finished Clickable Interaction", 3);
-                }
-                else if (clickable.clickType == 3)
-                {
-                    Server_UIShowStorage(activePlayers[i].clientId, clickable.data);
-                }
-                DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with Clickable: " + uniqueId + ".", 2);
-                break;
+                });
+            }
+            else if (clickable.clickType == 3)
+            {
+                Server_UIShowStorage(clientId, clickable.data);
             }
         }
     }
 
     //--Interact with Resource
-    public void InteractWithResource(int id, string authKey, string uniqueId)
+    public void InteractWithResource(ulong clientId, string authKey, string uniqueId)
     {
         DebugMsg.Notify("Requesting to Interact with Resource.", 2);
-        InvokeServerRpc(InteractWithResource_Rpc, id, authKey, uniqueId);
+        InvokeServerRpc(InteractWithResource_Rpc, clientId, authKey, uniqueId);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private void InteractWithResource_Rpc(int id, string authKey, string uniqueId)
+    private void InteractWithResource_Rpc(ulong clientId, string authKey, string uniqueId)
     {
-        for (int i = 0; i < activePlayers.Count; i++)
+        if (pis.Confirm(clientId, authKey))
         {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
-            {
-                Server_DepleteResource(activePlayers[i].clientId, uniqueId);
-                DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with Resource: " + uniqueId + ".", 2);
-                break;
-            }
+            //for (int i = 0; i < activeResources.Count; i++)
+            //{
+            //    if(activeResources[i].uniqueId == unique) 
+            //    {
+            //        int amountLeft = activeResources[i].gatherAmount - activeResources[i].gatherPerAmount;
+            //        if (amountLeft >= 0) 
+            //        {
+            //            if (Server_AddNewItemToInventory(clientId, activeResources[i].gatherItemId, activeResources[i].gatherPerAmount)) 
+            //            {
+            //                if (amountLeft == 0)
+            //                {
+            //                   //Destroy Resource
+            //                    Destroy(activeResources[i].gameObject);
+            //                    break;
+            //                }
+            //                activeResources[i].gatherAmount -= activeResources[i].gatherPerAmount;
+            //            }
+            //        }
+            //    }
+            //}
         }
     }
 
-
     //--Interact With Death Drop
-    public void InteractWithDeathDrop(int id, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback)
+    public void InteractWithDeathDrop(ulong clientId, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback)
     {
         DebugMsg.Notify("Requesting to Interact with DeathDrop.", 2);
-        StartCoroutine(InteractWithDeathDropWait(id, authKey, uniqueId, itemSlot, returnValue =>
+        StartCoroutine(InteractWithDeathDropWait(clientId, authKey, uniqueId, itemSlot, returnValue =>
         {
             callback(returnValue);
         }));
     }
-    private IEnumerator InteractWithDeathDropWait(int id, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback) 
+    private IEnumerator InteractWithDeathDropWait(ulong clientId, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback) 
     {
-        RpcResponse<Item[]> response = InvokeServerRpc(InteractWithDeathDrop_Rpc, id, authKey, uniqueId, itemSlot);
+        RpcResponse<Item[]> response = InvokeServerRpc(InteractWithDeathDrop_Rpc, clientId, authKey, uniqueId, itemSlot);
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-
     [ServerRPC(RequireOwnership = false)]
-    private Item[] InteractWithDeathDrop_Rpc(int id, string authKey, string uniqueId, int itemSlot)
+    private Item[] InteractWithDeathDrop_Rpc(ulong clientId, string authKey, string uniqueId, int itemSlot)
     {
         Item[] placed = null;
-        for (int i = 0; i < activePlayers.Count; i++)
+        DeathDrop[] deathDrops = FindObjectsOfType<DeathDrop>();
+        foreach (DeathDrop drop in deathDrops)
         {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            if (drop.unique == uniqueId)
             {
-                DeathDrop[] deathDrops = FindObjectsOfType<DeathDrop>();
-                foreach (DeathDrop drop in deathDrops)
+                if (itemSlot == 100)
                 {
-                    if(drop.unique == uniqueId) 
+                    for (int e = 0; e < drop.dropItems.Count; e++)
                     {
-                        if(itemSlot == 100) 
+                        pis.Inventory_Add(clientId, drop.dropItems[e], success =>
                         {
-                            for (int e = 0; e < drop.dropItems.Count; e++)
-                            {
-                                if(Server_AddItemToInventory(activePlayers[i].clientId, drop.dropItems[e])) 
-                                {
-                                    drop.dropItems.RemoveAt(e--);
-                                    
-                                }
-                            }
-                        }
-                        else 
-                        {
-                            for (int e = 0; e < drop.dropItems.Count; e++)
-                            {
-                                if (drop.dropItems[e].currSlot == itemSlot)
-                                {
-                                    if (Server_AddItemToInventory(activePlayers[i].clientId, drop.dropItems[e]))
-                                    {
-                                        drop.dropItems.RemoveAt(e--);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        drop.UpdateDropItems();
-                        placed = drop.dropItems.ToArray();
-                        break;
+                             drop.dropItems.RemoveAt(e--);
+                        });
                     }
                 }
-                DebugMsg.Notify("Player '" + activePlayers[i].name + "' Interacting with DeathDrop: " + uniqueId + ".", 2);
+                else
+                {
+                    for (int e = 0; e < drop.dropItems.Count; e++)
+                    {
+                        if (drop.dropItems[e].currSlot == itemSlot)
+                        {
+                            pis.Inventory_Add(clientId, drop.dropItems[e], success =>
+                            {
+                                if (success)
+                                {
+                                    drop.dropItems.RemoveAt(e--);
+                                }
+                            });
+                            break;
+                        }
+                    }
+                }
+                drop.UpdateDropItems();
+                placed = drop.dropItems.ToArray();
                 break;
             }
         }
         return placed;
     }
 
-
-
     //-- Place Placeable Object
-
-    public void Client_PlacePlaceableObject(int id, string authKey, int itemId, int itemSlot, Transform loc) 
+    public void Client_PlacePlaceableObject(string authKey, int itemId, int itemSlot, Transform loc) 
     {
         DebugMsg.Notify("Requesting to Place Placeable", 2);
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
             using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
-                writer.WriteInt32Packed(id);
                 writer.WriteStringPacked(authKey);
                 writer.WriteInt32Packed(itemId);
                 writer.WriteInt32Packed(itemSlot);
@@ -1997,13 +1060,11 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-
     [ServerRPC(RequireOwnership = false)]
     private void Client_PlacePlaceableObjectRpc(ulong clientId, Stream stream) 
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            int id = reader.ReadInt32Packed();
             string authKey = reader.ReadStringPacked().ToString();
             int itemId = reader.ReadInt32Packed();
             int itemSlot = reader.ReadInt32Packed();
@@ -2017,30 +1078,19 @@ public class GameServer : NetworkedBehaviour
 
             DebugMsg.Begin(20, "Trying to Place Placeable", 2);
 
-            for (int i = 0; i < activePlayers.Count; i++)
+            if(pis.Confirm(clientId, authKey)) 
             {
-                if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+                ItemData selectedData = pis.Inventory_GetItemData(itemId);
+                if (selectedData.isPlaceable)
                 {
-                    ItemData selectedData = GetItemDataById(itemId);
-                    if (selectedData.isPlaceable) 
+                    pis.Inventory_RemoveItem(clientId, authKey, itemSlot, droppedItem =>
                     {
-                        tempInventory = inventorySystem.RemoveItemFromInventoryBySlot(itemSlot, activePlayers[i].items, returnValue => 
+                        if (droppedItem != null && droppedItem.itemID == itemId)
                         {
-                            if(returnValue != null && returnValue.itemID == itemId) 
-                            {
-                                
-                            }
-                        });
-
-                        if (tempInventory != null)
-                        {
-                            activePlayers[i].items = tempInventory;
-                            ForceRequestInfoById(clientId, 5);
                             GameObject placeableObject = Instantiate(selectedData.placeableItem);
                             placeableObject.transform.position = objPos;
                             placeableObject.transform.localRotation = Quaternion.Euler(zRot, yRot, zRot);
                             CollideSensor collide = placeableObject.GetComponent<CollideSensor>();
-
                             if (collide.isOverlapping)
                             {
                                 DebugMsg.End(20, "Could Not Place Placeable", 2);
@@ -2049,7 +1099,6 @@ public class GameServer : NetworkedBehaviour
                             }
                             else
                             {
-
                                 NetworkedObject networkObject = placeableObject.GetComponent<NetworkedObject>();
                                 networkObject.Spawn();
                                 Server_RegisterClickable(placeableObject, selectedData);
@@ -2057,13 +1106,11 @@ public class GameServer : NetworkedBehaviour
                                 DebugMsg.End(20, "Placed Placeable Successfully", 2);
                             }
                         }
-                    }
+                    });
                 }
             }
         }
     }
-
-
     private void Server_RegisterClickable(GameObject clickableObject, ItemData data) 
     {
         Clickable clickable = clickableObject.GetComponent<Clickable>();
@@ -2084,58 +1131,59 @@ public class GameServer : NetworkedBehaviour
     //         Player Request :    Extras                              //
     //-----------------------------------------------------------------//
 
-
     // Player Request to Disconnect
-    public void RequestToDisconnect(int id, string authKey) 
+    public void RequestToDisconnect(string authKey) 
     {
-        InvokeServerRpc(RequestToDisconnect_Rpc, id, authKey);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToDisconnect_Rpc(int id, string authKey)
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
+        using (PooledBitStream writeStream = PooledBitStream.Get())
         {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
-                DebugMsg.Notify("Disconnecting Player '" + activePlayers[i].name + "'.", 2);
-                NetworkingManager.Singleton.DisconnectClient(activePlayers[i].clientId);
-                break;
+                writer.WriteStringPacked(authKey);
+                InvokeServerRpcPerformance(RequestToDisconnect_Rpc, writeStream);
+            }
+        }
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void RequestToDisconnect_Rpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            string authKey = reader.ReadStringPacked().ToString();
+            if (pis.Confirm(clientId, authKey))
+            {
+                NetworkingManager.Singleton.DisconnectClient(clientId);
             }
         }
     }
 
-
     // Player Request to Respawn
-    public void RequestToRespawn(int id, string authKey) 
+    public void RequestToRespawn(string authKey) 
     {
-        InvokeServerRpc(RequestToRespawn_Rpc, id, authKey);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToRespawn_Rpc(int id, string authKey) 
-    {
-        for (int i = 0; i < activePlayers.Count; i++)
+        using (PooledBitStream writeStream = PooledBitStream.Get())
         {
-            if (activePlayers[i].id == id && activePlayers[i].authKey == authKey)
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteStringPacked(authKey);
+                InvokeServerRpcPerformance(RequestToRespawn_Rpc, writeStream);
+            }
+        }
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void RequestToRespawn_Rpc(ulong clientId, Stream stream) 
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            string authKey = reader.ReadStringPacked().ToString();
+            if (pis.Confirm(clientId, authKey))
             {
                 GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
                 Vector3 spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
-                Server_TeleportPlayerToLocation(activePlayers[i].clientId, spawnpoint);
-                activePlayers[i].health = 100;
-                activePlayers[i].food = 100;
-                activePlayers[i].water = 100;
-                activePlayers[i].location = spawnpoint;
-                ForceRequestInfoById(activePlayers[i].clientId);
-                Server_UIHideDeathScreen(activePlayers[i].clientId);
-                DebugMsg.Notify("Respawned Player " + activePlayers[i].name, 2);
-                break;
+                Server_TeleportPlayerToLocation(clientId, spawnpoint);
+                pis.ResetPlayerInfo(clientId, spawnpoint);
+                Server_UIHideDeathScreen(clientId);
             }
         }
     }
-
-
-
 
 
 
@@ -2145,7 +1193,7 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
 
     //Force Request Info by Client Id
-    private void ForceRequestInfoById(ulong clientId, int infoDepth = 1)
+    public void ForceRequestInfoById(ulong clientId, int infoDepth = 1)
     {
         List<ulong> idList = new List<ulong>();
         idList.Add(clientId);
@@ -2179,7 +1227,6 @@ public class GameServer : NetworkedBehaviour
             InvokeClientRpc("ForceRequestInfoBlueprints_Rpc", idList);
         }
     }
-
 
     //Depth 1
     [ClientRPC]
@@ -2234,8 +1281,6 @@ public class GameServer : NetworkedBehaviour
 
 
 
-
-
     //-----------------------------------------------------------------//
     //             EH                                                  //
     //-----------------------------------------------------------------//
@@ -2244,113 +1289,18 @@ public class GameServer : NetworkedBehaviour
     private IEnumerator AutoSaveLoop()
     {
         int interval = storedProperties.autoSaveInterval;
-        if (interval == 0)
+        if (interval < 5)
         {
             interval = 5;
         }
+
         yield return new WaitForSeconds(interval * 60f);
-        List<PlayerInfo> playerInfoTemp = activePlayers.ToList();
-        foreach (PlayerInfo player in inactivePlayers)
-        {
-            playerInfoTemp.Add(player);
-        }
-        serverSaveData.playerData = playerInfoTemp;
-        serverSaveData.objData = activeGameObjects;
-        int playerCount = 0;
-        int objCount = 0;
-        if (serverSaveData.playerData != null)
-        {
-            playerCount = serverSaveData.playerData.Count;
-        }
-        if (serverSaveData.objData != null)
-        {
-            playerCount = serverSaveData.objData.Count;
-        }
-        DebugMsg.Notify("Auto-Save Complete. " + playerCount + " PlayerInfo's Saved. " + objCount + " Objects Saved.", 1);
-        StartCoroutine(AutoSaveLoop());
-    }
-
-    private IEnumerator PrimaryLoop() 
-    {
-        yield return new WaitForSeconds(5F);
-        Server_DepleteAll();
-
-        //Re-Loop
-        StartCoroutine(PrimaryLoop());
-    }
-
-
-    //Deplete All Food/Water/Health from Players
-    private void Server_DepleteAll() 
-    {
-        if (activePlayers.Count > 0) 
-        {
-            DebugMsg.Begin(340, "Starting Deplete of All Players", 3);
-            for (int i = 0; i < activePlayers.Count; i++)
-            {
-                PlayerInfo player = activePlayers[i];
-                if(player.food > 0) 
-                {
-                    activePlayers[i].food -= 1;
-                    ForceRequestInfoById(player.clientId, 3);
-                }
-                if (player.water > 0)
-                {
-                    activePlayers[i].water -= 1;
-                    ForceRequestInfoById(player.clientId, 4);
-                }
-                if(player.water == 0 && player.food == 0) 
-                {
-                    if(player.health > 0) 
-                    {
-                        activePlayers[i].health -= 1;
-                        ForceRequestInfoById(player.clientId, 2);
-                    }
-                    else if(player.health - 1 == 0) 
-                    {
-                        activePlayers[i].health = 0;
-                        ForceRequestInfoById(player.clientId, 2);
-                        Server_RespawnPlayer(player.clientId);
-                    }
-                    else if(!player.isDead && player.health == 0)
-                    {
-                        activePlayers[i].isDead = true;
-                        Server_RespawnPlayer(player.clientId);
-                    }
-                }
-            }
-            DebugMsg.End(340, "Finished Deplete of All Players", 3);
-        }
+        pis.AutoSave();
     }
 
 }
-
-
-
-//Player Info Object
-public class PlayerInfo
-{
-    public string name;
-    public string authKey;
-    public int id;
-    public int health;
-    public int food;
-    public int water;
-    public Vector3 location;
-    public ulong networkId;
-    public Item[] items;
-    public Item[] armor;
-    public int[] blueprints;
-    public ulong clientId;
-    public bool isDead;
-    public int coinsAdd;
-    public int expAdd;
-    public float hoursAdd;
-
-    public DateTime time;
-}
-
 //1156 6/20/20
 //1692 6/25/20
 //2106 7/11/20
 //2212 8/15/20
+//1451 8/25/20

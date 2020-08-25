@@ -12763,7 +12763,7 @@ MonoBehaviour:
   serverCommand: {fileID: 1503941492}
   serverUI: {fileID: 719751445}
   serverCamera: {fileID: 1310885805}
-  devServer: 0
+  devServer: 1
   logLevel: 1
 --- !u!1 &1012221460
 GameObject:
