@@ -14,16 +14,9 @@ public class PlayerInfoSystem : MonoBehaviour
     private Dictionary<ulong, PlayerInfo> active = new Dictionary<ulong, PlayerInfo>();
     private List<ulong> activeIds = new List<ulong>();
     private List<PlayerInfo> inactive = new List<PlayerInfo>();
-    private ServerInventoryTool sit;
+    public ServerInventoryTool sit;
     //Configuration
     private bool confirmNetworkKey = true; // Authenticates ID and Authkey when updating player info. Increases CPU if TRUE
-
-
-    private void Awake()
-    {
-        gameServer = GameServer.singleton;
-    }
-
 
 
     //START SYSTEM
@@ -32,8 +25,10 @@ public class PlayerInfoSystem : MonoBehaviour
         systemEnabled = true;
         //Read temp list from json file.
         //return true if successfull
+
         StartCoroutine(ResourceDepletionLoop());
 
+        gameServer = GameServer.singleton;
         return true;
     }
 
@@ -479,12 +474,11 @@ public class PlayerInfoSystem : MonoBehaviour
     }
 
     //Move Item
-    public void Inventory_MoveItem(ulong clientId, string authKey, int newSlot, int oldSlot)
+    public void Inventory_MoveItem(ulong clientId, string authKey, int oldSlot, int newSlot)
     {
         if (Confirm(clientId, authKey))
         {
             Item[] inventory = GetPlayerItems(clientId);
-            bool value = false;
             Item newItem = sit.GetItemBySlot(inventory, newSlot);
             Item oldItem = sit.GetItemBySlot(inventory, oldSlot);
             if (newItem != null && oldItem != null)
@@ -500,7 +494,6 @@ public class PlayerInfoSystem : MonoBehaviour
                     {
                         active[clientId].items = inventory;
                         ForceRequestInfoById(clientId, 5);
-                        value = true;
                     }
                 }
                 else if (newItemData.durabilityId == oldItem.itemID)
@@ -511,15 +504,13 @@ public class PlayerInfoSystem : MonoBehaviour
                     {
                         active[clientId].items = inventory;
                         ForceRequestInfoById(clientId, 5);
-                        value = true;
                     }
                 }
-                //Else Swap or Move the Item(s)
-                if (!value)
-                {
-                    active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
-                    ForceRequestInfoById(clientId, 5);
-                }
+            }
+            else if(oldItem != null) 
+            {
+                active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
+                ForceRequestInfoById(clientId, 5);
             }
         }
     }
@@ -650,6 +641,7 @@ public class PlayerInfoSystem : MonoBehaviour
                 {
                     return true;
                 }
+                DebugMsg.Notify("Client '" + clientId + "' Does Not Exist!", 1);
                 return false;
             }
             if (active.ContainsKey(clientId))
@@ -658,6 +650,7 @@ public class PlayerInfoSystem : MonoBehaviour
                 {
                     return true;
                 }
+                DebugMsg.Notify("Client '" + clientId + "' Failed Authentication!", 1);
                 return false;
             }
         }
@@ -673,16 +666,15 @@ public class PlayerInfoSystem : MonoBehaviour
     //Resource Depletion Loop
     private IEnumerator ResourceDepletionLoop() 
     {
-        yield return new WaitForSeconds(1f);
-        DebugMsg.Begin(340, "Starting Deplete of All Players", 3);
-        for (int i = 0; i < activeIds.Count; i++)
+        while (systemEnabled) 
         {
-            ResourceDeplete(activeIds[i]);
-        }
-        DebugMsg.End(340, "Finished Deplete of All Players", 3);
-        if (systemEnabled) 
-        {
-            StartCoroutine(ResourceDepletionLoop());
+            yield return new WaitForSeconds(1f);
+            DebugMsg.Begin(340, "Starting Deplete of All Players", 4);
+            for (int i = 0; i < activeIds.Count; i++)
+            {
+                ResourceDeplete(activeIds[i]);
+            }
+            DebugMsg.End(340, "Finished Deplete of All Players", 4);
         }
     }
     

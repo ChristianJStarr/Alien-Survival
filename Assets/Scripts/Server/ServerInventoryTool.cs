@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ServerInventoryTool
+public class ServerInventoryTool : MonoBehaviour
 {
     private int space = 33;
     private ItemData[] itemDatas;
 
     private void GatherAllItemDatas() 
     {
-        if(itemDatas != null)
+        if(itemDatas == null)
         {
             itemDatas = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         }
@@ -470,7 +470,15 @@ public class ServerInventoryTool
 
     public ItemData GetItemDataById(int itemId) 
     {
-        return new ItemData();
+        GatherAllItemDatas();
+        foreach (ItemData data in itemDatas)
+        {
+            if(data.itemID == itemId) 
+            {
+                return data;
+            }
+        }
+        return null;
     }
  
     public bool SlotBelongsToItems(int slot) 

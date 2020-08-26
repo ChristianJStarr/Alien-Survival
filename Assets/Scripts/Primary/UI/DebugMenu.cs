@@ -108,6 +108,7 @@ public class DebugMenu : MonoBehaviour
     {
         if (selectedItem != 0)
         {
+            gameServer.RequestToCheat_Item(selectedItem, 1);
         }
     }
     

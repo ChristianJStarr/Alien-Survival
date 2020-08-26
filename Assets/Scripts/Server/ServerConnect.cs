@@ -297,15 +297,8 @@ public class ServerConnect : MonoBehaviour
         if (gameServer.MovePlayerToActive(clientId, userId, authKey))
         {
             gameServer.InitializePlayerInfo(clientId);
-            Vector3 location = gameServer.GetPlayerLocation(clientId);
-            if (location != Vector3.zero)
-            {
+                Vector3 location = gameServer.GetPlayerLocation(clientId);
                 spawnPoint = location;
-            }
-            else //if (player.IsDead) 
-            {
-                //respawn player
-            }
             approve = true;
         }
         else
@@ -323,7 +316,8 @@ public class ServerConnect : MonoBehaviour
                 coinsAdd = 0,
                 expAdd = 0,
                 hoursAdd = 0,
-                time = DateTime.Now
+                time = DateTime.Now,
+                blueprints = storedProperties.defaultPlayerBlueprints
             };
             if (gameServer.CreatePlayer(newPlayer)) 
             {
@@ -504,4 +498,5 @@ public class ServerProperties
     public int maxEnemies = 0;
     public int maxFriendly = 0;
     public int autoSaveInterval = 5;
+    public int[] defaultPlayerBlueprints = new int[] { 1, 2 };
 }

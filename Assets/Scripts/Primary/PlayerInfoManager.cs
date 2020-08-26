@@ -18,12 +18,11 @@ public class PlayerInfoManager : MonoBehaviour
     #endregion
     public InventoryGfx inventoryGfx;
     public LoadAwake loadAwake;
-    private Topbar topbar;
+    public Topbar topbar;
     private GameServer gameServer;
     private PlayerInfo storedPlayerInfo;
     private GameObject player;
     private Backpack playerBackpack;
-    private int userId;
     private ulong clientId;
     private string authKey;
     private bool firstRequest = true;
@@ -35,14 +34,12 @@ public class PlayerInfoManager : MonoBehaviour
             if (NetworkingManager.Singleton.IsClient)
             {
                 storedPlayerInfo = new PlayerInfo();
-                topbar = FindObjectOfType<Topbar>();
-                gameServer = FindObjectOfType<GameServer>();
+                gameServer = GameServer.singleton;
                 clientId = NetworkingManager.Singleton.LocalClientId;
                 authKey = PlayerPrefs.GetString("authKey");
                 StartCoroutine(MainPlayerLoop());
                 player = FindObjectOfType<FirstPersonController>().gameObject;
             }
-
         }
         else 
         {
@@ -94,6 +91,10 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
 
+    public void CloseInventory() 
+    {
+        inventoryGfx.CloseInventory();
+    }
 
 
     //-----------------------------------------------------------------//
@@ -170,19 +171,19 @@ public class PlayerInfoManager : MonoBehaviour
         gameServer.SetPlayerLocation(authKey, location);
     }
 
-    //-------Move Item by Slot
-    public void MoveItemBySlots(int curSlot, int newSlot) 
-    {
-        gameServer.MovePlayerItemBySlot(clientId, authKey, curSlot, newSlot);
-    }
+    //-------INVENTORY
 
-    //-------Remove Item by Slot
+    //Move Item By Slots
+    public void MoveItemBySlots(int oldSlot, int newSlot) 
+    {
+        gameServer.MovePlayerItemBySlot(authKey, oldSlot, newSlot);
+    }
+    //Remove Item By Slot
     public void RemoveItemBySlot(int curSlot) 
     {
         gameServer.RemovePlayerItemBySlot(clientId, authKey, curSlot);
     }
-
-    //-------Craft Item by Id
+    //Craft Item By Item
     public void CraftItemById(int itemId, int amount)
     {
         gameServer.CraftItemById(clientId, authKey, itemId, amount);

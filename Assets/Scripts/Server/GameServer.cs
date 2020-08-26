@@ -71,19 +71,22 @@ public class GameServer : NetworkedBehaviour
     }
 
     #endregion
+    [Header("Prefabs")]
     public GameObject deathDropPrefab;
     public GameObject[] particlePrefabs;
 
 
     // -- SYSTEMS
-    private PlayerInfoSystem pis;
-    private WorldAISystem worldAISystem;
-    private WorldObjectSystem worldObjectSystem;
+    [Header("Systems")]
+    public PlayerInfoSystem pis;
+    public WorldAISystem worldAISystem;
+    public WorldObjectSystem worldObjectSystem;
+    private ClickableSystem clickableSystem;
 
     // -- MANAGERS
-    private PlayerInfoManager playerInfoManager;
-    private PlayerActionManager playerActionManager;
-    private ClickableSystem clickableSystem;
+    [Header("Managers")]
+    public PlayerInfoManager playerInfoManager;
+    public PlayerActionManager playerActionManager;
 
     //Properties
     private ServerProperties storedProperties;
@@ -91,17 +94,11 @@ public class GameServer : NetworkedBehaviour
     //Temp Location for Respawn
     public Vector3 tempPlayerPosition = new Vector3(0, -5000, 0);
 
-    //Temp Invent ory
-    private Item[] tempInventory;
-
 
     private void Start()
     {
         playerInfoManager = PlayerInfoManager.singleton;
         playerActionManager = PlayerActionManager.singleton;
-
-
-
         if (IsServer)
         {
             StartGameServer();
@@ -126,29 +123,42 @@ public class GameServer : NetworkedBehaviour
             DebugMsg.End(1, "Failed to Retrieve Server Properties", 1);
             return;
         }
+        else
+        {
+            DebugMsg.Notify("Loaded Server Properties.", 1);
+        }
 
         //Start Player Info System
-        pis = GetComponent<PlayerInfoSystem>();
         if (pis == null || !pis.StartSystem())
         {
             DebugMsg.End(1, "Failed to Start Player Info System", 1);
             return;
         }
+        else 
+        {
+            DebugMsg.Notify("Started Player Info System.", 1);
+        }
 
         //Start World AI System
-        worldAISystem = GetComponent<WorldAISystem>();
         if (worldAISystem == null || !worldAISystem.StartSystem())
         {
             DebugMsg.End(1, "Failed to Start World AI System", 1);
             return;
         }
+        else
+        {
+            DebugMsg.Notify("Started World AI System.", 1);
+        }
 
         //Start World Object System
-        worldObjectSystem = GetComponent<WorldObjectSystem>();
         if (worldObjectSystem == null || !worldObjectSystem.StartSystem())
         {
             DebugMsg.End(1, "Failed to Start World Object System", 1);
             return;
+        }
+        else
+        {
+            DebugMsg.Notify("Started World Object System.", 1);
         }
 
         clickableSystem = GetComponent<ClickableSystem>();
@@ -196,23 +206,32 @@ public class GameServer : NetworkedBehaviour
     //Player has Connected callback.
     public void PlayerConnected_Player(ulong networkId)
     {
-        InvokeServerRpc(HandoverNetworkId, OwnerClientId, PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), networkId);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(PlayerPrefs.GetInt("userId"));
+                writer.WriteStringPacked(PlayerPrefs.GetString("authKey"));
+                writer.WriteUInt64Packed(networkId);
+                InvokeServerRpcPerformance(PlayerHasConnected_Rpc, writeStream);
+            }
+        }
     }
 
     //Player has Connectd handover.
     [ServerRPC(RequireOwnership = false)]
-    private void HandoverNetworkId(ulong clientId, int id, string authKey, ulong networkId)
+    private void PlayerHasConnected_Rpc(ulong clientId, Stream stream)
     {
-        pis.SetPlayerNetworkId(clientId, id, authKey, networkId);
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            pis.SetPlayerNetworkId(clientId, reader.ReadInt32Packed(), reader.ReadStringPacked().ToString(), reader.ReadUInt64Packed());
+            if (GetPlayerIsDead(clientId))
+            {
+                Server_RespawnPlayerTask(clientId);
+            }
+            ForceRequestInfoById(clientId);
+        }
     }
-
-    //Player has Disconnected callback.
-    public void PlayerDisconnected_Player(ulong obj)
-    {
-
-    }
-
-
 
 
     //-----------------------------------------------------------------//
@@ -281,7 +300,7 @@ public class GameServer : NetworkedBehaviour
         //Spawn the Death Drop
         Server_SpawnDeathDrop(pis.GetPlayerItems(clientId), pis.GetPlayerArmor(clientId), NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position, pis.GetPlayerName(clientId));
         pis.ClearPlayerInventory(clientId);
-
+        pis.SetPlayerDead(clientId, true);
         //Force Request Info
         ForceRequestInfoById(clientId);
     }
@@ -413,6 +432,17 @@ public class GameServer : NetworkedBehaviour
     //             Server Action : User Interface                      //
     //-----------------------------------------------------------------//
 
+    //Close Inventory on Client
+    public void Server_UICloseInventory(ulong clientId)
+    {
+        InvokeClientRpcOnClient(Server_UICloseInventoryRpc, clientId);
+    }
+    [ClientRPC]
+    private void Server_UICloseInventoryRpc() 
+    {
+        playerInfoManager.CloseInventory();
+    }
+
     //Force Death Screen on Client
     public void Server_UIShowDeathScreen(ulong clientId)
     {
@@ -465,139 +495,10 @@ public class GameServer : NetworkedBehaviour
 
 
 
+
     //-----------------------------------------------------------------//
     //             Player Request : Retrieve Player Info               //
     //-----------------------------------------------------------------//
-
-    //--Request Health
-    public void GetPlayerHealth(ulong clientId, Action<int> callback)
-    {
-        DebugMsg.Notify("Requesting Health.", 2);
-        StartCoroutine(GetPlayerHealth_Wait(clientId, returnValue =>
-        {
-            DebugMsg.Notify("Requesting Health Success. Amount: " + returnValue, 2);
-            callback(returnValue);
-        }));
-    }
-
-    private IEnumerator GetPlayerHealth_Wait(ulong clientId, Action<int> callback)
-    {
-        RpcResponse<int> response = InvokeServerRpc(GetPlayerHealth_Rpc, clientId);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private int GetPlayerHealth_Rpc(ulong clientId)
-    {
-        return pis.GetPlayerHealth(clientId);
-    }
-    
-
-    //--Request Water
-    public void GetPlayerWater(ulong clientId, Action<int> callback)
-    {
-        DebugMsg.Notify("Requesting Water.", 2);
-        StartCoroutine(GetPlayerWater_Wait(clientId, returnValue =>
-        {
-            DebugMsg.Notify("Requesting Water Success. Amount: " + returnValue, 2);
-            callback(returnValue);
-        }));
-    }
-
-    private IEnumerator GetPlayerWater_Wait(ulong clientId, Action<int> callback)
-    {
-        RpcResponse<int> response = InvokeServerRpc(GetPlayerWater_Rpc, clientId);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-
-    [ServerRPC(RequireOwnership = false)]
-    private int GetPlayerWater_Rpc(ulong clientId)
-    {
-        return pis.GetPlayerWater(clientId);
-    }
-
-
-    //--Request Food
-    public void GetPlayerFood(ulong clientId, Action<int> callback)
-    {
-        DebugMsg.Notify("Requesting Food.", 2);
-        StartCoroutine(GetPlayerFood_Wait(clientId, returnValue =>
-        {
-            DebugMsg.Notify("Requesting Food Success. Amount: " + returnValue, 2);
-            callback(returnValue);
-        }));
-    }
-    private IEnumerator GetPlayerFood_Wait(ulong clientId, Action<int> callback)
-    {
-        RpcResponse<int> response = InvokeServerRpc(GetPlayerFood_Rpc, clientId);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private int GetPlayerFood_Rpc(ulong clientId)
-    {
-        return pis.GetPlayerFood(clientId);
-    }
-
-
-    //--Request Inventory items
-    public void GetPlayerInventoryItems(ulong clientId, Action<Item[]> callback)
-    {
-        DebugMsg.Notify("Requesting Inventory Items.", 2);
-        StartCoroutine(GetPlayerInventoryItems_Wait(clientId, returnValue => { callback(returnValue); }));
-    }
-    private IEnumerator GetPlayerInventoryItems_Wait(ulong clientId, Action<Item[]> callback)
-    {
-        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryItems_Rpc, clientId);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private Item[] GetPlayerInventoryItems_Rpc(ulong clientId)
-    {
-        return pis.GetPlayerItems(clientId);
-    }
-
-
-    //--Request Inventory armor
-    public void GetPlayerInventoryArmor(ulong clientId, Action<Item[]> callback)
-    {
-        DebugMsg.Notify("Requesting Inventory Armor.", 2);
-        StartCoroutine(GetPlayerInventoryArmor_Wait(clientId, returnValue => { callback(returnValue); }));
-    }
-    private IEnumerator GetPlayerInventoryArmor_Wait(ulong clientId, Action<Item[]> callback)
-    {
-        RpcResponse<Item[]> response = InvokeServerRpc(GetPlayerInventoryArmor_Rpc, clientId);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private Item[] GetPlayerInventoryArmor_Rpc(ulong clientId)
-    {
-        return pis.GetPlayerArmor(clientId);
-    }
-
-
-    //--Request Inventory blueprints
-    public void GetPlayerInventoryBlueprints(ulong clientId, Action<int[]> callback)
-    {
-        DebugMsg.Notify("Requesting Inventory Blueprints", 2);
-        StartCoroutine(GetPlayerInventoryBlueprints_Wait(clientId, returnValue => { callback(returnValue); }));
-    }
-    private IEnumerator GetPlayerInventoryBlueprints_Wait(ulong clientId, Action<int[]> callback)
-    {
-        RpcResponse<int[]> response = InvokeServerRpc(GetPlayerInventoryBlueprints_Rpc, clientId);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private int[] GetPlayerInventoryBlueprints_Rpc(ulong clientId)
-    {
-        return pis.GetPlayerBlueprints(clientId);
-    }
-
 
     //--Request Player Name by Client Id
     public void GetNameByClientId(ulong clientId, Action<string> callback)
@@ -616,7 +517,6 @@ public class GameServer : NetworkedBehaviour
     {
         return pis.GetPlayerName(clientId);
     }
-
 
     //--Request Player Name by Client Id
     public void GetAllConnectedClients(Action<ulong[]> callback)
@@ -685,15 +585,29 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
 
     //--Move Player Item
-    public void MovePlayerItemBySlot(ulong clientId, string authKey, int oldSlot, int newSlot)
+    public void MovePlayerItemBySlot(string authKey, int oldSlot, int newSlot)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
-        InvokeServerRpc(MovePlayerItemBySlot_Rpc, clientId, authKey, oldSlot, newSlot);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteStringPacked(authKey);
+                writer.WriteInt32Packed(oldSlot);
+                writer.WriteInt32Packed(newSlot);
+                InvokeServerRpcPerformance(MovePlayerItemBySlot_Rpc, writeStream);
+            }
+        }
+
     }
     [ServerRPC(RequireOwnership = false)]
-    private void MovePlayerItemBySlot_Rpc(ulong clientId, string authKey, int oldSlot, int newSlot)
+    private void MovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
     {
-        pis.Inventory_MoveItem(clientId, authKey, oldSlot, newSlot);
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            DebugMsg.Notify("Player Requesting to Modify Inventory.", 4);
+            pis.Inventory_MoveItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
+        }
     }
 
     //--Remove Player Item
@@ -1125,7 +1039,11 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-
+    //Get If Player Is Dead
+    public bool GetPlayerIsDead(ulong clientId) 
+    {
+        return pis.GetPlayerDead(clientId);
+    }
 
     //-----------------------------------------------------------------//
     //         Player Request :    Extras                              //
@@ -1176,13 +1094,19 @@ public class GameServer : NetworkedBehaviour
             string authKey = reader.ReadStringPacked().ToString();
             if (pis.Confirm(clientId, authKey))
             {
-                GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-                Vector3 spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
-                Server_TeleportPlayerToLocation(clientId, spawnpoint);
-                pis.ResetPlayerInfo(clientId, spawnpoint);
-                Server_UIHideDeathScreen(clientId);
+                Server_RespawnPlayerTask(clientId);
             }
         }
+    }
+    public void Server_RespawnPlayerTask(ulong clientId) 
+    {
+        GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
+        Vector3 spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
+        Server_TeleportPlayerToLocation(clientId, spawnpoint);
+        pis.SetPlayerDead(clientId, false);
+        pis.ResetPlayerInfo(clientId, spawnpoint);
+        Server_UIHideDeathScreen(clientId);
+        Server_UICloseInventory(clientId);
     }
 
     //Request Network Ping
@@ -1208,6 +1132,30 @@ public class GameServer : NetworkedBehaviour
         return NetworkingManager.Singleton.NetworkTime;
     }
 
+
+
+
+    //Cheating Debug
+    public void RequestToCheat_Item(int itemId, int amount) 
+    {
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(itemId);
+                writer.WriteInt32Packed(amount);
+                InvokeServerRpcPerformance(RequestToCheat_ItemRpc, writeStream);
+            }
+        }
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void RequestToCheat_ItemRpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            pis.Inventory_AddNew(clientId, reader.ReadInt32Packed(), reader.ReadInt32Packed(), returnValue => { });
+        }
+    }
 
 
     //-----------------------------------------------------------------//
@@ -1353,9 +1301,11 @@ public class GameServer : NetworkedBehaviour
         {
             interval = 5;
         }
-
-        yield return new WaitForSeconds(interval * 60f);
-        pis.AutoSave();
+        while (true) 
+        {
+            yield return new WaitForSeconds(interval * 60f);
+            pis.AutoSave();
+        }
     }
 
 }

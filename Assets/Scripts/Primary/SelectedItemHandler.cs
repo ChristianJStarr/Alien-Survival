@@ -16,22 +16,17 @@ public class SelectedItemHandler : MonoBehaviour
     private GameObject rightHand;
     private GameObject leftHand;
     private ControlControl controls;
-    private GameServer gameServer;
     private PlayerActionManager actionManager;
-    private PlayerInfoManager infoManager;
     private Reticle reticle;
 
     private bool ikActive = false;
     private int selectedSlot = 1;
-    private bool isHoldingUse = false;
 
     private Animator tempAnimator;
 
     private void Start()
     {
         actionManager = PlayerActionManager.singleton;
-        infoManager = PlayerInfoManager.singleton;
-        gameServer = GameServer.singleton;
         holdItemCache = new List<GameObject>();
         inventory = FindObjectOfType<InventoryGfx>();
         reticle = FindObjectOfType<Reticle>();
@@ -64,14 +59,17 @@ public class SelectedItemHandler : MonoBehaviour
         }
         else 
         {
-            int type = selectedItemData.useType;
-            if (type == 1)
+            if(selectedItemData != null) 
             {
-                ShowReticleNotify("OUT OF AMMO");
-            }
-            else if (type == 3)
-            {
-                ShowReticleNotify("NOT ENOUGH ROOM");
+                int type = selectedItemData.useType;
+                if (type == 1)
+                {
+                    ShowReticleNotify("OUT OF AMMO");
+                }
+                else if (type == 3)
+                {
+                    ShowReticleNotify("NOT ENOUGH ROOM");
+                }
             }
         }
     }

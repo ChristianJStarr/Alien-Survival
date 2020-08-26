@@ -400,6 +400,15 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+    //Close the Inventory if OPEN
+    public void CloseInventory() 
+    {
+        if (invOpen) 
+        {
+            InvButton();
+        }
+    }
+
     //Update Extra UI Data
     public void UpdateExtraUIData(string data)
     {

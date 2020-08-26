@@ -3,9 +3,11 @@ using TMPro;
 using MLAPI;
 using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class PingCounter : MonoBehaviour
 {
+    public Image pingIcon;
     public GameObject pingPanel;
     public float refresh = 20;
     private int timer, avgPing;
@@ -15,21 +17,26 @@ public class PingCounter : MonoBehaviour
     private GameServer gameServer;
     private ulong clientId;
 
+
     private void Start()
     {
-        clientId = NetworkingManager.Singleton.LocalClientId;
-        gameServer = GameServer.singleton;
-        showPing = settings.showPing; //Get showPing bool.
-        pingPanel.SetActive(showPing); //Activate/Deactivate fpsPanel
-        StartCoroutine(UpdateLoop());
+        if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
+        {
+            clientId = NetworkingManager.Singleton.LocalClientId;
+            gameServer = GameServer.singleton;
+            showPing = settings.showPing; //Get showPing bool.
+            pingPanel.SetActive(showPing); //Activate/Deactivate fpsPanel
+            StartCoroutine(UpdateLoop());
+        }
     }
 
-
+    //Subscribe to EVENT
     private void OnEnable()
     {
         SettingsMenu.ChangedSettings += Change;//Subscribe to Settings Change Event.
     }
 
+    //Unsubscribe from EVENT
     private void OnDisable()
     {
         SettingsMenu.ChangedSettings -= Change;//unSubscribe to Settings Change Event.
@@ -42,20 +49,45 @@ public class PingCounter : MonoBehaviour
         pingPanel.SetActive(showPing);
     }
 
+    //Update Loop for Calculating Ping
     private IEnumerator UpdateLoop()
     {
-        if (showPing)
+        while (true) 
         {
             gameServer.GetPlayerPing(clientId, returnValue =>
             {
                 if (returnValue < 0) { returnValue = 0; }
-                avgPing += returnValue;
-                timer++;
-                countText.text = (avgPing / timer) + " MS";
-                
+                if (showPing) 
+                {
+                    avgPing += returnValue;
+                    timer++;
+                    returnValue = (avgPing / timer);
+                    countText.text = returnValue + " MS";
+                }
+                if (returnValue < 101) 
+                {
+                    ChangePingIconColor(Color.white);
+                }
+                else if(returnValue > 100 && returnValue < 181)
+                {
+                    ChangePingIconColor(Color.yellow);
+                }
+                else if(returnValue > 180)
+                {
+                    ChangePingIconColor(Color.red);
+                }
             });
+
+            yield return new WaitForSeconds(5F);
         }
-        yield return new WaitForSeconds(1F);
-        StartCoroutine(UpdateLoop());
+    }
+
+    //Change Color of Signal Icon
+    private void ChangePingIconColor(Color color) 
+    {
+        if(pingIcon.color != color) 
+        {
+            pingIcon.color = color;
+        }
     }
 }

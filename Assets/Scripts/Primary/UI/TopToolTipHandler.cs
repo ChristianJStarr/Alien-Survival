@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,14 +12,12 @@ public class TopToolTipHandler : MonoBehaviour
     public Transform typeContainer;
     public GameObject typeSlidePrefab;
 
-    private List<TopToolTypeSlide> typeSlides;
-    private Item cacheItem;
-    private ItemData cacheData;
+    //Use Type Slides
+    private List<TopToolTypeSlide> typeSlides = new List<TopToolTypeSlide>();
 
-    private void Start()
-    {
-        typeSlides = new List<TopToolTypeSlide>();
-    }
+    //Stored Item Information
+    private Item storedItem;
+    private ItemData storedItemData;
 
     public void SetData(ItemData data, Item item)
     {
@@ -30,31 +27,31 @@ public class TopToolTipHandler : MonoBehaviour
             HandleItem(item);
         }
     }
+
     private void HandleData(ItemData data) 
     {
         item_title.text = data.name;
         item_description.text = data.description;
         item_icon.sprite = data.icon;
         BuildTypes(data.itemUse);
+        storedItemData = data;
     }
+
     private void HandleItem(Item item)
     {
-        cacheItem = item;
-
+        storedItem = item;
     }
+
     private void BuildTypes(string[] types) 
     {
-        if (typeSlides != null && typeSlides.Count > 0)
+        for (int i = 0; i < typeSlides.Count; i++)
         {
-            for (int i = 0; i < typeSlides.Count; i++)
+            if (typeSlides[i] != null)
             {
-                if(typeSlides[i] != null) 
-                {
-                    Destroy(typeSlides[i].gameObject);
-                    typeSlides.RemoveAt(i);
-                }
-                
+                Destroy(typeSlides[i].gameObject);
+                typeSlides.RemoveAt(i);
             }
+
         }
         if (types != null)
         {
@@ -68,6 +65,5 @@ public class TopToolTipHandler : MonoBehaviour
                 typeSlides.Add(slide);
             }
         }
-        
     }
 }
