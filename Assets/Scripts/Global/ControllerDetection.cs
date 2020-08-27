@@ -20,6 +20,13 @@ public class ControllerDetection : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void Start() 
+    {
+
+        ControllerNotify();
+    }
+
+
     private void Update() 
     {
         if(notifyObject.anchoredPosition != notifyTarget) 

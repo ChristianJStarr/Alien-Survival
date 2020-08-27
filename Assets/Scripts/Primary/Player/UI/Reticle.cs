@@ -258,12 +258,12 @@ public class Reticle : MonoBehaviour
         {
             if(playerActionManager != null) 
             {
-                Clickable clickable = currentObj.GetComponent<Clickable>();
-                if(clickable != null) 
-                {
-                    playerActionManager.InteractWithClickable(clickable.uniqueId);
-                    return;
-                }
+                //Clickable clickable = currentObj.GetComponent<Clickable>();
+                //if(clickable != null) 
+                //{
+                //    playerActionManager.InteractWithClickable(clickable.uniqueId);
+                //    return;
+                //}
                 DeathDrop deathDrop = currentObj.GetComponent<DeathDrop>();
                 if(deathDrop != null) 
                 {
@@ -295,16 +295,16 @@ public class Reticle : MonoBehaviour
     //Show Reticle Tool Tip
     private void ShowTip()
     {
-        Clickable clickable = currentObj.GetComponent<Clickable>();
-        if (clickable != null)
-        {
-            string toolTip = clickable.toolTip;
-            if (toolTip.Length > 0)
-            {
-                reticleTip.SetActive(true);
-                reticleText.text = toolTip;
-            }
-        }
+        //Clickable clickable = currentObj.GetComponent<Clickable>();
+        //if (clickable != null)
+        //{
+        //    string toolTip = clickable.toolTip;
+        //    if (toolTip.Length > 0)
+        //    {
+        //        reticleTip.SetActive(true);
+        //        reticleText.text = toolTip;
+        //    }
+        //}
         DeathDrop deathDrop = currentObj.GetComponent<DeathDrop>();
         if (deathDrop != null)
         {

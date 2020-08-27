@@ -199,6 +199,15 @@ public class GameServer : NetworkedBehaviour
         pis.SetPlayerTime(clientId, DateTime.Now);
     }
 
+    //Server Callback
+
+
+
+
+
+
+
+
     //-----------------------------------------------------------------//
     //             CLIENT CALLBACKS                                    //
     //-----------------------------------------------------------------//
@@ -819,45 +828,45 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void InteractWithClickable_Rpc(ulong clientId, string authKey, string uniqueId)
     {
-        DebugMsg.Begin(24, "Starting Clickable Interaction", 3);
+        //DebugMsg.Begin(24, "Starting Clickable Interaction", 3);
         
-        if(pis.Confirm(clientId, authKey)) 
-        {
-            Clickable clickable = clickableSystem.FindClickableByUnique(uniqueId);
-            if (clickable == null)
-                return;
-            //Pickup Object
-            if (clickable.clickType == 1)
-            {
-                pis.Inventory_AddNew(clientId, Convert.ToInt32(clickable.data), 1, itemPlaced => 
-                {
-                    if (itemPlaced) 
-                    {
-                        clickableSystem.RemoveClickable(clickable);
-                    }
-                    DebugMsg.End(24, "Finished Clickable Interaction", 3);
-                });
+        //if(pis.Confirm(clientId, authKey)) 
+        //{
+        //    Clickable clickable = clickableSystem.FindClickableByUnique(uniqueId);
+        //    if (clickable == null)
+        //        return;
+        //    //Pickup Object
+        //    if (clickable.clickType == 1)
+        //    {
+        //        pis.Inventory_AddNew(clientId, Convert.ToInt32(clickable.data), 1, itemPlaced => 
+        //        {
+        //            if (itemPlaced) 
+        //            {
+        //                clickableSystem.RemoveClickable(clickable);
+        //            }
+        //            DebugMsg.End(24, "Finished Clickable Interaction", 3);
+        //        });
                 
-            }
-            else if (clickable.clickType == 2)
-            {
-                string[] datas = clickable.data.Split(',');
-                int itemId = Convert.ToInt32(datas[0]);
-                int amount = Convert.ToInt32(datas[1]);
-                pis.Inventory_AddNew(clientId, itemId, amount, itemPlaced => 
-                { 
-                    if (itemPlaced) 
-                    {
-                        clickableSystem.RemoveClickable(clickable);
-                    }
-                    DebugMsg.End(24, "Finished Clickable Interaction", 3);
-                });
-            }
-            else if (clickable.clickType == 3)
-            {
-                Server_UIShowStorage(clientId, clickable.data);
-            }
-        }
+        //    }
+        //    else if (clickable.clickType == 2)
+        //    {
+        //        string[] datas = clickable.data.Split(',');
+        //        int itemId = Convert.ToInt32(datas[0]);
+        //        int amount = Convert.ToInt32(datas[1]);
+        //        pis.Inventory_AddNew(clientId, itemId, amount, itemPlaced => 
+        //        { 
+        //            if (itemPlaced) 
+        //            {
+        //                clickableSystem.RemoveClickable(clickable);
+        //            }
+        //            DebugMsg.End(24, "Finished Clickable Interaction", 3);
+        //        });
+        //    }
+        //    else if (clickable.clickType == 3)
+        //    {
+        //        Server_UIShowStorage(clientId, clickable.data);
+        //    }
+        //}
     }
 
     //--Interact with Resource
@@ -1027,16 +1036,16 @@ public class GameServer : NetworkedBehaviour
     }
     private void Server_RegisterClickable(GameObject clickableObject, ItemData data) 
     {
-        Clickable clickable = clickableObject.GetComponent<Clickable>();
-        if (clickable != null)
-        {
-            if(clickable.clickType == 3) 
-            {
-                UIData newData = new UIData();
-                newData.type = clickable.uiType;
-                clickableSystem.RegisterClickable(clickable, newData);
-            }
-        }
+        //Clickable clickable = clickableObject.GetComponent<Clickable>();
+        //if (clickable != null)
+        //{
+        //    if(clickable.clickType == 3) 
+        //    {
+        //        UIData newData = new UIData();
+        //        newData.type = clickable.uiType;
+        //        clickableSystem.RegisterClickable(clickable, newData);
+        //    }
+        //}
     }
 
     //Get If Player Is Dead

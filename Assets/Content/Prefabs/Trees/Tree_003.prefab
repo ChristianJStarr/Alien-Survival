@@ -234,6 +234,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6491520607215778698}
+  - component: {fileID: -4532958569883048649}
+  - component: {fileID: 1094889368140971485}
   - component: {fileID: 2039176461783911675}
   - component: {fileID: 414990814938449080}
   m_Layer: 0
@@ -262,6 +264,40 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-4532958569883048649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5862933780754932016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d231e11a2547e2e4889f418fa7dd890f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  networkObject: {fileID: 1094889368140971485}
+  objectType: 1
+  objectId: 0
+  objectAmount: 0
+  objectDestroyedTime: 0
+--- !u!114 &1094889368140971485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5862933780754932016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 209037615, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NetworkedInstanceId: 0
+  PrefabHash: 14705812276341894727
+  PrefabHashGenerator: Tree_003
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
 --- !u!205 &2039176461783911675
 LODGroup:
   m_ObjectHideFlags: 0

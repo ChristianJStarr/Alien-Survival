@@ -15,7 +15,7 @@ public class ControlControl : MonoBehaviour
     private int text_opacity; //Button Text Opacity
 
     public Image JoyBkg, JoyStick, UseLeft, UseRight, Button1, Button2, Button3, Button4;
-    public Image useLeft_Icon, useRight_Icon, Button1_Icon, Button2_Icon, Button3_Icon, Button4_Icon;
+    public Image useLeft_Icon, useRight_Icon, Button1_Icon, Button2_Icon, Button3_Icon, Button4_Icon, JoyIconLock;
 
     public Sprite handSprite;
     public Sprite shootSprite;
@@ -81,6 +81,7 @@ public class ControlControl : MonoBehaviour
     //Change Color of Icon Image
     private void ChangeIconColor(Color color) 
     {
+        JoyIconLock.color = color;
         useLeft_Icon.color = color;
         useRight_Icon.color = color;
         Button1_Icon.color = color;

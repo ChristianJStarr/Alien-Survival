@@ -144,6 +144,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1377526307232047165}
+  - component: {fileID: -6120678805177789638}
+  - component: {fileID: -7451284337548099451}
   - component: {fileID: 6145138917895886668}
   - component: {fileID: 5532989398760546063}
   m_Layer: 0
@@ -172,6 +174,40 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-6120678805177789638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753629015251499655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d231e11a2547e2e4889f418fa7dd890f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  networkObject: {fileID: -7451284337548099451}
+  objectType: 1
+  objectId: 0
+  objectAmount: 0
+  objectDestroyedTime: 0
+--- !u!114 &-7451284337548099451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753629015251499655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 209037615, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NetworkedInstanceId: 0
+  PrefabHash: 18121080807506277055
+  PrefabHashGenerator: Sapling_001
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
 --- !u!205 &6145138917895886668
 LODGroup:
   m_ObjectHideFlags: 0

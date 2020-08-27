@@ -668,7 +668,7 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         while (systemEnabled) 
         {
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(15f);
             DebugMsg.Begin(340, "Starting Deplete of All Players", 4);
             for (int i = 0; i < activeIds.Count; i++)
             {
@@ -697,14 +697,14 @@ public class PlayerInfoSystem : MonoBehaviour
             }
             if (player.water > 0)
             {
-                active[clientId].water -= 1;
+                active[clientId].water -= 2;
                 ForceRequestInfoById(player.clientId, 4);
             }
             if (player.water == 0 && player.food == 0)
             {
                 if (player.health > 0)
                 {
-                    active[clientId].health -= 1;
+                    active[clientId].health -= 5;
                     ForceRequestInfoById(player.clientId, 2);
                 }
                 else if (player.health - 1 == 0)
