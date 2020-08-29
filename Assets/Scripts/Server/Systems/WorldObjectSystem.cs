@@ -12,22 +12,15 @@ public class WorldObjectSystem : MonoBehaviour
 
     //NetworkingManager
     private NetworkingManager networkingManager;
-
+    private GameServer gameServer;
 
     //World Object Lists
     private List<WorldObject> worldObjects = new List<WorldObject>();
     private List<WorldObject> worldObjectsHidden = new List<WorldObject>();
     private List<ulong> connectedClients = new List<ulong>();
 
-    //Max Amounts
-    private int max_trees = 9999;
-    private int max_rocks = 9999;
-    private int max_ore = 9999;
+    public WorldObjectData[] worldObjectDatas;
 
-    //Amount Counters
-    private int tree_amount = 0;
-    private int rock_amount = 0;
-    private int ore_amount = 0;
 
     //-----------------------------------------------------------------//
     //              World Object System Primary Functions              //
@@ -41,7 +34,7 @@ public class WorldObjectSystem : MonoBehaviour
 
         //Load world Objects
         LoadSavedObjects();
-
+        gameServer = GameServer.singleton;
         networkingManager = NetworkingManager.Singleton;
         if(networkingManager != null) 
         {
@@ -70,56 +63,6 @@ public class WorldObjectSystem : MonoBehaviour
     {
         worldObjects = FindObjectsOfType<WorldObject>().ToList();
         worldObjects.Shuffle();
-        for (int i = 0; i < worldObjects.Count; i++)
-        {
-            int objectType = worldObjects[i].objectType;
-            worldObjects[i].objectId = i;
-            worldObjects[i].objectAmount = GetObjectResourceAmount(objectType);
-            if (objectType == 1) 
-            {
-                tree_amount++;
-                if(tree_amount >= max_trees) 
-                {
-                    worldObjectsHidden.Add(worldObjects[i]);
-                }
-                else 
-                {
-                    worldObjectsHidden.Remove(worldObjects[i]);
-                }
-            }
-            if (objectType == 2) 
-            {
-                rock_amount++;
-                if(rock_amount <= max_rocks) 
-                {
-                    worldObjectsHidden.Add(worldObjects[i]);
-                }
-                else
-                {
-                    worldObjectsHidden.Remove(worldObjects[i]);
-                }
-            }
-            if (objectType == 3) 
-            {
-                ore_amount++;
-                if(ore_amount <= max_ore) 
-                {
-                    worldObjectsHidden.Add(worldObjects[i]);
-                }
-                else
-                {
-                    worldObjectsHidden.Remove(worldObjects[i]);
-                }
-            }
-        }
-
-        for (int i = 0; i < worldObjectsHidden.Count; i++)
-        {
-            for (int id = 0; id < connectedClients.Count; id++)
-            {
-                worldObjectsHidden[i].networkObject.NetworkHide(connectedClients[id]);
-            }
-        }
     }
 
     //Save Loaded Objects
@@ -128,7 +71,7 @@ public class WorldObjectSystem : MonoBehaviour
         //Save all world objects
     }
 
-
+    //ConnectCallbacks
     public void PlayerConnected(ulong clientId) 
     {
         for (int i = 0; i < worldObjectsHidden.Count; i++)
@@ -142,6 +85,8 @@ public class WorldObjectSystem : MonoBehaviour
         connectedClients.Remove(clientId);
     }
 
+    
+
 
     //-----------------------------------------------------------------//
     //                    World Object Respawning                      //
@@ -152,20 +97,16 @@ public class WorldObjectSystem : MonoBehaviour
     {
         while (systemEnabled) 
         {
-            float netTime = NetworkingManager.Singleton.NetworkTime;
-            for (int i = 0; i < worldObjects.Count; i++)
+            for (int i = 0; i < worldObjectsHidden.Count; i++)
             {
-                float time = worldObjects[i].objectDestroyedTime;
-                if (time != 0) 
+                WorldObject worldObject = worldObjectsHidden[i];
+                WorldObjectData data = GetObjectDataFromId(worldObject.objectDataId);
+                if (data != null && worldObject.objectDestroyedTime != 0) 
                 {
-                    int objectType = worldObjects[i].objectType;
-                    if (netTime - time > GetObjectRespawnTime(objectType)) 
+                    if (GetNetworkTime() - worldObject.objectDestroyedTime >= data.respawnTime) 
                     {
-                        for (int id = 0; id < connectedClients.Count; id++)
-                        {
-                            worldObjects[i].networkObject.NetworkShow(connectedClients[id]);
-                        }
-                        worldObjects[i].objectAmount = GetObjectResourceAmount(objectType);
+                        NetworkShowForAll(worldObject.networkObject);
+                        worldObjectsHidden[i].objectAmount = data.gatherTotal;
                     }
                 }
             }
@@ -173,46 +114,102 @@ public class WorldObjectSystem : MonoBehaviour
         }
     }
 
-    //Get Respawn Time
-    private int GetObjectRespawnTime(int objectType) 
+    //DepleteWorldObject
+    public void DepleteWorldObject(ulong networkId, int toolId, int amount, Action<WorldObjectTransferData> callback) 
     {
-        if(objectType == 1) //Tree
+        for (int i = 0; i < worldObjects.Count; i++)
         {
-            return 240; //seconds
+            if (worldObjects[i].NetworkId == networkId)
+            {
+                WorldObject obj = worldObjects[i];
+                WorldObjectData data = GetObjectDataFromId(obj.objectDataId);
+                if (data.toolId == toolId)
+                {
+                    if (obj.objectAmount - amount > 0)
+                    {
+                        worldObjects[i].objectAmount -= amount;
+                        callback(new WorldObjectTransferData() { itemId = data.gatherItemId, amount = amount });
+                    }
+                    else if (obj.objectAmount > 0)
+                    {
+                        worldObjects[i].objectAmount = 0;
+                        worldObjectsHidden.Add(worldObjects[i]);
+                        NetworkHideForAll(obj.networkObject);
+                        callback(new WorldObjectTransferData() { itemId = data.gatherItemId, amount = obj.objectAmount });
+                    }
+                }
+                break;
+            }
         }
-        else if (objectType == 1) //Rock
+    }
+
+    //-----------------------------------------------------------------//
+    //                    World Object  TOOLS                          //
+    //-----------------------------------------------------------------//
+
+    //Get Network Time
+    private float GetNetworkTime() 
+    {
+        if(networkingManager != null) 
         {
-            return 420; //seconds
-        } 
-        else if (objectType == 1) //Ore
-        {
-            return 800; //seconds;
+            return networkingManager.NetworkTime;
         }
-        return 0;
+        else 
+        {
+            networkingManager = NetworkingManager.Singleton;
+            if (networkingManager != null)
+            {
+                return networkingManager.NetworkTime;
+            }
+            else 
+            {
+                return 0;
+            }
+        }
+    }
+
+    //Get World Object Data
+    private WorldObjectData GetObjectDataFromId(int objectId) 
+    {
+        foreach (WorldObjectData data in worldObjectDatas)
+        {
+            if(objectId == data.objectId) 
+            {
+                return data;
+            }
+        }
+        return null;
     }
     
-    //Get Resource Amount
-    private int GetObjectResourceAmount(int objectType) 
+    //Show NetworkObject for ALL
+    private void NetworkShowForAll(NetworkedObject networkObject)
     {
-        if(objectType == 1) //Wood
+        for (int id = 0; id < connectedClients.Count; id++)
         {
-            return UnityEngine.Random.Range(100, 150);
+            networkObject.NetworkShow(connectedClients[id]);
         }
-        else if (objectType == 2) //Stone
-        {
-            return UnityEngine.Random.Range(70, 80);
-        }
-        else if (objectType == 3) //Ore
-        {
-            return UnityEngine.Random.Range(30, 70);
-        }
-        return 0;
     }
+
+    //Hide NetworkObject for ALL
+    private void NetworkHideForAll(NetworkedObject networkObject)
+    {
+        for (int id = 0; id < connectedClients.Count; id++)
+        {
+            networkObject.NetworkHide(connectedClients[id]);
+        }
+    }
+
+
+}
+
+public class WorldObjectTransferData 
+{
+    public int itemId;
+    public int amount;
 }
 
 
-
-
+//Tools Below for List Scrambling
 public static class ThreadSafeRandom
 {
     [ThreadStatic] private static System.Random Local;
@@ -236,4 +233,7 @@ static class MyExtensions
             list[n] = value;
         }
     }
+
+
+    
 }

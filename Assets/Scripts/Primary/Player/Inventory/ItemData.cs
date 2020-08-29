@@ -8,6 +8,9 @@ public class ItemData : ScriptableObject
     public int craftAmount = 0;
     public int maxItemStack = 200;
     public int armorType;
+
+    public int toolId;
+    public int toolGatherAmount;
     
     // Use Types
     //  1)Shoot

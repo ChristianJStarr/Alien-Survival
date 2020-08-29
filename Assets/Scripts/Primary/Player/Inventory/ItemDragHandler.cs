@@ -82,7 +82,7 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
                 if (parent.getItem() != null)
                 {
                     DebugMsg.End(230, "Drop Event Finished", 4);
-                    PlayerActionManager.singleton.TakeSingleDeathDrop(item.currSlot);
+                    //PlayerActionManager.singleton.TakeSingleDeathDrop(item.currSlot);
                 }
             }
         }

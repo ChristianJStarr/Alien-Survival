@@ -94,7 +94,6 @@ public class GameServer : NetworkedBehaviour
     //Temp Location for Respawn
     public Vector3 tempPlayerPosition = new Vector3(0, -5000, 0);
 
-
     private void Start()
     {
         playerInfoManager = PlayerInfoManager.singleton;
@@ -109,7 +108,6 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
     //             SERVER FUNCTIONS                                    //
     //-----------------------------------------------------------------//
-
 
     //Start the Game Server
     private void StartGameServer()
@@ -134,7 +132,7 @@ public class GameServer : NetworkedBehaviour
             DebugMsg.End(1, "Failed to Start Player Info System", 1);
             return;
         }
-        else 
+        else
         {
             DebugMsg.Notify("Started Player Info System.", 1);
         }
@@ -194,16 +192,11 @@ public class GameServer : NetworkedBehaviour
         return pis.GetPlayerLocation(clientId);
     }
 
-    public void InitializePlayerInfo(ulong clientId) 
+    public void InitializePlayerInfo(ulong clientId)
     {
         pis.SetPlayerTime(clientId, DateTime.Now);
+        pis.Inventory_AddNew(clientId, 21, 1, returnValue => { });
     }
-
-    //Server Callback
-
-
-
-
 
 
 
@@ -243,6 +236,8 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+
+
     //-----------------------------------------------------------------//
     //             SERVER SIDE TOOLS                                   //
     //-----------------------------------------------------------------//
@@ -261,15 +256,15 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Get Item from ItemData Damage
-    public int ServerGetItemDamage(ItemData itemData) 
+    public int ServerGetItemDamage(ItemData itemData)
     {
         int damage = 0;
-        foreach(string data in itemData.itemUse) 
+        foreach (string data in itemData.itemUse)
         {
             string[] datas = data.Split('-');
             int type = Convert.ToInt32(datas[0]);
             int amount = Convert.ToInt32(datas[1]);
-            if (type == 4) 
+            if (type == 4)
             {
                 damage += amount;
             }
@@ -278,16 +273,18 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+
+
     //-----------------------------------------------------------------//
     //             Server Action : Change Player Info                  //
     //-----------------------------------------------------------------//
-    
+
     //Move Player To Active List
-    public bool MovePlayerToActive(ulong clientId, int userId, string authKey) 
+    public bool MovePlayerToActive(ulong clientId, int userId, string authKey)
     {
         return pis.MovePlayerToActive(clientId, userId, authKey);
     }
-   
+
     //Move Player To Inactive List
     public PlayerInfo Server_MovePlayerToInactive(ulong clientId)
     {
@@ -315,24 +312,24 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Teleport Player
-    private void Server_TeleportPlayerToLocation(ulong clientId, Vector3 position) 
+    private void Server_TeleportPlayerToLocation(ulong clientId, Vector3 position)
     {
         MovementManager movement = NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<MovementManager>();
         movement.TeleportClient(clientId, position);
-        
+
     }
 
     //Spawn DeathDrop
     private void Server_SpawnDeathDrop(Item[] items, Item[] armor, Vector3 location, string username)
     {
-        if(items != null) 
+        if (items != null)
         {
             GameObject deathDropObj = Instantiate(deathDropPrefab, location, Quaternion.identity);
             deathDropObj.transform.position = location;
             DeathDrop deathDrop = deathDropObj.GetComponent<DeathDrop>();
             NetworkedObject networkedObject = deathDropObj.GetComponent<NetworkedObject>();
             List<Item> dropItemTemp = items.ToList();
-            if(armor != null) 
+            if (armor != null)
             {
                 foreach (Item item in armor)
                 {
@@ -344,14 +341,14 @@ public class GameServer : NetworkedBehaviour
             deathDrop.unique = GenerateUnique();
             networkedObject.Spawn();
         }
-        else if(armor != null) 
+        else if (armor != null)
         {
             GameObject deathDropObj = Instantiate(deathDropPrefab, location, Quaternion.identity);
             deathDropObj.transform.position = location;
             DeathDrop deathDrop = deathDropObj.GetComponent<DeathDrop>();
             NetworkedObject networkedObject = deathDropObj.GetComponent<NetworkedObject>();
             deathDrop.UpdateDropItems(armor.ToList());
-            deathDrop.unique= GenerateUnique();
+            deathDrop.unique = GenerateUnique();
             networkedObject.Spawn();
         }
     }
@@ -369,7 +366,7 @@ public class GameServer : NetworkedBehaviour
                 {
                     Vector3 hitPosition = hit.point;
                     netObject = hit.collider.GetComponent<NetworkedObject>();
-                    if (spawnParticle) 
+                    if (spawnParticle)
                     {
                         Server_SpawnParticle(hitPosition, netObject.tag);
                     }
@@ -406,7 +403,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Server Teleport Player to Player (TEMP)
-    public void Server_Teleport(string playerName, string targetName) 
+    public void Server_Teleport(string playerName, string targetName)
     {
         //ulong clientId = 0;
         //ulong targetId = 0;
@@ -431,7 +428,7 @@ public class GameServer : NetworkedBehaviour
         //        movement.TeleportClient(clientId, NetworkingManager.Singleton.ConnectedClients[targetId].PlayerObject.transform.position);
         //    }
         //}
-    
+
     }
 
 
@@ -447,7 +444,7 @@ public class GameServer : NetworkedBehaviour
         InvokeClientRpcOnClient(Server_UICloseInventoryRpc, clientId);
     }
     [ClientRPC]
-    private void Server_UICloseInventoryRpc() 
+    private void Server_UICloseInventoryRpc()
     {
         playerInfoManager.CloseInventory();
     }
@@ -464,7 +461,7 @@ public class GameServer : NetworkedBehaviour
     [ClientRPC]
     private void Server_UIShowDeathScreenRpc()
     {
-        PlayerActionManager.singleton.ShowDeathScreen();
+        //PlayerActionManager.singleton.ShowDeathScreen();
     }
 
     //Hide Death Screen on Client
@@ -479,15 +476,15 @@ public class GameServer : NetworkedBehaviour
     [ClientRPC]
     private void Server_UIHideDeathScreenRpc()
     {
-        PlayerActionManager.singleton.HideDeathScreen();
+        //PlayerActionManager.singleton.HideDeathScreen();
     }
 
-    private void Server_UIShowStorage(ulong clientId, string data) 
+    private void Server_UIShowStorage(ulong clientId, string data)
     {
-        InvokeClientRpcOnClient(Server_UIShowStorageRpc, clientId, data);        
+        InvokeClientRpcOnClient(Server_UIShowStorageRpc, clientId, data);
     }
     [ClientRPC]
-    private void Server_UIShowStorageRpc(string data) 
+    private void Server_UIShowStorageRpc(string data)
     {
         playerInfoManager.ShowStorage(data);
     }
@@ -542,11 +539,11 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private ulong[] GetAllConnectedClients_Rpc()
     {
-        if(NetworkingManager.Singleton != null) 
+        if (NetworkingManager.Singleton != null)
         {
             return NetworkingManager.Singleton.ConnectedClients.Keys.ToArray();
         }
-        else 
+        else
         {
             return null;
         }
@@ -558,7 +555,7 @@ public class GameServer : NetworkedBehaviour
     //-----------------------------------------------------------------//
     //             Player Request : Modify Own Values                  //
     //-----------------------------------------------------------------//
-    
+
     //--Set Player Location
     public void SetPlayerLocation(string authKey, Vector3 location)
     {
@@ -579,9 +576,9 @@ public class GameServer : NetworkedBehaviour
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            if(pis.Confirm(clientId, reader.ReadStringPacked().ToString()))
+            if (pis.Confirm(clientId, reader.ReadStringPacked().ToString()))
             {
-               pis.SetPlayerLocation(clientId, new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked()));
+                pis.SetPlayerLocation(clientId, new Vector3(reader.ReadSinglePacked(), reader.ReadSinglePacked(), reader.ReadSinglePacked()));
             }
         }
     }
@@ -628,9 +625,9 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void RemovePlayerItemBySlot_Rpc(ulong clientId, string authKey, int slot)
     {
-        pis.Inventory_RemoveItem(clientId, authKey, slot, returnedItem => 
+        pis.Inventory_RemoveItem(clientId, authKey, slot, returnedItem =>
         {
-            if(returnedItem != null) 
+            if (returnedItem != null)
             {
                 //Drop returnedItem.itemID;
             }
@@ -646,406 +643,141 @@ public class GameServer : NetworkedBehaviour
     [ServerRPC(RequireOwnership = false)]
     private void CraftItemById_Rpc(ulong clientId, string authKey, int itemId, int amount)
     {
-       pis.Inventory_CraftItem(clientId, authKey, itemId, amount);
+        pis.Inventory_CraftItem(clientId, authKey, itemId, amount);
     }
 
 
 
 
     //-----------------------------------------------------------------//
-    //             Player Request : Use Selected Item                  //
+    //                     Player Interaction                          //
     //-----------------------------------------------------------------//
 
-    //CLIENT : Use Selected Item
-    public void UseSelectedItem(string authKey, int itemSlot, Transform aim) 
+    //Player Interact
+    public void PlayerInteract(string authKey, Ray ray, int selectedSlot) 
     {
-        DebugMsg.Notify("Requesting to Use Selected Item", 2);
-        Vector3 rot = aim.TransformDirection(Vector3.forward);
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
             using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
             {
                 writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(itemSlot);
-                writer.WriteSinglePacked(aim.position.x);
-                writer.WriteSinglePacked(aim.position.y);
-                writer.WriteSinglePacked(aim.position.z);
-                writer.WriteSinglePacked(rot.x);
-                writer.WriteSinglePacked(rot.y);
-                writer.WriteSinglePacked(rot.z);
-                InvokeServerRpcPerformance(UseSelectedItem_Rpc, writeStream);
+                writer.WriteInt32Packed(selectedSlot);
+                writer.WriteRayPacked(ray);
+                InvokeServerRpcPerformance(PlayerInteractRpc, writeStream);
+            }
+        }
+    }
+    [ServerRPC(RequireOwnership = false)]
+    private void PlayerInteractRpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            if (pis.Confirm(clientId, reader.ReadStringPacked().ToString()))
+            {
+
+                DebugMsg.Notify("Interact Confirmed", 1);
+                int selectedSlot = reader.ReadInt32Packed();
+                Ray ray = reader.ReadRayPacked();
+                LagCompensationManager.Simulate(clientId, () =>
+                {
+                    RaycastHit hit;
+                    if (Physics.Raycast(ray, out hit, 30))
+                    {
+                        if (hit.collider != null)
+                        {
+
+                            DebugMsg.Notify("Ray has collided with " + hit.collider.tag, 1);
+                            NetworkedObject networkObject = hit.collider.GetComponent<NetworkedObject>();
+                            if(networkObject != null) 
+                            {
+                                Server_Interact(clientId, selectedSlot, hit.distance, hit.collider.tag, networkObject.NetworkId);
+                            }
+                        }
+                    }
+                });
             }
         }
     }
 
-    //SERVER : Use Selected Item 
-    [ServerRPC(RequireOwnership = false)]
-    private void UseSelectedItem_Rpc(ulong clientId, Stream stream)
+    //Server Interact
+    private void Server_Interact(ulong clientId, int selectedSlot, float distance, string tag, ulong networkId) 
     {
-        bool success = false;
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+
+        DebugMsg.Notify("Server_Interact Started", 1);
+        Item item = pis.Inventory_GetItemFromSlot(clientId, selectedSlot);
+        if (item != null) //Has Item in Hand 
         {
-            string authKey = reader.ReadStringPacked().ToString();
-            int itemSlot = reader.ReadInt32Packed();
-            float xPos = reader.ReadSinglePacked();
-            float yPos = reader.ReadSinglePacked();
-            float zPos = reader.ReadSinglePacked();
-            float xRot = reader.ReadSinglePacked();
-            float yRot = reader.ReadSinglePacked();
-            float zRot = reader.ReadSinglePacked();
-          
-            Vector3 aimPos = new Vector3(xPos, yPos, zPos);
-            Vector3 aimRot = new Vector3(xRot, yRot, zRot);
-            Item selectedItem = pis.Inventory_GetItemFromSlot(clientId, itemSlot);
-            if (selectedItem != null)
+            ItemData data = pis.Inventory_GetItemData(item.itemID);
+            if (distance < data.useRange)
             {
-                ItemData selectedData = pis.Inventory_GetItemData(selectedItem.itemID);
-                if (selectedData.useType == 1)
+                if (data.useType == 1) //Shoot
                 {
-                    success = ServerShootSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+
                 }
-                if (selectedData.useType == 2)
+                else if (data.useType == 2) //Melee
                 {
-                    success = ServerMeleeSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+
                 }
-                if (selectedData.useType == 3)
+                else if (data.useType == 3) //Tool
                 {
-                    success = ServerPlaceSelected(clientId, aimPos, aimRot, selectedItem, selectedData);
+                    if (tag == "WorldObject") //World Object
+                    {
+                        if(item.durability > 0) 
+                        {
+                            DebugMsg.Notify("Interact Object has Durability", 1);
+                            worldObjectSystem.DepleteWorldObject(networkId, data.toolId, data.toolGatherAmount, returnValue =>
+                            {
+                                pis.Inventory_AddNew(clientId, returnValue.itemId, returnValue.amount, itemPlaced =>
+                                {
+                                    if (itemPlaced)
+                                    {
+
+                                        DebugMsg.Notify("Interact Gather Added", 1);
+                                        if (pis.Inventory_ChangeItemDurability(clientId, -1, data.maxDurability, selectedSlot))
+                                        {
+                                            Server_InteractCallback(clientId, true);
+                                            return;
+                                        }
+                                    }
+                                    Server_InteractCallback(clientId, false);
+                                    return;
+                                });
+                                
+                            });
+                        }
+                        else 
+                        {
+                            Server_InteractCallback(clientId, false);
+                        }
+                    }
                 }
-            }
-            else
-            {
-                success = ServerPunchSelected(clientId, aimPos, aimRot);
             }
         }
-            InvokeClientRpcOnClient(UseSelectedItemReturn, clientId, success);
+        else if(distance < 3)//Hand
+        {
+            
+        }
+    }
+    
+    //Server Interact Callback
+    private void Server_InteractCallback(ulong clientId, bool success) 
+    {
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteBool(success);
+                InvokeClientRpcOnClientPerformance(InteractCallbackRpc, clientId, writeStream);
+            }
+        }
     }
     [ClientRPC]
-    private void UseSelectedItemReturn(bool success) 
-    {
-        playerActionManager.UseSelectedItemReturn(success);
-    }
-
-    //Server Shoot Selected
-    private bool ServerShootSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
-    {
-        bool wasTaken = pis.Inventory_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot);
-        if (item.durability > 0 && wasTaken)
-        {
-            NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, data.useRange);
-            if (netObject != null)
-            {
-                int damage = ServerGetItemDamage(data);
-                if(damage > 0) 
-                {
-                    DebugMsg.Notify("Shoot. Damaging Network Object for Player: " + clientId, 2);
-                    Server_DamageNetworkedObject(netObject, damage);
-                }
-            }
-        }
-        return wasTaken;
-    }
-    
-    //Server Melee Seleceted
-    private bool ServerMeleeSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
-    {
-        if (item.durability > 0 && pis.Inventory_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
-        {
-            NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, data.useRange);
-            if (netObject != null)
-            {
-                int damage = ServerGetItemDamage(data);
-                if (damage > 0)
-                {
-                    DebugMsg.Notify("Melee. Damaging Network Object for Player: " + clientId, 2);
-                    Server_DamageNetworkedObject(netObject, damage);
-                }
-            }
-            return true;
-        }
-        else { return false; }
-    }
-    
-    //Server Place Selected
-    private bool ServerPlaceSelected(ulong clientId, Vector3 pos, Vector3 rot, Item item, ItemData data) 
-    {
-        return false;
-    }
-    
-    //Server Punch Selected
-    private bool ServerPunchSelected(ulong clientId, Vector3 pos, Vector3 rot) 
-    {
-        NetworkedObject netObject = Server_RaycastRequest(pos, rot, true, 1);
-        if (netObject != null)
-        {
-            DebugMsg.Notify("Punch. Damaging Network Object for Player: " + clientId, 2);
-            Server_DamageNetworkedObject(netObject, 2);
-        }
-        return false;
-    }
-
-    //CLIENT : Add to Durability
-    public void ReloadToDurability(string authKey, int slot)
-    {
-        DebugMsg.Notify("Requesting to Reload", 2);
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(slot);
-                InvokeServerRpcPerformance(ReloadToDurability_Rpc, writeStream);
-            }
-        }
-    }
-
-    //SERVER : Add to Durability 
-    [ServerRPC(RequireOwnership = false)]
-    private void ReloadToDurability_Rpc(ulong clientId, Stream stream)
+    private void InteractCallbackRpc(ulong clientId, Stream stream) 
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            string authKey = reader.ReadStringPacked().ToString();
-            int slot = reader.ReadInt32Packed();
-            pis.Inventory_ReloadToDurability(clientId, authKey, slot);
+            playerActionManager.PlayerInteractCallback(reader.ReadBool());
         }
-    }
-
-
-
-
-
-    //-----------------------------------------------------------------//
-    //         Player Request : World Interactions                     //
-    //-----------------------------------------------------------------//
-
-    //--Interact with Clickable
-    public void InteractWithClickable(ulong clientId, string authKey, string uniqueId)
-    {
-        DebugMsg.Notify("Requesting to Interact with Clickable.", 2);
-        InvokeServerRpc(InteractWithClickable_Rpc, clientId, authKey, uniqueId);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void InteractWithClickable_Rpc(ulong clientId, string authKey, string uniqueId)
-    {
-        //DebugMsg.Begin(24, "Starting Clickable Interaction", 3);
-        
-        //if(pis.Confirm(clientId, authKey)) 
-        //{
-        //    Clickable clickable = clickableSystem.FindClickableByUnique(uniqueId);
-        //    if (clickable == null)
-        //        return;
-        //    //Pickup Object
-        //    if (clickable.clickType == 1)
-        //    {
-        //        pis.Inventory_AddNew(clientId, Convert.ToInt32(clickable.data), 1, itemPlaced => 
-        //        {
-        //            if (itemPlaced) 
-        //            {
-        //                clickableSystem.RemoveClickable(clickable);
-        //            }
-        //            DebugMsg.End(24, "Finished Clickable Interaction", 3);
-        //        });
-                
-        //    }
-        //    else if (clickable.clickType == 2)
-        //    {
-        //        string[] datas = clickable.data.Split(',');
-        //        int itemId = Convert.ToInt32(datas[0]);
-        //        int amount = Convert.ToInt32(datas[1]);
-        //        pis.Inventory_AddNew(clientId, itemId, amount, itemPlaced => 
-        //        { 
-        //            if (itemPlaced) 
-        //            {
-        //                clickableSystem.RemoveClickable(clickable);
-        //            }
-        //            DebugMsg.End(24, "Finished Clickable Interaction", 3);
-        //        });
-        //    }
-        //    else if (clickable.clickType == 3)
-        //    {
-        //        Server_UIShowStorage(clientId, clickable.data);
-        //    }
-        //}
-    }
-
-    //--Interact with Resource
-    public void InteractWithResource(ulong clientId, string authKey, string uniqueId)
-    {
-        DebugMsg.Notify("Requesting to Interact with Resource.", 2);
-        InvokeServerRpc(InteractWithResource_Rpc, clientId, authKey, uniqueId);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void InteractWithResource_Rpc(ulong clientId, string authKey, string uniqueId)
-    {
-        if (pis.Confirm(clientId, authKey))
-        {
-            //for (int i = 0; i < activeResources.Count; i++)
-            //{
-            //    if(activeResources[i].uniqueId == unique) 
-            //    {
-            //        int amountLeft = activeResources[i].gatherAmount - activeResources[i].gatherPerAmount;
-            //        if (amountLeft >= 0) 
-            //        {
-            //            if (Server_AddNewItemToInventory(clientId, activeResources[i].gatherItemId, activeResources[i].gatherPerAmount)) 
-            //            {
-            //                if (amountLeft == 0)
-            //                {
-            //                   //Destroy Resource
-            //                    Destroy(activeResources[i].gameObject);
-            //                    break;
-            //                }
-            //                activeResources[i].gatherAmount -= activeResources[i].gatherPerAmount;
-            //            }
-            //        }
-            //    }
-            //}
-        }
-    }
-
-    //--Interact With Death Drop
-    public void InteractWithDeathDrop(ulong clientId, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback)
-    {
-        DebugMsg.Notify("Requesting to Interact with DeathDrop.", 2);
-        StartCoroutine(InteractWithDeathDropWait(clientId, authKey, uniqueId, itemSlot, returnValue =>
-        {
-            callback(returnValue);
-        }));
-    }
-    private IEnumerator InteractWithDeathDropWait(ulong clientId, string authKey, string uniqueId, int itemSlot, Action<Item[]> callback) 
-    {
-        RpcResponse<Item[]> response = InvokeServerRpc(InteractWithDeathDrop_Rpc, clientId, authKey, uniqueId, itemSlot);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private Item[] InteractWithDeathDrop_Rpc(ulong clientId, string authKey, string uniqueId, int itemSlot)
-    {
-        Item[] placed = null;
-        DeathDrop[] deathDrops = FindObjectsOfType<DeathDrop>();
-        foreach (DeathDrop drop in deathDrops)
-        {
-            if (drop.unique == uniqueId)
-            {
-                if (itemSlot == 100)
-                {
-                    for (int e = 0; e < drop.dropItems.Count; e++)
-                    {
-                        pis.Inventory_Add(clientId, drop.dropItems[e], success =>
-                        {
-                             drop.dropItems.RemoveAt(e--);
-                        });
-                    }
-                }
-                else
-                {
-                    for (int e = 0; e < drop.dropItems.Count; e++)
-                    {
-                        if (drop.dropItems[e].currSlot == itemSlot)
-                        {
-                            pis.Inventory_Add(clientId, drop.dropItems[e], success =>
-                            {
-                                if (success)
-                                {
-                                    drop.dropItems.RemoveAt(e--);
-                                }
-                            });
-                            break;
-                        }
-                    }
-                }
-                drop.UpdateDropItems();
-                placed = drop.dropItems.ToArray();
-                break;
-            }
-        }
-        return placed;
-    }
-
-    //-- Place Placeable Object
-    public void Client_PlacePlaceableObject(string authKey, int itemId, int itemSlot, Transform loc) 
-    {
-        DebugMsg.Notify("Requesting to Place Placeable", 2);
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(itemId);
-                writer.WriteInt32Packed(itemSlot);
-                writer.WriteSinglePacked(loc.position.x);
-                writer.WriteSinglePacked(loc.position.y);
-                writer.WriteSinglePacked(loc.position.z);
-                writer.WriteSinglePacked(loc.localRotation.x);
-                writer.WriteSinglePacked(loc.localRotation.y);
-                writer.WriteSinglePacked(loc.localRotation.z);
-                InvokeServerRpcPerformance(Client_PlacePlaceableObjectRpc, writeStream);
-            }
-        }
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void Client_PlacePlaceableObjectRpc(ulong clientId, Stream stream) 
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            string authKey = reader.ReadStringPacked().ToString();
-            int itemId = reader.ReadInt32Packed();
-            int itemSlot = reader.ReadInt32Packed();
-            float xPos = reader.ReadSinglePacked();
-            float yPos = reader.ReadSinglePacked();
-            float zPos = reader.ReadSinglePacked();
-            float xRot = reader.ReadSinglePacked();
-            float yRot = reader.ReadSinglePacked();
-            float zRot = reader.ReadSinglePacked();
-            Vector3 objPos = new Vector3(xPos, yPos, zPos);
-
-            DebugMsg.Begin(20, "Trying to Place Placeable", 2);
-
-            if(pis.Confirm(clientId, authKey)) 
-            {
-                ItemData selectedData = pis.Inventory_GetItemData(itemId);
-                if (selectedData.isPlaceable)
-                {
-                    pis.Inventory_RemoveItem(clientId, authKey, itemSlot, droppedItem =>
-                    {
-                        if (droppedItem != null && droppedItem.itemID == itemId)
-                        {
-                            GameObject placeableObject = Instantiate(selectedData.placeableItem);
-                            placeableObject.transform.position = objPos;
-                            placeableObject.transform.localRotation = Quaternion.Euler(zRot, yRot, zRot);
-                            CollideSensor collide = placeableObject.GetComponent<CollideSensor>();
-                            if (collide.isOverlapping)
-                            {
-                                DebugMsg.End(20, "Could Not Place Placeable", 2);
-                                Destroy(placeableObject);
-                                InvokeClientRpcOnClient(UseSelectedItemReturn, clientId, false);
-                            }
-                            else
-                            {
-                                NetworkedObject networkObject = placeableObject.GetComponent<NetworkedObject>();
-                                networkObject.Spawn();
-                                Server_RegisterClickable(placeableObject, selectedData);
-                                InvokeClientRpcOnClient(UseSelectedItemReturn, clientId, true);
-                                DebugMsg.End(20, "Placed Placeable Successfully", 2);
-                            }
-                        }
-                    });
-                }
-            }
-        }
-    }
-    private void Server_RegisterClickable(GameObject clickableObject, ItemData data) 
-    {
-        //Clickable clickable = clickableObject.GetComponent<Clickable>();
-        //if (clickable != null)
-        //{
-        //    if(clickable.clickType == 3) 
-        //    {
-        //        UIData newData = new UIData();
-        //        newData.type = clickable.uiType;
-        //        clickableSystem.RegisterClickable(clickable, newData);
-        //    }
-        //}
     }
 
     //Get If Player Is Dead
@@ -1053,6 +785,9 @@ public class GameServer : NetworkedBehaviour
     {
         return pis.GetPlayerDead(clientId);
     }
+
+
+
 
     //-----------------------------------------------------------------//
     //         Player Request :    Extras                              //
@@ -1141,9 +876,6 @@ public class GameServer : NetworkedBehaviour
         return NetworkingManager.Singleton.NetworkTime;
     }
 
-
-
-
     //Cheating Debug
     public void RequestToCheat_Item(int itemId, int amount) 
     {
@@ -1165,6 +897,8 @@ public class GameServer : NetworkedBehaviour
             pis.Inventory_AddNew(clientId, reader.ReadInt32Packed(), reader.ReadInt32Packed(), returnValue => { });
         }
     }
+
+
 
 
     //-----------------------------------------------------------------//
@@ -1296,6 +1030,8 @@ public class GameServer : NetworkedBehaviour
     {
         return JsonHelper.FromJson<Item>(json);
     }
+
+
 
 
     //-----------------------------------------------------------------//

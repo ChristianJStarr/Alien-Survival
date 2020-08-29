@@ -41,12 +41,6 @@ public class SelectedItemHandler : MonoBehaviour
         SelectSlot(selectedSlot);
     }
 
-    //Use Selected Item
-    public void Use() 
-    {
-        actionManager.UseSelectedItem(selectedSlot, aimTransform);
-    }
-
     //Selected Item Return Response
     public void SelectedReturn(bool success) 
     {
@@ -75,7 +69,6 @@ public class SelectedItemHandler : MonoBehaviour
     }
 
     //Show Reticle ToolTip
-
     private void ShowReticleNotify(string notify) 
     {
         if(reticle == null) 

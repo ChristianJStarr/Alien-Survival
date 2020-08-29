@@ -53,13 +53,19 @@ public class Reticle : MonoBehaviour
     }
 
 
-    private void Update() 
-    {
+    private void Update()
+    { 
         if (CrossPlatformInputManager.GetButtonDown("Use"))
         {
-            Use();
+      
+            playerActionManager.PlayerInteract(cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0F)), activeItemSlot);
         }
     }
+
+
+    //-----------------------------------------------------------------//
+    //                            RAY CASTS                            //
+    //-----------------------------------------------------------------//
 
     //Raycast Loop Check
     private void FixedUpdate()
@@ -137,6 +143,11 @@ public class Reticle : MonoBehaviour
         }
     }
 
+    //-----------------------------------------------------------------//
+    //                   Building System UI                            //
+    //-----------------------------------------------------------------//
+
+
     //Update Build Preview
     private void UpdateBuildPreview(bool activate, Vector3 position , Vector3 normal) 
     {
@@ -213,6 +224,7 @@ public class Reticle : MonoBehaviour
         }
     }
 
+    //Change Preview Material
     public void ChangePreviewMaterial(GameObject buildPreview, bool green) 
     {
         if (green) 
@@ -244,76 +256,23 @@ public class Reticle : MonoBehaviour
         }
     }
 
-    //Primary Use Function
-    public void Use() 
-    {
-        if (placeableItemData != null) 
-        {
-            if (canPlace) 
-            {
-                playerActionManager.PlacePlaceable(currentBuildObject.transform, placeableItemData.itemID, activeItemSlot);
-            }
-        }
-        else if(currentObj != null) 
-        {
-            if(playerActionManager != null) 
-            {
-                //Clickable clickable = currentObj.GetComponent<Clickable>();
-                //if(clickable != null) 
-                //{
-                //    playerActionManager.InteractWithClickable(clickable.uniqueId);
-                //    return;
-                //}
-                DeathDrop deathDrop = currentObj.GetComponent<DeathDrop>();
-                if(deathDrop != null) 
-                {
-                    playerActionManager.InteractWithDeathDrop(deathDrop.unique, deathDrop.dropItems.ToArray());
-                    return;
-                }
-                Resource resource = currentObj.GetComponent<Resource>();
-                if (resource != null)
-                {
-                    playerActionManager.InteractWithResource(resource.uniqueId);
-                    return;
-                }
-
-            }
-        }
-        else 
-        {
-            if(selectedItemHandler == null) 
-            {
-                selectedItemHandler = FindObjectOfType<SelectedItemHandler>();
-            }
-            if (selectedItemHandler != null)
-            {
-                selectedItemHandler.Use();
-            }
-        }
-    }
-
     //Show Reticle Tool Tip
     private void ShowTip()
     {
-        //Clickable clickable = currentObj.GetComponent<Clickable>();
-        //if (clickable != null)
-        //{
-        //    string toolTip = clickable.toolTip;
-        //    if (toolTip.Length > 0)
-        //    {
-        //        reticleTip.SetActive(true);
-        //        reticleText.text = toolTip;
-        //    }
-        //}
+        string toolTip = "";
+
+        //Find Tooltip
+
+
+        //Check if DeathDrop
         DeathDrop deathDrop = currentObj.GetComponent<DeathDrop>();
-        if (deathDrop != null)
+        if (deathDrop != null){ toolTip = deathDrop.toolTip;}
+
+        //Apply Tooltip
+        if (toolTip.Length > 0)
         {
-            string toolTip = deathDrop.toolTip;
-            if (toolTip.Length > 0)
-            {
-                reticleTip.SetActive(true);
-                reticleText.text = toolTip;
-            }
+            reticleTip.SetActive(true);
+            reticleText.text = toolTip;
         }
     }
 

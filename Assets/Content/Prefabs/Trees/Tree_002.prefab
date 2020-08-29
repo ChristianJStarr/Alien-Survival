@@ -330,7 +330,7 @@ GameObject:
   - component: {fileID: 7587337162951622306}
   m_Layer: 0
   m_Name: Tree_002
-  m_TagString: Untagged
+  m_TagString: WorldObject
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -367,9 +367,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   networkObject: {fileID: -6728144889521939214}
-  objectType: 1
-  objectId: 0
   objectAmount: 0
+  objectDataId: 1
   objectDestroyedTime: 0
 --- !u!114 &-6728144889521939214
 MonoBehaviour:

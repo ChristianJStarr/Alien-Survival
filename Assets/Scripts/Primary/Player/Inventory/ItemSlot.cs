@@ -32,20 +32,12 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
                 SetTooltip();
                 inventoryGfx.CheckHoverObject();
             }
-            if (dragType == 2)
-            {
-                PlayerActionManager.singleton.DragStarted();
-            }
         }
     }
     //Drag: End Drag
     public void OnEndDrag(PointerEventData eventData)
     {
         ResetTempIcon();
-        if (dragType == 2)
-        {
-            PlayerActionManager.singleton.DragEnded();
-        }
     }
     //Drag: PointerClick
     public void OnPointerClick(PointerEventData eventData)
