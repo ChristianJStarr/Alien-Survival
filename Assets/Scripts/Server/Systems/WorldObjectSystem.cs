@@ -63,6 +63,19 @@ public class WorldObjectSystem : MonoBehaviour
     {
         worldObjects = FindObjectsOfType<WorldObject>().ToList();
         worldObjects.Shuffle();
+
+        foreach (WorldObject worldObject in worldObjects)
+        {
+            WorldObjectData data = GetObjectDataFromId(worldObject.objectDataId);
+            if(data != null) 
+            {
+                worldObject.objectAmount = data.gatherAmount;
+            }
+            else 
+            {
+                NetworkHideForAll(worldObject.networkObject);
+            }
+        }
     }
 
     //Save Loaded Objects
@@ -117,21 +130,26 @@ public class WorldObjectSystem : MonoBehaviour
     //DepleteWorldObject
     public void DepleteWorldObject(ulong networkId, int toolId, int amount, Action<WorldObjectTransferData> callback) 
     {
+        DebugMsg.Notify("Starting Deplete of WorldObject", 3);
         for (int i = 0; i < worldObjects.Count; i++)
         {
             if (worldObjects[i].NetworkId == networkId)
             {
+                DebugMsg.Notify("WorldObject with Matching ID found", 4);
                 WorldObject obj = worldObjects[i];
                 WorldObjectData data = GetObjectDataFromId(obj.objectDataId);
                 if (data.toolId == toolId)
                 {
+                    DebugMsg.Notify("Tool ID matches", 4);
                     if (obj.objectAmount - amount > 0)
                     {
+                        DebugMsg.Notify("Depleting", 4);
                         worldObjects[i].objectAmount -= amount;
                         callback(new WorldObjectTransferData() { itemId = data.gatherItemId, amount = amount });
                     }
                     else if (obj.objectAmount > 0)
                     {
+                        DebugMsg.Notify("Depleting and Destroying", 4);
                         worldObjects[i].objectAmount = 0;
                         worldObjectsHidden.Add(worldObjects[i]);
                         NetworkHideForAll(obj.networkObject);

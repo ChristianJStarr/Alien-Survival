@@ -82,11 +82,13 @@ public class GameServer : NetworkedBehaviour
     public WorldAISystem worldAISystem;
     public WorldObjectSystem worldObjectSystem;
     private ClickableSystem clickableSystem;
+    public ChatSystem chatSystem;
 
     // -- MANAGERS
     [Header("Managers")]
     public PlayerInfoManager playerInfoManager;
     public PlayerActionManager playerActionManager;
+    public ChatManager chatManager;
 
     //Properties
     private ServerProperties storedProperties;
@@ -198,7 +200,16 @@ public class GameServer : NetworkedBehaviour
         pis.Inventory_AddNew(clientId, 21, 1, returnValue => { });
     }
 
-
+    public void PlayerConnected(ulong clientId)
+    {
+        string playerName = pis.GetPlayerName(clientId);
+        chatSystem.PlayerConnected_AllMessage(playerName);
+        chatSystem.PlayerWelcome_Specific(playerName, storedProperties.serverName, clientId);
+    }
+    public void PlayerDisconnected(ulong clientId) 
+    {
+        chatSystem.PlayerDisconnected_AllMessage(pis.GetPlayerName(clientId));
+    }
 
 
     //-----------------------------------------------------------------//
@@ -674,7 +685,6 @@ public class GameServer : NetworkedBehaviour
         {
             if (pis.Confirm(clientId, reader.ReadStringPacked().ToString()))
             {
-
                 DebugMsg.Notify("Interact Confirmed", 1);
                 int selectedSlot = reader.ReadInt32Packed();
                 Ray ray = reader.ReadRayPacked();
@@ -685,9 +695,8 @@ public class GameServer : NetworkedBehaviour
                     {
                         if (hit.collider != null)
                         {
-
                             DebugMsg.Notify("Ray has collided with " + hit.collider.tag, 1);
-                            NetworkedObject networkObject = hit.collider.GetComponent<NetworkedObject>();
+                            NetworkedObject networkObject = hit.collider.GetComponentInParent<NetworkedObject>();
                             if(networkObject != null) 
                             {
                                 Server_Interact(clientId, selectedSlot, hit.distance, hit.collider.tag, networkObject.NetworkId);
@@ -707,9 +716,11 @@ public class GameServer : NetworkedBehaviour
         Item item = pis.Inventory_GetItemFromSlot(clientId, selectedSlot);
         if (item != null) //Has Item in Hand 
         {
+            DebugMsg.Notify("Item: " + item.itemID + " detected.", 1);
             ItemData data = pis.Inventory_GetItemData(item.itemID);
             if (distance < data.useRange)
             {
+                DebugMsg.Notify("Object within useRange. Distance: " + distance, 1);
                 if (data.useType == 1) //Shoot
                 {
 
@@ -722,7 +733,8 @@ public class GameServer : NetworkedBehaviour
                 {
                     if (tag == "WorldObject") //World Object
                     {
-                        if(item.durability > 0) 
+                        DebugMsg.Notify("Object is WorldObject. Item is a TOOL", 1);
+                        if (item.durability > 0) 
                         {
                             DebugMsg.Notify("Interact Object has Durability", 1);
                             worldObjectSystem.DepleteWorldObject(networkId, data.toolId, data.toolGatherAmount, returnValue =>
@@ -742,7 +754,6 @@ public class GameServer : NetworkedBehaviour
                                     Server_InteractCallback(clientId, false);
                                     return;
                                 });
-                                
                             });
                         }
                         else 
@@ -856,24 +867,25 @@ public class GameServer : NetworkedBehaviour
     //Request Network Ping
     public void GetPlayerPing(ulong clientId, Action<int> callback)
     {
+        float time = NetworkingManager.Singleton.NetworkTime;
         DebugMsg.Notify("Requesting Ping.", 2);
         StartCoroutine(GetPlayerPing_Wait(clientId, returnValue =>
         {
-            int ping = (int)((NetworkingManager.Singleton.NetworkTime - returnValue) * 1000);
+            int ping = (int)(((NetworkingManager.Singleton.NetworkTime - time)/ 2) * 1000);
             callback(ping);
         }));
     }
-    private IEnumerator GetPlayerPing_Wait(ulong clientId, Action<float> callback)
+    private IEnumerator GetPlayerPing_Wait(ulong clientId, Action<bool> callback)
     {
-        RpcResponse<float> response = InvokeServerRpc(GetPlayerPing_Rpc, clientId);
+        RpcResponse<bool> response = InvokeServerRpc(GetPlayerPing_Rpc, clientId, "UnSpeed");
         while (!response.IsDone) { yield return null; }
-        callback(response.Value);
+        callback(true);
     }
     [ServerRPC(RequireOwnership = false)]
-    private float GetPlayerPing_Rpc(ulong clientId)
+    private bool GetPlayerPing_Rpc(ulong clientId)
     {
         //calculate ping for clientId
-        return NetworkingManager.Singleton.NetworkTime;
+        return true;
     }
 
     //Cheating Debug
@@ -898,6 +910,48 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+
+
+
+
+    //-----------------------------------------------------------------//
+    //         Chat System                                             //
+    //-----------------------------------------------------------------//
+
+    //Chat - Send ALL
+    public void Chat_SendToAll(string message) 
+    {
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteStringPacked(message);
+               InvokeClientRpcOnEveryonePerformance(ChatSendTo_Rpc, writeStream);
+            }
+        }
+    }
+
+    //Chat - Send Specific
+    public void Chat_SendToSpecific(string message, ulong clientId) 
+    {
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteStringPacked(message);
+                InvokeClientRpcOnClientPerformance(ChatSendTo_Rpc, clientId, writeStream);
+            }
+        }
+    }
+
+    [ClientRPC]
+    private void ChatSendTo_Rpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            ChatManager.singleton.Incoming(reader.ReadStringPacked().ToString());
+        }
+    }
 
 
 
@@ -934,38 +988,49 @@ public class GameServer : NetworkedBehaviour
                         writer.WriteStringPacked(ItemArrayToJson(player.armor));
                         writer.WriteIntArrayPacked(player.blueprints);
                     }
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
                 }
                 else if (depth == 2) //Health
                 {
                     writer.WriteInt32Packed(pis.GetPlayerHealth(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
                 }
                 else if (depth == 3) //Food
                 {
                     writer.WriteInt32Packed(pis.GetPlayerFood(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
                 }
                 else if (depth == 4) //Water
                 {
                     writer.WriteInt32Packed(pis.GetPlayerWater(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
                 }
                 else if (depth == 5) //Items
                 {
                     writer.WriteStringPacked(ItemArrayToJson(pis.GetPlayerItems(clientId)));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
                 }
                 else if (depth == 6) //Armor
                 {
                     writer.WriteStringPacked(ItemArrayToJson(pis.GetPlayerArmor(clientId)));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
 
                 }
                 else if (depth == 7) //Blueprints
                 {
                     writer.WriteIntArrayPacked(pis.GetPlayerBlueprints(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream);
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
+                }
+                else if (depth == 8) //Health / Food / Water
+                {
+                    PlayerInfo player = pis.GetPlayerInfo(clientId);
+                    if (player != null)
+                    {
+                        writer.WriteInt32Packed(player.health);
+                        writer.WriteInt32Packed(player.food);
+                        writer.WriteInt32Packed(player.water);
+                    }
+                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
                 }
             }
         }
@@ -1019,6 +1084,12 @@ public class GameServer : NetworkedBehaviour
             {
                 int[] blueprints = reader.ReadIntArrayPacked();
                 playerInfoManager.UpdateBlueprints(blueprints);
+            }
+            else if (depth == 8) //Health / Food / Water
+            {
+                playerInfoManager.UpdateHealth(reader.ReadInt32Packed());
+                playerInfoManager.UpdateFood(reader.ReadInt32Packed());
+                playerInfoManager.UpdateWater(reader.ReadInt32Packed());
             }
         }
     }

@@ -17,16 +17,27 @@ MonoBehaviour:
   craftAmount: 1
   maxItemStack: 1
   armorType: 0
+  toolId: 1
+  toolGatherAmount: 10
+  useType: 3
+  useRange: 10
+  useParticleId: 1
+  itemUse:
+  - 4-30
+  maxDurability: 1000
+  durabilityId: 0
+  holdableId: 1
   name: Axe
   description: This is an Axe
   recipe:
   - 37-1
-  itemUse:
-  - 4-30
   isCraftable: 1
+  isPlaceable: 0
   isHoldable: 1
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 1
   holdableObject: {fileID: 4603395025206164037, guid: b36da94937023614ca88bc59c55bad2d,
     type: 3}
+  placeableItem: {fileID: 0}

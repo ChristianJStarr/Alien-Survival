@@ -78,7 +78,7 @@ public class PingCounter : MonoBehaviour
                 }
             });
 
-            yield return new WaitForSeconds(5F);
+            yield return new WaitForSeconds(1F);
         }
     }
 

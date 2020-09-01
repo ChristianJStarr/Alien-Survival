@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1545706893128992337}
   m_Layer: 0
   m_Name: CollisionObject0
-  m_TagString: Untagged
+  m_TagString: WorldObject
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -148,6 +148,7 @@ GameObject:
   - component: {fileID: -7451284337548099451}
   - component: {fileID: 6145138917895886668}
   - component: {fileID: 5532989398760546063}
+  - component: {fileID: 6394092969833861679}
   m_Layer: 0
   m_Name: Sapling_001
   m_TagString: WorldObject
@@ -254,6 +255,18 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &6394092969833861679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753629015251499655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1977919129, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2645665889800230277
 GameObject:
   m_ObjectHideFlags: 0

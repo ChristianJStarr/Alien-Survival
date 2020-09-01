@@ -159,8 +159,8 @@ public class ServerConnect : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
-        networkManager.GetComponent<UnetTransport>().ConnectAddress = ip;
-        networkManager.GetComponent<UnetTransport>().ConnectPort = port;
+        ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = ip;
+        ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)port;
         networkManager.OnClientConnectedCallback += PlayerConnected_Player;
         networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
         networkManager.StartClient();
@@ -258,10 +258,8 @@ public class ServerConnect : MonoBehaviour
             networkManager.OnServerStarted += ServerStarted;
             networkManager.OnClientConnectedCallback += PlayerConnected_Server;
             networkManager.OnClientDisconnectCallback += PlayerDisconnected_Server;
-            networkManager.GetComponent<UnetTransport>().MaxConnections = storedProperties.serverMaxPlayer;
-            networkManager.GetComponent<UnetTransport>().ConnectAddress = storedProperties.publicIP;
-            networkManager.GetComponent<UnetTransport>().ConnectPort = storedProperties.serverPort;
-            networkManager.GetComponent<UnetTransport>().ServerListenPort = storedProperties.serverPort;
+            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = storedProperties.publicIP;
+            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)storedProperties.serverPort;
             networkManager.StartServer();
         }
     }
@@ -383,20 +381,22 @@ public class ServerConnect : MonoBehaviour
 
 
     //Callback: Player Conencted
-    private void PlayerConnected_Server(ulong id)
+    private void PlayerConnected_Server(ulong clientId)
     {
+        gameServer.PlayerConnected(clientId);
         UpdatePlayerCount();
     }
 
     //Callback: Player Disconnected
-    private void PlayerDisconnected_Server(ulong id)
+    private void PlayerDisconnected_Server(ulong clientId)
     {
-        PlayerInfo savedInfo = gameServer.Server_MovePlayerToInactive(id);
+        PlayerInfo savedInfo = gameServer.Server_MovePlayerToInactive(clientId);
         if (savedInfo != null)
         {
             SavePlayerStats(savedInfo);
         }
         UpdatePlayerCount();
+        gameServer.PlayerDisconnected(clientId);
     }
 
     //Save Player Statistics

@@ -24,6 +24,8 @@ public class ItemData : ScriptableObject
     public string[] itemUse;
     public int maxDurability = 0;
     public int durabilityId = 0;
+
+    public int holdableId;
     
     public string name = "New Item";
     public string description = "This is the description for this item";

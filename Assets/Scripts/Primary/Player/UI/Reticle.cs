@@ -29,7 +29,7 @@ public class Reticle : MonoBehaviour
     private List<GameObject> tempPlaceables = new List<GameObject>();
     public Material buildPreviewMaterial;
     public Material buildPreviewRedMaterial;
-    private int activeItemSlot = 0;
+    public int activeItemSlot = 2;
     private CollideSensor collideSensor;
     private bool canPlace = false;
 

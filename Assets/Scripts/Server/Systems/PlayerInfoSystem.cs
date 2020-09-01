@@ -719,6 +719,20 @@ public class PlayerInfoSystem : MonoBehaviour
                     gameServer.Server_RespawnPlayer(player.clientId);
                 }
             }
+            else if(player.water != 0 && player.water - 2 >= 0 && player.food != 0 && player.food - 4 >= 0 && player.health < 100)
+            {
+                if(player.health + 2 <= 100) 
+                {
+                    active[clientId].health += 2;
+                }
+                else 
+                {
+                    active[clientId].health = 100;
+                }
+                active[clientId].water -= 4;
+                active[clientId].food -= 2;
+                ForceRequestInfoById(player.clientId, 8);
+            }
         }
     }
 
@@ -731,6 +745,7 @@ public class PlayerInfoSystem : MonoBehaviour
     //   5 - ITEMS         //
     //   6 - ARMOR         //
     //   7 - BLUEPRINTS    //
+    //   8 - H/F/W         //
 
     //Force Request Info
     private void ForceRequestInfoById(ulong clientId, int depth = 1) 

@@ -7,18 +7,15 @@ public class ControlControl : MonoBehaviour
     //Where: Primary Scene / Interface
 
     public Image cover; //A transparent button cover.
-    public GameObject leftScreen;//Left screen container.
-    public GameObject rightScreen;//Right screen container.
     public Settings settings;//Current game settings.
 
     private int btn_opacity; //Button Opacity
     private int text_opacity; //Button Text Opacity
 
-    public Image JoyBkg, JoyStick, UseLeft, UseRight, Button1, Button2, Button3, Button4;
-    public Image useLeft_Icon, useRight_Icon, Button1_Icon, Button2_Icon, Button3_Icon, Button4_Icon, JoyIconLock;
+    public Sprite[] useIcons;
+    public ControlObject[] controlObjects;
 
-    public Sprite handSprite;
-    public Sprite shootSprite;
+    private bool uiActive;
 
     private void OnEnable()
     {
@@ -35,59 +32,51 @@ public class ControlControl : MonoBehaviour
         Change();
     }
 
+    private void UpdateColor() 
+    {
+        Color backgroundColor;
+        Color iconColor;
+        if (uiActive)
+        {
+            backgroundColor = new Color32(0, 0, 0, (byte)btn_opacity);
+            iconColor = new Color32(255, 255, 255, (byte)text_opacity);
+        }
+        else
+        {
+            backgroundColor = new Color32(255, 255, 255, 0);
+            iconColor = new Color32(255, 255, 255, 0);
+        }
+        for (int i = 0; i < controlObjects.Length; i++)
+        {
+            controlObjects[i].background.color = backgroundColor;
+            controlObjects[i].icon.color = iconColor;
+            if(controlObjects[i].secondBackground != null) 
+            {
+                controlObjects[i].secondBackground.color = backgroundColor;
+            }
+        }
+    }
+
+    public void UpdateUseIcon(int useType) 
+    {
+        //for (int i = 0; i < controlObjects.Length; i++)
+        //{
+        //    if(controlObjects[i].typeId == 1 && controlObjects[i].icon.sprite != useIcons[useType - 1]) 
+        //    {
+        //        //controlObjects[i].icon.sprite = useIcons[useType - 1];
+        //    }
+        //}
+    }
+
+    
+    
+    
+    
     //Change Button Opacity. Standard settingsMenu Change().
     private void Change()
     {
         //Set opacity to stored settings. 0-255.
         SetOpacity(settings.gameControlsOpacity); 
-    }
-
-    //Swap Use Icons
-    public void SwapUse(int useType)
-    {
-        //Hand
-        if (useType == 0)
-        {
-            useLeft_Icon.sprite = handSprite;
-            useRight_Icon.sprite = handSprite;
-            Button3.enabled = false;
-            Button2_Icon.enabled = false;
-            Button3.GetComponent<Button>().interactable = false;
-        }
-        //Shoot
-        else if (useType == 1) 
-        {
-            useLeft_Icon.sprite = shootSprite;
-            useRight_Icon.sprite = shootSprite;
-            Button3.enabled = true;
-            Button2_Icon.enabled = true;
-            Button3.GetComponent<Button>().interactable = true;
-        }
-    }
-
-    //Change Color of Bkg Image
-    private void ChangeImageColor(Color color) 
-    {
-        JoyBkg.color = color;
-        JoyStick.color = color;
-        UseLeft.color = color;
-        UseRight.color = color;
-        Button1.color = color;
-        Button2.color = color;
-        Button3.color = color;
-        Button4.color = color;
-    }
-    
-    //Change Color of Icon Image
-    private void ChangeIconColor(Color color) 
-    {
-        JoyIconLock.color = color;
-        useLeft_Icon.color = color;
-        useRight_Icon.color = color;
-        Button1_Icon.color = color;
-        Button2_Icon.color = color;
-        Button3_Icon.color = color;
-        Button4_Icon.color = color;
     }
 
     //Set opacity from int.
@@ -102,10 +91,7 @@ public class ControlControl : MonoBehaviour
             text_opacity = value * 2;
         }
         btn_opacity = value;
-        if(JoyBkg.color.a != 0) 
-        {
-            ToggleVisible(true);
-        }
+        UpdateColor();
     }
 
     //Hide controls.
@@ -123,21 +109,11 @@ public class ControlControl : MonoBehaviour
     //Change opacity of buttons.
     private void ToggleVisible(bool value)
     {
-
-        Color color;
-        Color textColor;
-        if (value) 
+        if(uiActive != value) 
         {
-            color = new Color32(0, 0, 0, (byte)btn_opacity);
-            textColor = new Color32(255, 255, 255, (byte)text_opacity);
+            uiActive = value;
+            UpdateColor();
         }
-        else 
-        {
-            color = new Color32(255, 255, 255, 0);
-            textColor = new Color32(255, 255, 255, 0);
-        }
-        ChangeImageColor(color);
-        ChangeIconColor(textColor);
         cover.raycastTarget = !value;
     }
 }

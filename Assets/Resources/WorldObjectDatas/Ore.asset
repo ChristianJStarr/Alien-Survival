@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f23dd96797c1a946bd2967b536e89dc, type: 3}
   m_Name: Ore
   m_EditorClassIdentifier: 
-  objectName: 
-  objectId: 0
-  gatherItemId: 0
-  gatherAmount: 0
+  objectName: Metal Ore
+  objectId: 3
+  gatherItemId: 30
+  gatherAmount: 100
   gatherTotal: 0
-  respawnTime: 0
+  toolId: 2
+  respawnTime: 500

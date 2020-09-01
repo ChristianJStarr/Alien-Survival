@@ -1,39 +1,27 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SelectedItemHandler : MonoBehaviour
 {
     public Item selectedItem;
+    public Animator animator;
+    public HoldableManager holdableManager;
     public ItemData selectedItemData;
     private InventoryGfx inventory;
-
-    private GameObject holdItem;
-    private List<GameObject> holdItemCache;
-
-    public Transform aimTransform;
-    public Animator animator;
-    public Transform handAnchor;
-    private GameObject rightHand;
-    private GameObject leftHand;
+    private Transform rightHand;
+    private Transform leftHand;
     private ControlControl controls;
-    private PlayerActionManager actionManager;
     private Reticle reticle;
-
     private bool ikActive = false;
     private int selectedSlot = 1;
 
-    private Animator tempAnimator;
 
     private void Start()
     {
-        actionManager = PlayerActionManager.singleton;
-        holdItemCache = new List<GameObject>();
         inventory = FindObjectOfType<InventoryGfx>();
         reticle = FindObjectOfType<Reticle>();
         controls = inventory.GetComponent<ControlControl>();
         inventory.SelectedItemHandover(this);
     }
-
 
     //Update the Selected Slot
     public void UpdateSelectedSlot() 
@@ -46,10 +34,7 @@ public class SelectedItemHandler : MonoBehaviour
     {
         if (success) 
         {
-            if (tempAnimator != null)
-            {
-                tempAnimator.SetTrigger("Use");
-            }
+            holdableManager.UseHoldable(selectedItemData.holdableId);
         }
         else 
         {
@@ -81,6 +66,7 @@ public class SelectedItemHandler : MonoBehaviour
     //Select a Slot (int)
     public void SelectSlot(int slot)
     {
+        reticle.activeItemSlot = slot;
         if(inventory == null) 
         {
             inventory = FindObjectOfType<InventoryGfx>();
@@ -108,7 +94,7 @@ public class SelectedItemHandler : MonoBehaviour
             {
                 if (controls != null)
                 {
-                    controls.SwapUse(0);
+                    controls.UpdateUseIcon(0);
                 }
                 ClearHoldItem();
                 DeactivateBuilderOverlay();
@@ -120,37 +106,21 @@ public class SelectedItemHandler : MonoBehaviour
     private void ShowHoldableItem() 
     {
         selectedItemData = InvUI.FindItemDataById(selectedItem.itemID); //Get ItemData from ItemID
-        ClearHoldItem(); //Clear Hold Item
+
         SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
-        bool selected = false;
-        foreach (GameObject obj in holdItemCache)
-        {
-            if (obj.name == selectedItemData.holdableObject.name + "(Clone)")
-            {
-                obj.SetActive(true);
-                selected = true;
-                UpdateTargets();
-                holdItem = obj;
-                break;
-            }
-        }
-        if (handAnchor != null && selected == false)
-        {
-            holdItem = Instantiate(selectedItemData.holdableObject, handAnchor);
-            UpdateTargets();
-        }
-        tempAnimator = holdItem.GetComponent<Animator>();
+        holdableManager.PulloutHoldable(selectedItemData.holdableId);
+        UpdateTargets();
     }
 
     //Show Placeable Item
     private void ShowPlaceableItem()
     {
         selectedItemData = InvUI.FindItemDataById(selectedItem.itemID); //Get ItemData from ItemID
-        ClearHoldItem(); //Clear Hold Item
         SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
 
         //Get Prefab from ItemData and Spawn it infront of player when activated
         ActivateBuilderOverlay();
+
     }
 
     //Activate Builder
@@ -168,68 +138,66 @@ public class SelectedItemHandler : MonoBehaviour
     //Update Animator Targets
     private void UpdateTargets()
     {
-        leftHand = GameObject.FindGameObjectWithTag("LHandTarget");
-        rightHand = GameObject.FindGameObjectWithTag("RHandTarget");
+        GameObject left = GameObject.FindGameObjectWithTag("LHandTarget");
+        if(left != null) 
+        {
+            leftHand = left.transform;
+        }
+        GameObject right = GameObject.FindGameObjectWithTag("RHandTarget");
+        if (right != null) 
+        {
+            rightHand = right.transform;
+        }
         ikActive = true;
     }
-    
+
     //On Animator Ik
     void OnAnimatorIK(int index)
     {
-        if (index == 2) 
+        if (index == 2 && animator) 
         {
-            if (animator)
+            if (ikActive)
             {
-                if (ikActive)
+                if (rightHand != null)
                 {
-
-                    if (rightHand != null)
-                    {
-                        animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
-                        animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
-                        animator.SetIKPosition(AvatarIKGoal.RightHand, rightHand.transform.position);
-                        animator.SetIKRotation(AvatarIKGoal.RightHand, rightHand.transform.rotation);
-                    }
-                    else
-                    {
-                        animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
-                        animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
-                    }
-                    if (leftHand != null)
-                    {
-                        animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
-                        animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1);
-                        animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHand.transform.position);
-                        animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHand.transform.rotation);
-                    }
-                    else
-                    {
-                        animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
-                        animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
-                    }
+                    animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
+                    animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
+                    animator.SetIKPosition(AvatarIKGoal.RightHand, rightHand.position);
+                    animator.SetIKRotation(AvatarIKGoal.RightHand, rightHand.rotation);
                 }
                 else
                 {
                     animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
                     animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+                }
+                if (leftHand != null)
+                {
+                    animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
+                    animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1);
+                    animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHand.position);
+                    animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHand.rotation);
+                }
+                else
+                {
                     animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
                     animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
                 }
             }
+            else
+            {
+                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+                animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+                animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+                animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
+            }
         }
-        
     }
 
     //Clear HoldItem
     private void ClearHoldItem() 
     {
-        if (holdItem != null)
-        {
-            holdItem.SetActive(false);
-            holdItemCache.Add(holdItem);
-            leftHand = null;
-            rightHand = null;
-        }
+        holdableManager.PulloutHoldable(0);
+        ikActive = false;
     }
 
     //Set Control Use Type
@@ -237,7 +205,7 @@ public class SelectedItemHandler : MonoBehaviour
     {
         if (controls != null)
         {
-            controls.SwapUse(useType);
+            controls.UpdateUseIcon(useType);
         }
     }
 
