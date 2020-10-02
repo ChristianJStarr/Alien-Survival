@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SafeAreaUI : MonoBehaviour
 {
@@ -11,15 +9,6 @@ public class SafeAreaUI : MonoBehaviour
         _rectTransform = GetComponent<RectTransform>();
         RefreshPanel(Screen.safeArea);
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        _rectTransform = GetComponent<RectTransform>();
-        RefreshPanel(Screen.safeArea);
-    }
-#endif
-
     private void OnEnable()
     {
         SafeAreaDetection.OnSafeAreaChanged += RefreshPanel;
@@ -34,13 +23,10 @@ public class SafeAreaUI : MonoBehaviour
     {
         Vector2 anchorMin = safeArea.position;
         Vector2 anchorMax = safeArea.position + safeArea.size;
-
         anchorMin.x /= Screen.width;
         anchorMin.y /= Screen.height;
         anchorMax.x /= Screen.width;
         anchorMax.y /= Screen.height;
-
-        _rectTransform.anchorMin = anchorMin;
         _rectTransform.anchorMax = anchorMax;
     }
 }

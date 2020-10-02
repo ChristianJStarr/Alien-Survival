@@ -52,21 +52,14 @@ public class PlayerInfoManager : MonoBehaviour
     private void UpdatedInventory()
     {
         DebugMsg.Notify("InfoManager : Updating Inventory.", 3);
-        if (inventoryGfx != null && storedPlayerInfo != null)
-        {
-            inventoryGfx.Incoming(storedPlayerInfo);
-        }
+        InterfaceManager.Singleton.EnableMenu(1, "");
     }
 
     //-------Update Top Bar
     private void UpdatedTopbar()
     {
-        DebugMsg.Notify("InfoManager : Updating Top Bar.", 3);
-        if (topbar != null && storedPlayerInfo != null)
-        {
-            topbar.Incoming(storedPlayerInfo);
-        }
-        
+        DebugMsg.Notify("InfoManager : Updating TopBar.", 3);
+        InterfaceManager.Singleton.UpdateMenu(1, "");
     }
     
     

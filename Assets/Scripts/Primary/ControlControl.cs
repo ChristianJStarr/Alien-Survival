@@ -3,6 +3,10 @@ using UnityEngine.UI;
 
 public class ControlControl : MonoBehaviour
 {
+    public static ControlControl Singleton;
+    
+
+
     //What: UI Controls Controller
     //Where: Primary Scene / Interface
 
@@ -27,6 +31,11 @@ public class ControlControl : MonoBehaviour
         SettingsMenu.ChangedSettings -= Change;
     }
 
+    void Awake() 
+    {
+        Singleton = this;
+    }
+
     void Start() 
     {
         Change();
@@ -48,11 +57,19 @@ public class ControlControl : MonoBehaviour
         }
         for (int i = 0; i < controlObjects.Length; i++)
         {
-            controlObjects[i].background.color = backgroundColor;
-            controlObjects[i].icon.color = iconColor;
-            if(controlObjects[i].secondBackground != null) 
+            if(controlObjects[i].background != null) 
             {
-                controlObjects[i].secondBackground.color = backgroundColor;
+                for (int e = 0; e < controlObjects[i].background.Length; e++)
+                {
+                    controlObjects[i].background[e].color = backgroundColor;
+                }
+            }
+            if (controlObjects[i].icon != null)
+            {
+                for (int e = 0; e < controlObjects[i].icon.Length; e++)
+                {
+                    controlObjects[i].icon[e].color = iconColor;
+                }
             }
         }
     }

@@ -1661,6 +1661,7 @@ GameObject:
   - component: {fileID: 8814597626916148460}
   - component: {fileID: 7156994309441320497}
   - component: {fileID: -4918902856554416674}
+  - component: {fileID: -745698494782736805}
   m_Layer: 14
   m_Name: Alien
   m_TagString: Player
@@ -1755,7 +1756,7 @@ MonoBehaviour:
   EnableProximity: 0
   ProximityRange: 50
   _animator: {fileID: 7783986884845924253}
-  parameterSendBits: 31
+  parameterSendBits: 95
   param0: 
   param1: 
   param2: 
@@ -2166,6 +2167,20 @@ MonoBehaviour:
   m_Script: {fileID: 1977919129, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-745698494782736805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3807543680349778164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c82493b1209779448971aa6023b8237, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 7783986884845924253}
+  triggerString: Wake
 --- !u!1 &3900040222473262920
 GameObject:
   m_ObjectHideFlags: 0
@@ -2887,9 +2902,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2421250484374838569}
+  - component: {fileID: 30092318101846993}
   m_Layer: 14
   m_Name: spine.006
-  m_TagString: Untagged
+  m_TagString: Player_Collider_Head
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2910,6 +2926,19 @@ Transform:
   m_Father: {fileID: 1158302111718497964}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &30092318101846993
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6130574491350938236}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.003, y: 0.005, z: 0.004}
+  m_Center: {x: 0, y: 0.0015, z: 0.0005}
 --- !u!1 &6291733463760680114
 GameObject:
   m_ObjectHideFlags: 0
@@ -3225,9 +3254,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5197727739216604806}
+  - component: {fileID: 3682645481499516210}
   m_Layer: 14
   m_Name: spine.001
-  m_TagString: Untagged
+  m_TagString: Player_Collider_Body
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3247,6 +3277,19 @@ Transform:
   m_Father: {fileID: 1190538626190189674}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &3682645481499516210
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7206637388447654894}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.003, y: 0.004, z: 0.002}
+  m_Center: {x: 0, y: 0.0006, z: 0}
 --- !u!1 &7239061193789815969
 GameObject:
   m_ObjectHideFlags: 0
@@ -3328,6 +3371,7 @@ MonoBehaviour:
   FixedSendsPerSecond: 20
   holdablePrefabs:
   - {fileID: 4603395025206164037, guid: b36da94937023614ca88bc59c55bad2d, type: 3}
+  currentHeldObject: 0
 --- !u!1 &7418480012228827024
 GameObject:
   m_ObjectHideFlags: 0
@@ -3725,9 +3769,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4491839669038956810}
+  - component: {fileID: 3783454402040412774}
   m_Layer: 14
   m_Name: spine.003
-  m_TagString: Untagged
+  m_TagString: Player_Collider_Body
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3752,6 +3797,19 @@ Transform:
   m_Father: {fileID: 2862957947254791490}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &3783454402040412774
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8744942903103379150}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.002, y: 0.004, z: 0.003}
+  m_Center: {x: 0, y: 0.00085, z: 0}
 --- !u!1 &8788987875951091889
 GameObject:
   m_ObjectHideFlags: 0

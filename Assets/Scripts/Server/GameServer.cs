@@ -79,7 +79,7 @@ public class GameServer : NetworkedBehaviour
     // -- SYSTEMS
     [Header("Systems")]
     public PlayerInfoSystem pis;
-    public WorldAISystem worldAISystem;
+    public AISystem worldAISystem;
     public WorldObjectSystem worldObjectSystem;
     private ClickableSystem clickableSystem;
     public ChatSystem chatSystem;
@@ -287,20 +287,14 @@ public class GameServer : NetworkedBehaviour
 
 
     //-----------------------------------------------------------------//
-    //             Server Action : Change Player Info                  //
+    //             Server Task : Change Player Info                  //
     //-----------------------------------------------------------------//
 
     //Move Player To Active List
-    public bool MovePlayerToActive(ulong clientId, int userId, string authKey)
-    {
-        return pis.MovePlayerToActive(clientId, userId, authKey);
-    }
+    public bool MovePlayerToActive(ulong clientId, int userId, string authKey) => pis.MovePlayerToActive(clientId, userId, authKey);
 
     //Move Player To Inactive List
-    public PlayerInfo Server_MovePlayerToInactive(ulong clientId)
-    {
-        return pis.MovePlayerToInactive(clientId);
-    }
+    public PlayerInfo Server_MovePlayerToInactive(ulong clientId) => pis.MovePlayerToInactive(clientId);
 
     //Respawn Player
     public void Server_RespawnPlayer(ulong clientId)
@@ -446,7 +440,7 @@ public class GameServer : NetworkedBehaviour
 
 
     //-----------------------------------------------------------------//
-    //             Server Action : User Interface                      //
+    //             Server Tasks : User Interface                      //
     //-----------------------------------------------------------------//
 
     //Close Inventory on Client
@@ -463,8 +457,6 @@ public class GameServer : NetworkedBehaviour
     //Force Death Screen on Client
     public void Server_UIShowDeathScreen(ulong clientId)
     {
-        List<ulong> clients = new List<ulong>();
-        clients.Add(clientId);
         InvokeClientRpcOnClient(Server_UIShowDeathScreenRpc, clientId);
     }
 
@@ -472,14 +464,12 @@ public class GameServer : NetworkedBehaviour
     [ClientRPC]
     private void Server_UIShowDeathScreenRpc()
     {
-        //PlayerActionManager.singleton.ShowDeathScreen();
+        PlayerActionManager.singleton.ShowDeathScreen();
     }
 
     //Hide Death Screen on Client
     public void Server_UIHideDeathScreen(ulong clientId)
     {
-        List<ulong> clients = new List<ulong>();
-        clients.Add(clientId);
         InvokeClientRpcOnClient(Server_UIHideDeathScreenRpc, clientId);
     }
 
@@ -487,7 +477,7 @@ public class GameServer : NetworkedBehaviour
     [ClientRPC]
     private void Server_UIHideDeathScreenRpc()
     {
-        //PlayerActionManager.singleton.HideDeathScreen();
+        PlayerActionManager.singleton.HideDeathScreen();
     }
 
     private void Server_UIShowStorage(ulong clientId, string data)
@@ -514,10 +504,12 @@ public class GameServer : NetworkedBehaviour
 
 
     //-----------------------------------------------------------------//
-    //             Player Request : Retrieve Player Info               //
+    //                   Player Requests : Commands                    //
     //-----------------------------------------------------------------//
 
-    //--Request Player Name by Client Id
+
+    //--Request Player Name 
+    //CLIENT
     public void GetNameByClientId(ulong clientId, Action<string> callback)
     {
         DebugMsg.Notify("Requesting Name of Client Id", 2);
@@ -529,13 +521,16 @@ public class GameServer : NetworkedBehaviour
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private string GetNameByClientId_Rpc(ulong clientId)
     {
         return pis.GetPlayerName(clientId);
     }
 
-    //--Request Player Name by Client Id
+
+    //--Request Player Name
+    //CLIENT
     public void GetAllConnectedClients(Action<ulong[]> callback)
     {
         DebugMsg.Notify("Requesting a List of All Clients.", 2);
@@ -547,6 +542,7 @@ public class GameServer : NetworkedBehaviour
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private ulong[] GetAllConnectedClients_Rpc()
     {
@@ -561,13 +557,8 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-
-
-    //-----------------------------------------------------------------//
-    //             Player Request : Modify Own Values                  //
-    //-----------------------------------------------------------------//
-
-    //--Set Player Location
+    //--Request to Set Location
+    //CLIENT
     public void SetPlayerLocation(string authKey, Vector3 location)
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -582,6 +573,7 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void SetPlayerLocation_Rpc(ulong clientId, Stream stream)
     {
@@ -595,13 +587,8 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-
-
-    //-----------------------------------------------------------------//
-    //         Player Request : Inventory Items Modification           //
-    //-----------------------------------------------------------------//
-
-    //--Move Player Item
+    //--Request to Move Item
+    //CLIENT
     public void MovePlayerItemBySlot(string authKey, int oldSlot, int newSlot)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
@@ -617,6 +604,7 @@ public class GameServer : NetworkedBehaviour
         }
 
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void MovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
     {
@@ -627,12 +615,15 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-    //--Remove Player Item
+
+    //--Request to Remove Item
+    //CLIENT
     public void RemovePlayerItemBySlot(ulong clientId, string authKey, int slot)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
         InvokeServerRpc(RemovePlayerItemBySlot_Rpc, clientId, authKey, slot);
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void RemovePlayerItemBySlot_Rpc(ulong clientId, string authKey, int slot)
     {
@@ -645,12 +636,15 @@ public class GameServer : NetworkedBehaviour
         });
     }
 
-    //--Craft Item
+
+    //--Request to Craft Item
+    //ClIENT
     public void CraftItemById(ulong clientId, string authKey, int itemId, int amount)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
         InvokeServerRpc(CraftItemById_Rpc, clientId, authKey, itemId, amount);
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void CraftItemById_Rpc(ulong clientId, string authKey, int itemId, int amount)
     {
@@ -658,13 +652,8 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-
-
-    //-----------------------------------------------------------------//
-    //                     Player Interaction                          //
-    //-----------------------------------------------------------------//
-
-    //Player Interact
+    //--Request to Interact
+    //CLIENT
     public void PlayerInteract(string authKey, Ray ray, int selectedSlot) 
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -678,6 +667,7 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void PlayerInteractRpc(ulong clientId, Stream stream)
     {
@@ -688,27 +678,24 @@ public class GameServer : NetworkedBehaviour
                 DebugMsg.Notify("Interact Confirmed", 1);
                 int selectedSlot = reader.ReadInt32Packed();
                 Ray ray = reader.ReadRayPacked();
-                LagCompensationManager.Simulate(clientId, () =>
+                //LagCompensationManager.Simulate(clientId, () => {});
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit, 30))
                 {
-                    RaycastHit hit;
-                    if (Physics.Raycast(ray, out hit, 30))
+                    if (hit.collider != null)
                     {
-                        if (hit.collider != null)
+                        DebugMsg.Notify("Ray has collided with " + hit.collider.tag, 1);
+                        
+                        NetworkedObject networkObject = hit.collider.GetComponentInParent<NetworkedObject>();
+                        if (networkObject != null)
                         {
-                            DebugMsg.Notify("Ray has collided with " + hit.collider.tag, 1);
-                            NetworkedObject networkObject = hit.collider.GetComponentInParent<NetworkedObject>();
-                            if(networkObject != null) 
-                            {
-                                Server_Interact(clientId, selectedSlot, hit.distance, hit.collider.tag, networkObject.NetworkId);
-                            }
+                            Server_Interact(clientId, selectedSlot, hit.distance, hit.collider.tag, networkObject.NetworkId);
                         }
                     }
-                });
+                }
             }
         }
     }
-
-    //Server Interact
     private void Server_Interact(ulong clientId, int selectedSlot, float distance, string tag, ulong networkId) 
     {
 
@@ -734,11 +721,19 @@ public class GameServer : NetworkedBehaviour
                     if (tag == "WorldObject") //World Object
                     {
                         DebugMsg.Notify("Object is WorldObject. Item is a TOOL", 1);
-                        if (item.durability > 0) 
+                        if (item.durability > 0)
                         {
                             DebugMsg.Notify("Interact Object has Durability", 1);
+                            if (data.useSound.Length > 0)
+                            {
+                                LocalSoundManager.Singleton.PlaySound(data.useSound, NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position);
+                            }
                             worldObjectSystem.DepleteWorldObject(networkId, data.toolId, data.toolGatherAmount, returnValue =>
                             {
+                                if (data.hitSound.Length > 0)
+                                {
+                                    LocalSoundManager.Singleton.PlaySound(data.hitSound, GetNetworkedObject(networkId).transform.position);
+                                }
                                 pis.Inventory_AddNew(clientId, returnValue.itemId, returnValue.amount, itemPlaced =>
                                 {
                                     if (itemPlaced)
@@ -756,7 +751,7 @@ public class GameServer : NetworkedBehaviour
                                 });
                             });
                         }
-                        else 
+                        else
                         {
                             Server_InteractCallback(clientId, false);
                         }
@@ -764,13 +759,17 @@ public class GameServer : NetworkedBehaviour
                 }
             }
         }
-        else if(distance < 3)//Hand
+        else 
         {
-            
+            //LocalSoundManager.Singleton.PlaySound("PLAYER_FIST_SWING", NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position);
+
+            if (distance < 3)//Hand
+            {
+                //LocalSoundManager.Singleton.PlaySound("PLAYER_FIST_HIT", NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject.transform.position);
+            }
         }
     }
-    
-    //Server Interact Callback
+    //CALLBACK
     private void Server_InteractCallback(ulong clientId, bool success) 
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -788,23 +787,17 @@ public class GameServer : NetworkedBehaviour
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
             playerActionManager.PlayerInteractCallback(reader.ReadBool());
+            
         }
     }
-
-    //Get If Player Is Dead
     public bool GetPlayerIsDead(ulong clientId) 
     {
         return pis.GetPlayerDead(clientId);
     }
 
 
-
-
-    //-----------------------------------------------------------------//
-    //         Player Request :    Extras                              //
-    //-----------------------------------------------------------------//
-
-    // Player Request to Disconnect
+    //--Request to Disconnect
+    //CLIENT
     public void RequestToDisconnect(string authKey) 
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -816,6 +809,7 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void RequestToDisconnect_Rpc(ulong clientId, Stream stream)
     {
@@ -829,7 +823,8 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-    // Player Request to Respawn
+    //--Request to Respawn
+    //CLIENT
     public void RequestToRespawn(string authKey) 
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -841,6 +836,7 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void RequestToRespawn_Rpc(ulong clientId, Stream stream) 
     {
@@ -864,7 +860,8 @@ public class GameServer : NetworkedBehaviour
         Server_UICloseInventory(clientId);
     }
 
-    //Request Network Ping
+    //--Request Ping
+    //CLIENT
     public void GetPlayerPing(ulong clientId, Action<int> callback)
     {
         float time = NetworkingManager.Singleton.NetworkTime;
@@ -881,6 +878,7 @@ public class GameServer : NetworkedBehaviour
         while (!response.IsDone) { yield return null; }
         callback(true);
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private bool GetPlayerPing_Rpc(ulong clientId)
     {
@@ -888,7 +886,8 @@ public class GameServer : NetworkedBehaviour
         return true;
     }
 
-    //Cheating Debug
+    //--Request to Cheat
+    //CLIENT
     public void RequestToCheat_Item(int itemId, int amount) 
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -901,6 +900,7 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void RequestToCheat_ItemRpc(ulong clientId, Stream stream)
     {
@@ -967,6 +967,7 @@ public class GameServer : NetworkedBehaviour
     //   5 - ITEMS         //
     //   6 - ARMOR         //
     //   7 - BLUEPRINTS    //
+    //   8 - HP/FOOD/WATER //
 
     public void ForceRequestInfoById(ulong clientId, int depth = 1) 
     {
@@ -1130,3 +1131,4 @@ public class GameServer : NetworkedBehaviour
 //2106 7/11/20
 //2212 8/15/20
 //1451 8/25/20
+//1123 9/22/20

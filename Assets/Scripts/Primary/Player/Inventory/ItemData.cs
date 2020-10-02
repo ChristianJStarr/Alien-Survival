@@ -30,6 +30,8 @@ public class ItemData : ScriptableObject
     public string name = "New Item";
     public string description = "This is the description for this item";
     public string[] recipe;
+    public string useSound;
+    public string hitSound;
 
     public bool isCraftable = false;
     public bool isPlaceable = false;

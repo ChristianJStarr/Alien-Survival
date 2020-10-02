@@ -328,7 +328,7 @@ GameObject:
   - component: {fileID: -6728144889521939214}
   - component: {fileID: 8126016765447304929}
   - component: {fileID: 7587337162951622306}
-  - component: {fileID: -7001575225983982758}
+  - component: {fileID: 8184076418062767041}
   m_Layer: 0
   m_Name: Tree_002
   m_TagString: WorldObject
@@ -435,18 +435,22 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &-7001575225983982758
-MonoBehaviour:
+--- !u!208 &8184076418062767041
+NavMeshObstacle:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4455368674016238378}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1977919129, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 0.97, y: 3.48, z: 0.97}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 2.99, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &5231930182274843276
 GameObject:
   m_ObjectHideFlags: 0

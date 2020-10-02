@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -20,11 +19,6 @@ public class ControllerDetection : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    private void Start() 
-    {
-
-        ControllerNotify();
-    }
 
 
     private void Update() 

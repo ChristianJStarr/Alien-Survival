@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor.UIElements;
+using UnityEngine;
 
 public class PlayerActionManager : MonoBehaviour
 {
@@ -17,7 +18,8 @@ public class PlayerActionManager : MonoBehaviour
     private string authKey;
     private GameServer gameServer;
     private SelectedItemHandler itemHandler;
-    
+    public Topbar topbar;
+    public GameObject DeathScreen;
     
     void Start()
     {
@@ -68,5 +70,20 @@ public class PlayerActionManager : MonoBehaviour
     {
         gameServer.RequestToDisconnect(authKey);
     }
-   
+
+
+
+
+
+
+
+    public void ShowDeathScreen() 
+    {
+        ControlControl.Singleton.Hide();
+    }
+
+    public void HideDeathScreen() 
+    {
+        ControlControl.Singleton.Show();
+    }
 }

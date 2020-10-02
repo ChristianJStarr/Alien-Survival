@@ -46,15 +46,17 @@ public class ServerConnect : MonoBehaviour
     {
         networkManager = NetworkingManager.Singleton;
         DontDestroyOnLoad(this.gameObject);
-        #if UNITY_SERVER
+#if UNITY_SERVER
         if(networkManager != null)
         {
             StartServer();    
         }
-        #endif
-        #if UNITY_EDITOR
-        if (devServer && networkManager != null)
+#endif
+#if UNITY_EDITOR
+        string[] data = Application.dataPath.Split('/');
+        if (data[data.Length - 2].Contains("clone")) 
         {
+            Application.targetFrameRate = 15;
             StartServer();
         }
         #endif

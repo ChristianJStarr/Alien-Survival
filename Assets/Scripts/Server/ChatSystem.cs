@@ -28,15 +28,21 @@ public class ChatSystem : MonoBehaviour
     }
 
 
+
+    //SEND TO ALL - TASK
     private void SendToAll(string message) 
     {
         GameServer.singleton.Chat_SendToAll(message);
     }
+
+    //SEND TO SPECIFIC - TASK
     private void SendToSpecific(string message, ulong clientId) 
     {
         GameServer.singleton.Chat_SendToSpecific(message, clientId);
     }
 
+
+    //COLORIZE - TOOL
     private string StringColorizor(string message, string hex)
     {
         return "<color=#" + hex + ">" + message + "</color>";

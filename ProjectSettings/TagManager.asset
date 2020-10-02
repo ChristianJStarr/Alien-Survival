@@ -13,6 +13,11 @@ TagManager:
   - RHandTarget
   - LHandTarget
   - PlayerViewCamera
+  - WorldObject
+  - AISpawnpoint
+  - Player_Collider_Head
+  - Player_Collider_Body
+  - Player_Collider_Legs
   layers:
   - Default
   - TransparentFX

@@ -43,6 +43,11 @@ public class LoadAwake : MonoBehaviour
                 controls.Hide();
                 Cursor.visible = true;
                 isClient = true;
+                if (animator == null)
+                {
+                    animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
+                }
+                animator.SetTrigger("Sleep");
             }
             else 
             {

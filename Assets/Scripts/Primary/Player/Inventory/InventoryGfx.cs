@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System;
 using System.Collections;
 
-public class InventoryGfx : MonoBehaviour
+public class InventoryGfx : InterfaceMenu
 {
     public TopToolTipHandler toolTipHandler;
     public GameObject inventoryUI, inventoryBkg, bounds, bounds2, bounds3, hotBarButtons, tint, tint2, playerViewCamera, storageCrateSlotContainer;
@@ -43,11 +43,33 @@ public class InventoryGfx : MonoBehaviour
     private bool leftActive = false;
     private bool rightActive = false;
 
+
     private bool checkingHover = false;
     //Extra UI Data
     private UIData storedUIData;
 
     private int uiType = 0;
+
+
+
+    //Interface Menu - Disable
+    public override void Disable() 
+    {
+        CloseInventory();
+    }
+
+    //Interface Menu - Enable
+    public override void Enable(string data) 
+    {
+        OpenInventory();
+        UpdateData(data);
+    }
+
+
+
+
+
+
 
     private void Start()
     {
@@ -72,13 +94,13 @@ public class InventoryGfx : MonoBehaviour
         UpdateMenus();
     }
 
-    //Update Player Info
-    public void Incoming(PlayerInfo playerInfo)
-    {
 
-        items = playerInfo.items;
-        armor = playerInfo.armor;
-        blueprints = playerInfo.blueprints;
+    public override void UpdateData(string data) 
+    {
+        string[] datas = data.Split('!');
+        items = JsonHelper.FromJson<Item>(datas[0]);
+        armor = JsonHelper.FromJson<Item>(datas[1]);
+        blueprints = JsonHelper.FromJson<int>(datas[2]);
         if (craftingMenu == null)
         {
             craftingMenu = GetComponent<CraftingMenu>();
@@ -408,6 +430,16 @@ public class InventoryGfx : MonoBehaviour
             InvButton();
         }
     }
+
+    //Open the Inventory if CLOSED
+    public void OpenInventory() 
+    {
+        if (!invOpen) 
+        {
+            InvButton();
+        }
+    }
+
 
     //Update Extra UI Data
     public void UpdateExtraUIData(string data)

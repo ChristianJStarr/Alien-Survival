@@ -3,8 +3,9 @@ using TMPro;
 using UnityEngine.UI;
 using System.Collections;
 using MLAPI;
+using System;
 
-public class Topbar : MonoBehaviour
+public class Topbar : InterfaceMenu
 {
     GameServer gameServer;
     public Slider userExp_slider, userHealth_slider, userWater_slider, userFood_slider;
@@ -24,17 +25,36 @@ public class Topbar : MonoBehaviour
         gameServer = GameServer.singleton;
     }
 
-    //Update player info
-    public void Incoming(PlayerInfo playerInfo) 
+
+
+    public override void Enable(string data) 
     {
+        gameObject.SetActive(true);
+        UpdateData(data);
+    }
+
+    public override void Disable() 
+    {
+        gameObject.SetActive(false);
+    }
+
+    //Update player info
+    public override void UpdateData(string data) 
+    {
+        string[] datas = data.Split(',');
+        int exp = Convert.ToInt32(datas[0]);
+        int health = Convert.ToInt32(datas[1]);
+        int water = Convert.ToInt32(datas[2]);
+        int food = Convert.ToInt32(datas[3]);
+
         userExp_slider.value = 100;
-        userHealth_slider.value = playerInfo.health;
-        userWater_slider.value = playerInfo.water;
-        userFood_slider.value = playerInfo.food;
+        userHealth_slider.value = health;
+        userWater_slider.value = water;
+        userFood_slider.value = food;
         userExp_text.text = "LEVEL " + 1;
-        userHealth_text.text = "HP " + playerInfo.health;
-        userWater_text.text = "WATER " + playerInfo.water;
-        userFood_text.text = "FOOD " + playerInfo.food;
+        userHealth_text.text = "HP " + health;
+        userWater_text.text = "WATER " + water;
+        userFood_text.text = "FOOD " + food;
     }
 
     public void NetStatToggle() 

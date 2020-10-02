@@ -294,7 +294,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             m_NextStep = m_StepCycle + m_StepInterval;
 
-            PlayFootStepAudio(1);
+            LocalSoundManager.Singleton.PlaySound("PLAYER_FOOTSTEP", transform.position);
         }
 
         //Update Camera Position

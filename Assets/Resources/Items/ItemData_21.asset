@@ -31,6 +31,8 @@ MonoBehaviour:
   description: This is an Axe
   recipe:
   - 37-1
+  useSound: 
+  hitSound: AXE_CHOP
   isCraftable: 1
   isPlaceable: 0
   isHoldable: 1

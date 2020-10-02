@@ -5,9 +5,8 @@ using UnityEngine.UI;
 
 public class ControlObject : MonoBehaviour
 {
-    public Image background;
-    public Image secondBackground;
-    public Image icon;
+    public Image[] background;
+    public Image[] icon;
 
     public int typeId;
 }
