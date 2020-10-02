@@ -192,6 +192,12 @@ public class MainMenuScript : MonoBehaviour
         StartCoroutine(LogOutRoutine());
     }
 
+    //Register Guest Account
+    public void RegisterAccount() 
+    {
+        //TODO: Make this shit work. 
+    }
+    
     //Alien Store
     public void AlienStore() 
     {
