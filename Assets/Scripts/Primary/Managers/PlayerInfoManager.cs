@@ -16,7 +16,7 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
     #endregion
-    public InventoryGfx inventoryGfx;
+    public InventoryGfx inventory;
     public LoadAwake loadAwake;
     public Topbar topbar;
     private GameServer gameServer;
@@ -52,14 +52,14 @@ public class PlayerInfoManager : MonoBehaviour
     private void UpdatedInventory()
     {
         DebugMsg.Notify("InfoManager : Updating Inventory.", 3);
-        InterfaceManager.Singleton.EnableMenu(1, "");
+        inventory.Incoming(storedPlayerInfo.items, storedPlayerInfo.armor, storedPlayerInfo.blueprints);
     }
 
     //-------Update Top Bar
     private void UpdatedTopbar()
     {
         DebugMsg.Notify("InfoManager : Updating TopBar.", 3);
-        InterfaceManager.Singleton.UpdateMenu(1, "");
+        topbar.Incoming(storedPlayerInfo.health, 0, storedPlayerInfo.water, storedPlayerInfo.food);
     }
     
     
@@ -70,12 +70,12 @@ public class PlayerInfoManager : MonoBehaviour
 
     public void ShowStorage(string data)
     {
-        inventoryGfx.InvButton(data);
+        inventory.InvButton(data);
     }
 
     public void UpdateExtraUIData(string data) 
     {
-        inventoryGfx.UpdateExtraUIData(data);
+        inventory.UpdateExtraUIData(data);
     }
     //-------Backpack Initialize
     public void InitializeBackpackEffect(Backpack backpack) 
@@ -86,7 +86,7 @@ public class PlayerInfoManager : MonoBehaviour
 
     public void CloseInventory() 
     {
-        inventoryGfx.CloseInventory();
+        inventory.CloseInventory();
     }
 
 

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System;
 using System.Collections;
 
-public class InventoryGfx : InterfaceMenu
+public class InventoryGfx : MonoBehaviour
 {
     public TopToolTipHandler toolTipHandler;
     public GameObject inventoryUI, inventoryBkg, bounds, bounds2, bounds3, hotBarButtons, tint, tint2, playerViewCamera, storageCrateSlotContainer;
@@ -49,28 +49,8 @@ public class InventoryGfx : InterfaceMenu
     private UIData storedUIData;
 
     private int uiType = 0;
-
-
-
-    //Interface Menu - Disable
-    public override void Disable() 
-    {
-        CloseInventory();
-    }
-
-    //Interface Menu - Enable
-    public override void Enable(string data) 
-    {
-        OpenInventory();
-        UpdateData(data);
-    }
-
-
-
-
-
-
-
+    
+    
     private void Start()
     {
 
@@ -95,12 +75,15 @@ public class InventoryGfx : InterfaceMenu
     }
 
 
-    public override void UpdateData(string data) 
+    public void Incoming(Item[] _items, Item[] _armor, int[] _blueprints) 
     {
-        string[] datas = data.Split('!');
-        items = JsonHelper.FromJson<Item>(datas[0]);
-        armor = JsonHelper.FromJson<Item>(datas[1]);
-        blueprints = JsonHelper.FromJson<int>(datas[2]);
+        items = _items;
+        armor = _armor;
+        blueprints = _blueprints;
+
+
+
+
         if (craftingMenu == null)
         {
             craftingMenu = GetComponent<CraftingMenu>();
@@ -111,6 +94,7 @@ public class InventoryGfx : InterfaceMenu
         {
             selectedHandler.UpdateSelectedSlot();
         }
+
     }
 
     //Assign Slot Numbers To Slots
