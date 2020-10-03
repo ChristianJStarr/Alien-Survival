@@ -32,6 +32,7 @@ namespace UnityStandardAssets.CrossPlatformInput
 		CrossPlatformInputManager.VirtualAxis m_HorizontalVirtualAxis; // Reference to the joystick in the cross platform input
 		CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis; // Reference to the joystick in the cross platform input
 
+        private float vLockPos = 0;
 		void OnEnable()
 		{
 			CreateVirtualAxes();
@@ -40,6 +41,9 @@ namespace UnityStandardAssets.CrossPlatformInput
         void Start()
         {
             m_StartPos = transform.position;
+
+            MovementRange = Screen.height / 5;
+
         }
 
 		void UpdateVirtualAxes(Vector3 value)
@@ -106,9 +110,9 @@ namespace UnityStandardAssets.CrossPlatformInput
 			if (m_UseY)
 			{
 				int delta = (int)(data.position.y - m_StartPos.y);
-				delta = Mathf.Clamp(delta, -MovementRange, MovementRange);
+				delta = Mathf.Clamp(delta, -MovementRange, MovementRange * 2);
 				newPos.y = delta;
-                if (delta > (MovementRange - (MovementRange / 10)))
+                if (delta > (MovementRange * 2 - ((MovementRange) / 5)))
                 {
                     if (!isSprintLocked && !isWaitingToLock)
                     {
@@ -129,6 +133,7 @@ namespace UnityStandardAssets.CrossPlatformInput
             }
 			transform.position = new Vector3(m_StartPos.x + newPos.x, m_StartPos.y + newPos.y, m_StartPos.z + newPos.z);
 			UpdateVirtualAxes(transform.position);
+            vLockPos = transform.position.y;
 		}
 
         private IEnumerator WaitCheckForLock() 
@@ -158,9 +163,6 @@ namespace UnityStandardAssets.CrossPlatformInput
                     lockWaitIcon.enabled = false;
                 }
             }
-            else 
-            {
-            }
         }
 
 
@@ -169,7 +171,7 @@ namespace UnityStandardAssets.CrossPlatformInput
             transform.position = m_StartPos;
             if (isSprintLocked) 
             {
-                UpdateVirtualAxes(new Vector3(m_StartPos.x, transform.position.y, m_StartPos.z));
+                UpdateVirtualAxes(new Vector3(m_StartPos.x, vLockPos, m_StartPos.z));
             }
             else 
             {

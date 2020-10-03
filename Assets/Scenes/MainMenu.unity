@@ -12272,7 +12272,7 @@ MonoBehaviour:
     - Prefab: {fileID: 4680423265421290724, guid: 491e505b0aacc2e4cbf64df2fecf3522,
         type: 3}
       PlayerPrefab: 0
-    - Prefab: {fileID: 1122168671593831753, guid: 779f52c488e249e4d9995d0ee4eea3d1,
+    - Prefab: {fileID: 2556272531670792622, guid: 16890219965a83d48a1aae4097add1a6,
         type: 3}
       PlayerPrefab: 0
     PlayerPrefabHash:
