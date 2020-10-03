@@ -11,13 +11,7 @@ public class SafeAreaUIWidthBalanced : MonoBehaviour
         _rectTransform = GetComponent<RectTransform>();
         RefreshPanel(Screen.safeArea);
     }
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        _rectTransform = GetComponent<RectTransform>();
-        RefreshPanel(Screen.safeArea);
-    }
-#endif
+
     private void OnEnable()
     {
         SafeAreaDetection.OnSafeAreaChanged += RefreshPanel;
