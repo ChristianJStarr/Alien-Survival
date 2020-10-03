@@ -18,15 +18,10 @@ public class MainMenuProfile : MonoBehaviour
         ui_profileTitle.text = playerStats.playerName + "'s PROFILE";
         TimeSpan time = TimeSpan.FromHours(playerStats.playerHours);
         ui_timeSurvived.text = time.Hours + "h " + time.Minutes + "m";
-        if (playerStats.playerName.Contains("-Guest"))
+        if (playerStats.playerName.Contains("Guest-"))
         {
             registerButton.SetActive(true);
         }
-    }
-
-    public void RegisterAccount() 
-    {
-        
     }
 
 }

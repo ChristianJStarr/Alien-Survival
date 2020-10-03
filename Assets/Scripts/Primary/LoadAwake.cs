@@ -19,40 +19,13 @@ public class LoadAwake : MonoBehaviour
     private bool textOff = false;
     private ControlControl controls;
     private bool readyToWake = false;
-    private bool isClient = false;
-
+    private bool sleeping = false;
 
     void Start()
     {
-        if(NetworkingManager.Singleton != null) 
+        if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
         {
-            if (NetworkingManager.Singleton.IsClient)
-            {
-                controls = GetComponent<ControlControl>();
-                loadScreen.SetActive(true);
-                inventory.SetActive(false);
-                topBar.SetActive(false);
-                image = loadScreen.GetComponent<Image>();
-                if (image == null)
-                {
-                    return;
-                }
-                targetAlpha = 1.0f;
-                text1Target = 1.0f;
-                text2Target = 0.0f;
-                controls.Hide();
-                Cursor.visible = true;
-                isClient = true;
-                if (animator == null)
-                {
-                    animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
-                }
-                animator.SetTrigger("Sleep");
-            }
-            else 
-            {
-                Destroy(this);
-            }
+            EnterSleepState();
         }
         else 
         {
@@ -61,12 +34,39 @@ public class LoadAwake : MonoBehaviour
     }
     void Update()
     {
-        if (isClient && loadScreen.activeSelf) 
+        if (sleeping && loadScreen.activeSelf) 
         {
             ColorFade();
         } 
     }
     
+    //Enter the Sleep State
+    public void EnterSleepState() 
+    {
+        if (!sleeping)
+        {
+            if (controls == null)
+            {
+                controls = GetComponent<ControlControl>();
+            }
+            if (animator == null)
+            {
+                animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
+            }
+            if (image == null)
+            {
+                image = loadScreen.GetComponent<Image>();
+            }
+            loadScreen.SetActive(true);
+            InterfaceHider.Singleton.HideAllInterfaces();
+            targetAlpha = 1.0f;
+            text1Target = 1.0f;
+            text2Target = 0.0f;
+            Cursor.visible = true;
+            sleeping = true;
+            animator.SetTrigger("Sleep");
+        }
+    }
 
     //Ready to Wakeup Function
     public void ReadyWake() 
@@ -95,7 +95,6 @@ public class LoadAwake : MonoBehaviour
                 animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
             }
             animator.SetTrigger("Wake");
-            
         }
     }
 
@@ -131,10 +130,8 @@ public class LoadAwake : MonoBehaviour
             {
                 loadScreen.SetActive(false);
                 volume.weight = 0;
-                controls.Show();
-                topBar.SetActive(true);
-                inventory.SetActive(true);
-                Destroy(this);
+                InterfaceHider.Singleton.ShowAllInterfaces();
+                sleeping = false;
             }
         }
         else

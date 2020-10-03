@@ -195,10 +195,11 @@ public class LocalSoundManager : NetworkedBehaviour
                 {
                     source.PlayOneShot(clip, soundEffect.volume);
                     StartCoroutine(WaitForFinish(source, clip.length));
+                    return;
                 }
             }
         }
-
+        ReturnAudioSource(source);
     }
 
 

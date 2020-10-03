@@ -65,4 +65,14 @@ public class Topbar : MonoBehaviour
             StartCoroutine(GetPing());
         }
     }
+
+
+    public void Show() 
+    {
+        gameObject.SetActive(true);
+    }
+    public void Hide() 
+    {
+        gameObject.SetActive(false);
+    }
 }

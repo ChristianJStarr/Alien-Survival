@@ -78,15 +78,13 @@ public class PlayerActionManager : MonoBehaviour
 
     public void ShowDeathScreen() 
     {
-        ControlControl.Singleton.Hide();
-        topbar.gameObject.SetActive(false);
+        InterfaceHider.Singleton.ShowAllInterfaces();
         DeathScreen.SetActive(true);
     }
 
     public void HideDeathScreen() 
     {
-        ControlControl.Singleton.Show();
-        topbar.gameObject.SetActive(true);
+        InterfaceHider.Singleton.HideAllInterfaces();
         DeathScreen.SetActive(false);
     }
 }

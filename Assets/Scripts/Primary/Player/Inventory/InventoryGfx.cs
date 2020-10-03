@@ -491,6 +491,15 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
+
+    public void Hide() 
+    {
+        inventoryUI.SetActive(false);
+    }
+    public void Show() 
+    {
+        inventoryUI.SetActive(true);
+    }
 }
 
 

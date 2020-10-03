@@ -30,6 +30,13 @@ public class Settings : ScriptableObject
     public bool showPing = false;
     public bool showConsole = false;
 
+
+
+
+
+    //Chat Box
+    public byte chatBoxState = 3;
+
     //Control Layout
-        
+
 }
