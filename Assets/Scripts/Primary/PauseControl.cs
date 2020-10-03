@@ -12,10 +12,6 @@ public class PauseControl : MonoBehaviour
     public GameObject pauseMenu; //Pause Menu container.
     public GameObject pauseButtons; //Pause Menu buttons.
     public GameObject settingsMenu; //pause Menu Settings container.
-    public GameObject inventory; //Inventory UI GameObject.
-    public GameObject topBar; //Topbar UI GameObject.
-
-    public ControlControl controls; //Controls Controller script.
     public TextMeshProUGUI disconnectButtonText; //Disconnect Button
     public Button disconnectButton;
 
@@ -37,20 +33,19 @@ public class PauseControl : MonoBehaviour
         {
             //Pause the game.
             pauseMenu.SetActive(true);//Show the pause menu.
-            controls.Hide(); //Hides the UI Controls layer.
             gamePaused = true;
-            inventory.SetActive(false);
-            topBar.SetActive(false);
+
+            InterfaceHider.Singleton.HideAllInterfaces();
+            
             StartCoroutine(BattleLog());
         }
         else //If game is paused and button was clicked.
         {
             //Un-Pause the game.
             pauseMenu.SetActive(false);//Hide the pause menu.
-            controls.Show(); //Shows the UI Controls layer.
             gamePaused = false;
-            inventory.SetActive(true);
-            topBar.SetActive(true);
+
+            InterfaceHider.Singleton.ShowAllInterfaces();
         }
     }
 

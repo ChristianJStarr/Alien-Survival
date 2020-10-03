@@ -52,6 +52,7 @@ public class ChatManager : MonoBehaviour
         if(state == State.OpenWhen) 
         {
             readtime += message.Split(' ').Length;
+            boxContainer.SetActive(true);
             StartCoroutine(HideChatWhenFinished());
         }
     }

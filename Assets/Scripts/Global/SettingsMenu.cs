@@ -61,6 +61,7 @@ public class SettingsMenu : MonoBehaviour
         SetToggleBool(showFps, settings.showFps);
         SetToggleBool(showConsole, settings.showConsole);
         SetToggleBool(showPing, settings.showPing);
+        scrollRect.verticalNormalizedPosition = 1;
     }
 
 
@@ -85,14 +86,22 @@ public class SettingsMenu : MonoBehaviour
 
     public void QualityModeAuto() 
     {
+
+        Debug.Log(scrollRect.verticalNormalizedPosition);
         SetMode(true);
         settings.autoQuality = true;
+
+        Debug.Log(scrollRect.verticalNormalizedPosition);
+        scrollRect.verticalNormalizedPosition = 1;
     }
     
     public void QualityModeManual() 
     {
+        Debug.Log(scrollRect.verticalNormalizedPosition);
         SetMode(false);
         settings.autoQuality = false;
+        Debug.Log(scrollRect.verticalNormalizedPosition);
+        scrollRect.verticalNormalizedPosition = 1;
     }
 
     //Sets a toggle button inside of toggle group by int.
@@ -160,6 +169,8 @@ public class SettingsMenu : MonoBehaviour
                 mainMenuScript.CloseMenu();
             }
         }
+
+        scrollRect.verticalNormalizedPosition = 1;
     }
 
     

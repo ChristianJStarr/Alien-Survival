@@ -167,7 +167,11 @@ namespace UnityStandardAssets.CrossPlatformInput
 		public void OnPointerUp(PointerEventData data)
 		{
             transform.position = m_StartPos;
-            if (!isSprintLocked) 
+            if (isSprintLocked) 
+            {
+                UpdateVirtualAxes(new Vector3(m_StartPos.x, transform.position.y, m_StartPos.z));
+            }
+            else 
             {
                 UpdateVirtualAxes(m_StartPos);
             }
