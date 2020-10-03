@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   distance: 500
   volume: 0.5
-  audioClip: {fileID: 8300000, guid: 5e2b987b7769aa04585f00eea6c963ca, type: 3}
+  audioClips:
+  - {fileID: 8300000, guid: 5e2b987b7769aa04585f00eea6c963ca, type: 3}
+  lastPlayedIndex: 99

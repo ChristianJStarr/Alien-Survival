@@ -38,6 +38,162 @@
 			]
 		},
 		{
+			"key": "takenLogin",
+			"lang": [{
+					"language": 10,
+					"text": "Username/Password Taken",
+					"fontSize": 0
+				},
+				{
+					"language": 6,
+					"text": "用户名/密码已被接受",
+					"fontSize": 0
+				},
+				{
+					"language": 15,
+					"text": "BENUTZERNAME/PASSWORT GENOMMEN",
+					"fontSize": 0
+				},
+				{
+					"language": 30,
+					"text": "ИМЯ ПОЛЬЗОВАТЕЛЯ/ВВЕДЕННЫЙ ПАРОЛЬ",
+					"fontSize": 0
+				},
+				{
+					"language": 14,
+					"text": "UTILISATEUR/MOT DE PASSE PRIS",
+					"fontSize": 0
+				},
+				{
+					"language": 22,
+					"text": "取得したユーザー名/パスワード",
+					"fontSize": 0
+				},
+				{
+					"language": 23,
+					"text": "사용자 이름 / 비밀번호 사용",
+					"fontSize": 0
+				}
+			]
+		},
+		{
+			"key": "incorrectLogin",
+			"lang": [{
+					"language": 10,
+					"text": "Username/Password Incorrect",
+					"fontSize": 0
+				},
+				{
+					"language": 6,
+					"text": "用户名/密码错误",
+					"fontSize": 0
+				},
+				{
+					"language": 15,
+					"text": "USERNAME/PASSWORD INCORRECT",
+					"fontSize": 0
+				},
+				{
+					"language": 30,
+					"text": "ИМЯ ПОЛЬЗОВАТЕЛЯ/НЕПРАВИЛЬНЫЙ ПАРОЛЬ",
+					"fontSize": 0
+				},
+				{
+					"language": 14,
+					"text": "UTILISATEUR/MOT DE PASSE INCORRECT",
+					"fontSize": 0
+				},
+				{
+					"language": 22,
+					"text": "ユーザー名/パスワードが正しくありません",
+					"fontSize": 0
+				},
+				{
+					"language": 23,
+					"text": "사용자 이름/비밀번호가 올바르지 않습니다.",
+					"fontSize": 0
+				}
+			]
+		},
+		{
+			"key": "defaultSignup",
+			"lang": [{
+					"language": 10,
+					"text": "Enter Details to Sign up",
+					"fontSize": 0
+				},
+				{
+					"language": 6,
+					"text": "输入详细信息以登录",
+					"fontSize": 0
+				},
+				{
+					"language": 15,
+					"text": "Geben Sie Details ein, um sich anzumelden",
+					"fontSize": 0
+				},
+				{
+					"language": 30,
+					"text": "ВВЕДИТЕ ДЕТАЛИ, ЧТОБЫ ВОЙТИ",
+					"fontSize": 0
+				},
+				{
+					"language": 14,
+					"text": "ENTRER LES DÉTAILS POUR SE CONNECTER",
+					"fontSize": 0
+				},
+				{
+					"language": 22,
+					"text": "ログインするための詳細を入力してください",
+					"fontSize": 0
+				},
+				{
+					"language": 23,
+					"text": "로그인하려면 세부 정보를 입력하십시오.",
+					"fontSize": 0
+				}
+			]
+		},
+		{
+			"key": "defaultLogin",
+			"lang": [{
+					"language": 10,
+					"text": "Enter Details to Log In",
+					"fontSize": 0
+				},
+				{
+					"language": 6,
+					"text": "输入详细信息以登录",
+					"fontSize": 0
+				},
+				{
+					"language": 15,
+					"text": "Geben Sie Details ein, um sich anzumelden",
+					"fontSize": 0
+				},
+				{
+					"language": 30,
+					"text": "ВВЕДИТЕ ДЕТАЛИ, ЧТОБЫ ВОЙТИ",
+					"fontSize": 0
+				},
+				{
+					"language": 14,
+					"text": "ENTRER LES DÉTAILS POUR SE CONNECTER",
+					"fontSize": 0
+				},
+				{
+					"language": 22,
+					"text": "ログインするための詳細を入力してください",
+					"fontSize": 0
+				},
+				{
+					"language": 23,
+					"text": "로그인하려면 세부 정보를 입력하십시오.",
+					"fontSize": 0
+				}
+			]
+		},
+		{
 			"key": "signup",
 			"lang": [{
 					"language": 10,
