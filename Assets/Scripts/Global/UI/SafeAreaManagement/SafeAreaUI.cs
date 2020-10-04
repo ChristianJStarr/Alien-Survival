@@ -4,6 +4,9 @@ public class SafeAreaUI : MonoBehaviour
 {
     private RectTransform _rectTransform;
 
+
+
+
     private void Awake()
     {
         _rectTransform = GetComponent<RectTransform>();

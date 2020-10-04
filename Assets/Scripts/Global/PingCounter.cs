@@ -3,12 +3,9 @@ using TMPro;
 using MLAPI;
 using UnityEngine;
 using System.Collections;
-using UnityEngine.UI;
 
 public class PingCounter : MonoBehaviour
 {
-    public Image pingIcon;
-    public GameObject pingPanel;
     public float refresh = 20;
     private int timer, avgPing;
     public TextMeshProUGUI countText;
@@ -25,7 +22,7 @@ public class PingCounter : MonoBehaviour
             clientId = NetworkingManager.Singleton.LocalClientId;
             gameServer = GameServer.singleton;
             showPing = settings.showPing; //Get showPing bool.
-            pingPanel.SetActive(showPing); //Activate/Deactivate fpsPanel
+            countText.gameObject.SetActive(showPing); //Activate/Deactivate fpsPanel
             StartCoroutine(UpdateLoop());
         }
     }
@@ -46,7 +43,7 @@ public class PingCounter : MonoBehaviour
     private void Change()
     {
         showPing = settings.showPing;
-        pingPanel.SetActive(showPing);
+        countText.gameObject.SetActive(showPing);
     }
 
     //Update Loop for Calculating Ping
@@ -62,7 +59,7 @@ public class PingCounter : MonoBehaviour
                     avgPing += returnValue;
                     timer++;
                     returnValue = (avgPing / timer);
-                    countText.text = returnValue + " MS";
+                    countText.text = returnValue + " ms";
                 }
                 if (returnValue < 101) 
                 {
@@ -74,7 +71,7 @@ public class PingCounter : MonoBehaviour
                 }
                 else if(returnValue > 180)
                 {
-                    ChangePingIconColor(Color.red);
+                    ChangePingIconColor(new Color32(224, 40, 40, 255));
                 }
             });
 
@@ -85,9 +82,9 @@ public class PingCounter : MonoBehaviour
     //Change Color of Signal Icon
     private void ChangePingIconColor(Color color) 
     {
-        if(pingIcon.color != color) 
+        if(countText.color != color) 
         {
-            pingIcon.color = color;
+            countText.color = color;
         }
     }
 }

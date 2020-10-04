@@ -25,12 +25,12 @@ public class Settings : ScriptableObject
     public float xSensitivity = .5F;
     public float ySensitivity = .5F;
 
-    //Debug
+    //NotifyTray
     public bool showFps = false;
     public bool showPing = false;
     public bool showConsole = false;
-
-
+    public bool showBattery = false;
+    public bool showTime = false;
 
 
 

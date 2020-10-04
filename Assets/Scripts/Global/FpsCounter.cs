@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class FpsCounter : MonoBehaviour
 {
-    public GameObject fpsPanel;
     public float refresh = 20;
     private float timer, avgFramerate;
     public TextMeshProUGUI countText;
@@ -14,7 +13,7 @@ public class FpsCounter : MonoBehaviour
     private void Start()
     {
         showFps = settings.showFps; //Get showFps bool.
-        fpsPanel.SetActive(showFps); //Activate/Deactivate fpsPanel
+        countText.gameObject.SetActive(showFps); //Activate/Deactivate fpsPanel
     }
     
     
@@ -32,7 +31,7 @@ public class FpsCounter : MonoBehaviour
     private void Change() 
     {
         showFps = settings.showFps;
-        fpsPanel.SetActive(showFps);
+        countText.gameObject.SetActive(showFps);
     }
     //Render FPS
     private void Update()

@@ -25,8 +25,10 @@ MonoBehaviour:
   objectDistance: 1
   gameControlsOpacity: 70
   xSensitivity: 1
-  ySensitivity: 1
+  ySensitivity: 0.9032848
   showFps: 1
   showPing: 1
   showConsole: 1
+  showBattery: 1
+  showTime: 1
   chatBoxState: 3
