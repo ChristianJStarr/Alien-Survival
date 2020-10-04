@@ -9886,10 +9886,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 184e700eb2d10a84692967049360ce16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fpsPanel: {fileID: 1162894622}
   refresh: 0.1
   countText: {fileID: 486374766}
   settings: {fileID: 11400000, guid: 585bda0bffd0a724c9e8ea9565c3245d, type: 2}
+  toggleObject: {fileID: 1162894622}
 --- !u!114 &804832994
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14488,7 +14488,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1162894623
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14498,7 +14498,7 @@ RectTransform:
   m_GameObject: {fileID: 1162894622}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.77152, y: 0.77152, z: 0.77152}
   m_Children:
   - {fileID: 486374764}
   m_Father: {fileID: 895947982}
@@ -14506,7 +14506,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 86, y: -52.80005}
+  m_AnchoredPosition: {x: 79.1, y: -51.9}
   m_SizeDelta: {x: 119.966064, y: 53.32837}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1162894624

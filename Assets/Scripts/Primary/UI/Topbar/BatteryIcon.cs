@@ -15,6 +15,29 @@ public class BatteryIcon : MonoBehaviour
 
     public GameObject batteryObject;
 
+#if UNITY_EDITOR
+    private void Awake() 
+    {
+        StartCoroutine(StartSimulation());
+    }
+#endif
+
+    private IEnumerator StartSimulation() 
+    {
+        while (true) 
+        {
+            yield return new WaitForSeconds(1f);
+            if(batteryLevel > 0) 
+            {
+                batteryLevel =- 0.5F;
+            }
+            if(batteryLevel <= 0) 
+            {
+                batteryLevel = 1;
+            }
+            UpdateBatteryIcon();
+        }
+    }
 
     private void Update() 
     {
@@ -57,12 +80,12 @@ public class BatteryIcon : MonoBehaviour
             }
             else
             {
-                return new Color32(134, 224, 40, 255);
+                return new Color32(95, 238, 150, 255);
             }
         }
         else 
         {
-            return new Color32(134, 224, 40, 255);
+            return new Color32(95, 238, 150, 255);
         }
     }
 

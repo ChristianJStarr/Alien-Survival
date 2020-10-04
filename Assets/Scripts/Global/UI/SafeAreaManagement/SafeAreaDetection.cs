@@ -17,12 +17,10 @@ public class SafeAreaDetection : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(_safeArea + "" + Screen.safeArea);
         if(_safeArea != Screen.safeArea) 
         {
             _safeArea = Screen.safeArea;
             OnSafeAreaChanged?.Invoke(_safeArea);
-            Debug.Log("Updating Safe Area");
         }
     }
 }

@@ -35,8 +35,8 @@ public class MainMenuDayNight : MonoBehaviour
         shackRays.SetActive(false);
         directionalLight.enabled = true;
         extraFireLight.SetActive(false);
-        RenderSettings.fogColor = new Color32(75, 57, 66, 255);
-        Camera.main.backgroundColor = new Color32(91, 91, 91, 255);
+        RenderSettings.fogColor = new Color32(109, 138, 159, 255);
+        Camera.main.backgroundColor = new Color32(217, 217, 217, 255);
     }
 
 

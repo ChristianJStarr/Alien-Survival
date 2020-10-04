@@ -78,13 +78,13 @@ public class PlayerActionManager : MonoBehaviour
 
     public void ShowDeathScreen() 
     {
-        InterfaceHider.Singleton.ShowAllInterfaces();
+        InterfaceHider.Singleton.HideAllInterfaces();
         DeathScreen.SetActive(true);
     }
 
     public void HideDeathScreen() 
     {
-        InterfaceHider.Singleton.HideAllInterfaces();
+        InterfaceHider.Singleton.ShowAllInterfaces();
         DeathScreen.SetActive(false);
     }
 }

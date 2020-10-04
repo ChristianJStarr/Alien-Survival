@@ -9,10 +9,11 @@ public class CurrentTIme : MonoBehaviour
     public Settings settings;
 
     public TextMeshProUGUI text;
+    public GameObject toggleObject;
 
     private bool showTime;
 
-    int refresh = 20;
+    public int refresh = 20;
     float timer;
 
 
@@ -22,7 +23,7 @@ public class CurrentTIme : MonoBehaviour
         if(showTime && Time.unscaledTime > timer) 
         {
             timer = Time.unscaledTime + refresh;
-            text.text = DateTime.Now.ToString("h:m tt");
+            text.text = DateTime.Now.ToString("h:mm tt");
         }
     }
 

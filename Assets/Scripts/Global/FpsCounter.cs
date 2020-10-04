@@ -7,22 +7,22 @@ public class FpsCounter : MonoBehaviour
     private float timer, avgFramerate;
     public TextMeshProUGUI countText;
     public Settings settings;
+    public GameObject toggleObject;
     private bool showFps = false;
     
 
     private void Start()
     {
-        showFps = settings.showFps; //Get showFps bool.
-        countText.gameObject.SetActive(showFps); //Activate/Deactivate fpsPanel
+        Change(); //Update at Startup
     }
     
     
-    private void OnEnable()
+     void OnEnable()
     {
         SettingsMenu.ChangedSettings += Change;//Subscribe to Settings Change Event.
     }
     
-    private void OnDisable()
+    void OnDisable()
     {
         SettingsMenu.ChangedSettings -= Change;//unSubscribe to Settings Change Event.
     }
@@ -30,15 +30,15 @@ public class FpsCounter : MonoBehaviour
     //Change Settings.
     private void Change() 
     {
+        Debug.Log("Changed Settings :)");
         showFps = settings.showFps;
-        countText.gameObject.SetActive(showFps);
+        toggleObject.SetActive(showFps);
     }
     //Render FPS
     private void Update()
     {
         if (showFps) 
         {
-            if (countText == null) return;
             if (Time.unscaledTime > timer)
             {
                 avgFramerate += ((Time.deltaTime / Time.timeScale) - avgFramerate) * 0.03f;

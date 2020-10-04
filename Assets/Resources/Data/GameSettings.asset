@@ -23,12 +23,12 @@ MonoBehaviour:
   postpro: 2
   terrainDistance: 1
   objectDistance: 1
-  gameControlsOpacity: 70
-  xSensitivity: 1
-  ySensitivity: 0.9032848
+  gameControlsOpacity: 129
+  xSensitivity: 0.50193363
+  ySensitivity: 0.16543268
   showFps: 1
   showPing: 1
-  showConsole: 1
+  showConsole: 0
   showBattery: 1
   showTime: 1
   chatBoxState: 3

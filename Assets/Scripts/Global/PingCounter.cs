@@ -13,6 +13,7 @@ public class PingCounter : MonoBehaviour
     private bool showPing = false;
     private GameServer gameServer;
     private ulong clientId;
+    public GameObject toggleObject;
 
 
     private void Start()
@@ -21,8 +22,7 @@ public class PingCounter : MonoBehaviour
         {
             clientId = NetworkingManager.Singleton.LocalClientId;
             gameServer = GameServer.singleton;
-            showPing = settings.showPing; //Get showPing bool.
-            countText.gameObject.SetActive(showPing); //Activate/Deactivate fpsPanel
+            Change();
             StartCoroutine(UpdateLoop());
         }
     }
@@ -43,7 +43,7 @@ public class PingCounter : MonoBehaviour
     private void Change()
     {
         showPing = settings.showPing;
-        countText.gameObject.SetActive(showPing);
+        toggleObject.SetActive(showPing);
     }
 
     //Update Loop for Calculating Ping
@@ -51,30 +51,29 @@ public class PingCounter : MonoBehaviour
     {
         while (true) 
         {
-            gameServer.GetPlayerPing(clientId, returnValue =>
+            if (showPing) 
             {
-                if (returnValue < 0) { returnValue = 0; }
-                if (showPing) 
+                gameServer.GetPlayerPing(clientId, returnValue =>
                 {
+                    if (returnValue < 0) { returnValue = 0; }
                     avgPing += returnValue;
                     timer++;
                     returnValue = (avgPing / timer);
-                    countText.text = returnValue + " ms";
-                }
-                if (returnValue < 101) 
-                {
-                    ChangePingIconColor(Color.white);
-                }
-                else if(returnValue > 100 && returnValue < 181)
-                {
-                    ChangePingIconColor(Color.yellow);
-                }
-                else if(returnValue > 180)
-                {
-                    ChangePingIconColor(new Color32(224, 40, 40, 255));
-                }
-            });
-
+                    countText.text = returnValue + " MS";
+                    if (returnValue < 101)
+                    {
+                        ChangePingIconColor(Color.white);
+                    }
+                    else if (returnValue > 100 && returnValue < 181)
+                    {
+                        ChangePingIconColor(Color.yellow);
+                    }
+                    else if (returnValue > 180)
+                    {
+                        ChangePingIconColor(new Color32(224, 40, 40, 255));
+                    }
+                });
+            }
             yield return new WaitForSeconds(1F);
         }
     }

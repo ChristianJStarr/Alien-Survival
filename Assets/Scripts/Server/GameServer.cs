@@ -865,7 +865,7 @@ public class GameServer : NetworkedBehaviour
     public void GetPlayerPing(ulong clientId, Action<int> callback)
     {
         float time = NetworkingManager.Singleton.NetworkTime;
-        DebugMsg.Notify("Requesting Ping.", 2);
+        DebugMsg.Notify("Requesting Ping.", 4);
         StartCoroutine(GetPlayerPing_Wait(clientId, returnValue =>
         {
             int ping = (int)(((NetworkingManager.Singleton.NetworkTime - time)/ 2) * 1000);
