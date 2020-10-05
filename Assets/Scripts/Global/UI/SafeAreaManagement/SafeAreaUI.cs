@@ -30,6 +30,7 @@ public class SafeAreaUI : MonoBehaviour
         anchorMin.y /= Screen.height;
         anchorMax.x /= Screen.width;
         anchorMax.y /= Screen.height;
+        _rectTransform.anchorMin = anchorMin;
         _rectTransform.anchorMax = anchorMax;
     }
 }

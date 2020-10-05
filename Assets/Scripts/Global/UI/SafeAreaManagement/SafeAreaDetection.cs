@@ -20,7 +20,7 @@ public class SafeAreaDetection : MonoBehaviour
         if(_safeArea != Screen.safeArea) 
         {
             _safeArea = Screen.safeArea;
-            OnSafeAreaChanged?.Invoke(_safeArea);
+            OnSafeAreaChanged(_safeArea);
         }
     }
 }

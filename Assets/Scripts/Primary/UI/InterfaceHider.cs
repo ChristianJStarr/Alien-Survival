@@ -24,6 +24,7 @@ public class InterfaceHider : MonoBehaviour
 
     public ControlControl controls;
 
+    public GameObject notifyTray;
 
 
     //Hide All, Used for Death/Sleep screen etc.
@@ -33,6 +34,7 @@ public class InterfaceHider : MonoBehaviour
         topBar.Hide();
         inventory.Hide();
         controls.Hide();
+        notifyTray.SetActive(false);
     }
 
 
@@ -42,6 +44,7 @@ public class InterfaceHider : MonoBehaviour
         topBar.Show();
         inventory.Show();
         controls.Show();
+        notifyTray.SetActive(true);
     }
 
 
