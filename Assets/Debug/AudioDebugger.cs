@@ -9,9 +9,13 @@ public class AudioDebugger : MonoBehaviour
 
     private void Start()
     {
-        if (NetworkingManager.Singleton.IsServer)
+        if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsServer)
         {
             StartCoroutine(AudioLoop());
+        }
+        else 
+        {
+            Destroy(this);
         }
     }
 

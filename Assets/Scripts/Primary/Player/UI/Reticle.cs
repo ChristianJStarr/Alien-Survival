@@ -50,6 +50,10 @@ public class Reticle : MonoBehaviour
             cam = Camera.main;
             selectedItemHandler = FindObjectOfType<SelectedItemHandler>();
         }
+        else 
+        {
+            Destroy(this);
+        }
     }
 
 

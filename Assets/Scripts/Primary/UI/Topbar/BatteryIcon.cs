@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class BatteryIcon : MonoBehaviour
@@ -15,29 +13,22 @@ public class BatteryIcon : MonoBehaviour
 
     public GameObject batteryObject;
 
-#if UNITY_EDITOR
-    private void Awake() 
+    private void OnEnable()
     {
-        StartCoroutine(StartSimulation());
+        SettingsMenu.ChangedSettings += Change;//Subscribe to Settings Change Event.
     }
-#endif
 
-    private IEnumerator StartSimulation() 
+    private void OnDisable()
     {
-        while (true) 
-        {
-            yield return new WaitForSeconds(1f);
-            if(batteryLevel > 0) 
-            {
-                batteryLevel =- 0.5F;
-            }
-            if(batteryLevel <= 0) 
-            {
-                batteryLevel = 1;
-            }
-            UpdateBatteryIcon();
-        }
+        SettingsMenu.ChangedSettings -= Change;//unSubscribe to Settings Change Event.
     }
+
+
+    private void Start()
+    {
+        Change();
+    }
+
 
     private void Update() 
     {
@@ -61,7 +52,7 @@ public class BatteryIcon : MonoBehaviour
     private void UpdateBatteryIcon() 
     {
         bkgIcon.color = GetColorFromLevel();
-        rect.localScale = new Vector3(1,1,1);
+        rect.sizeDelta = new Vector2(GetWidthFromLevel(), rect.sizeDelta.y);
     }
 
 
@@ -90,22 +81,18 @@ public class BatteryIcon : MonoBehaviour
     }
 
 
-
-    private void Start()
+    private float GetWidthFromLevel() 
     {
-        Change();
+        if (!isCharging)
+        {
+            return Mathf.Clamp(batteryLevel * 20, 4, 18);
+        }
+        else
+        {
+            return 18;
+        }
     }
 
-
-    private void OnEnable()
-    {
-        SettingsMenu.ChangedSettings += Change;//Subscribe to Settings Change Event.
-    }
-
-    private void OnDisable()
-    {
-        SettingsMenu.ChangedSettings -= Change;//unSubscribe to Settings Change Event.
-    }
 
     //Change Settings.
     private void Change()
@@ -124,6 +111,5 @@ public class BatteryIcon : MonoBehaviour
             batteryObject.SetActive(false);
         }
     }
-
 
 }

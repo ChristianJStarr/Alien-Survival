@@ -790,8 +790,8 @@ GameObject:
   - component: {fileID: 2896488554549158676}
   - component: {fileID: 1706636374307943858}
   - component: {fileID: 2302049460184378528}
-  - component: {fileID: 148584097004284298}
   - component: {fileID: 9138445943285152110}
+  - component: {fileID: 148584097004284298}
   - component: {fileID: 8420044204442541247}
   - component: {fileID: 4446560709058887197}
   m_Layer: 15
@@ -880,6 +880,25 @@ MonoBehaviour:
   PrefabHashGenerator: Enemy
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0
+--- !u!95 &9138445943285152110
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2556272531670792622}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: ad77cb61013aa2445aaf1efc9da6bd02, type: 3}
+  m_Controller: {fileID: 9100000, guid: a6f32e91c6e5109478b83e725e61788a, type: 2}
+  m_CullingMode: 1
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 1
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &148584097004284298
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -902,25 +921,6 @@ MonoBehaviour:
   param3: 
   param4: 
   param5: 
---- !u!95 &9138445943285152110
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2556272531670792622}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: ad77cb61013aa2445aaf1efc9da6bd02, type: 3}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 1
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &8420044204442541247
 MonoBehaviour:
   m_ObjectHideFlags: 0

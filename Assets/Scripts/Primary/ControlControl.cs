@@ -57,7 +57,12 @@ public class ControlControl : MonoBehaviour
         }
         for (int i = 0; i < controlObjects.Length; i++)
         {
-            if(controlObjects[i].background != null) 
+            if(!controlObjects[i].autoShowHide) 
+            {
+                backgroundColor = new Color32(0, 0, 0, (byte)btn_opacity);
+                iconColor = new Color32(255, 255, 255, (byte)text_opacity);
+            }
+            if (controlObjects[i].background != null)
             {
                 for (int e = 0; e < controlObjects[i].background.Length; e++)
                 {
@@ -69,6 +74,14 @@ public class ControlControl : MonoBehaviour
                 for (int e = 0; e < controlObjects[i].icon.Length; e++)
                 {
                     controlObjects[i].icon[e].color = iconColor;
+                }
+            }
+            if (controlObjects[i].extraBackground != null)
+            {
+                int bkg_opacity = (btn_opacity / 3) * 2;
+                for (int e = 0; e < controlObjects[i].extraBackground.Length; e++)
+                {
+                    controlObjects[i].extraBackground[e].color = new Color32(0, 0, 0, (byte)bkg_opacity);
                 }
             }
         }
