@@ -12,7 +12,7 @@ public class SettingsMenu : MonoBehaviour
 
     public Settings settings; // Game Settings data.
     public Slider ui, menu, ambient, effects, xSense, ySense, opacity, terrainDis, objectDis; //All settings sliders
-    public ToggleGroup quality, shadows, aliasing, postpro, showFps, showPing, showConsole; //All settings toggle groups.
+    public ToggleGroup quality, shadows, aliasing, postpro, showFps, showPing, showTime, showBattery; //All settings toggle groups.
     public GameObject qualityContainer, manualContainer;
     public Button qualityModeButton_Manual, qualityModeButton_Auto;
 
@@ -59,9 +59,16 @@ public class SettingsMenu : MonoBehaviour
 
         //SetDebug
         SetToggleBool(showFps, settings.showFps);
-        SetToggleBool(showConsole, settings.showConsole);
         SetToggleBool(showPing, settings.showPing);
+        SetToggleBool(showTime, settings.showTime);
+        SetToggleBool(showBattery, settings.showBattery);
         scrollRect.verticalNormalizedPosition = 1;
+
+        if (!settings.validated) 
+        {
+            settings = new Settings();
+            settings.validated = true;
+        }
     }
 
 
@@ -233,16 +240,23 @@ public class SettingsMenu : MonoBehaviour
         {
             settings.showPing = false;
         }
-        if (showConsole.ActiveToggles().FirstOrDefault().name == "show")
+        if (showTime.ActiveToggles().FirstOrDefault().name == "show")
         {
-            settings.showConsole = true;
+            settings.showTime = true;
         }
-        else if (showConsole.ActiveToggles().FirstOrDefault().name == "hide")
+        else if (showTime.ActiveToggles().FirstOrDefault().name == "hide")
         {
-            settings.showConsole = false;
+            settings.showTime = false;
+        }
+        if (showBattery.ActiveToggles().FirstOrDefault().name == "show")
+        {
+            settings.showBattery = true;
+        }
+        else if (showBattery.ActiveToggles().FirstOrDefault().name == "hide")
+        {
+            settings.showBattery = false;
         }
 
-        
 
         ChangedSettings();
 

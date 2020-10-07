@@ -3,6 +3,10 @@
 [CreateAssetMenu(fileName = "GameSettings", menuName = "ScriptableObjects/Settings", order = 1)]
 public class Settings : ScriptableObject
 {
+    //Original Settings?
+    public bool validated = false;
+
+
     //Volume
     public float uiVolume = 1;
     public float musicVolume = 1;

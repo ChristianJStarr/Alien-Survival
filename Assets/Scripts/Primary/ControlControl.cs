@@ -112,14 +112,15 @@ public class ControlControl : MonoBehaviour
     //Set opacity from int.
     private void SetOpacity(int value) 
     {
-        if((value * 2) >= 255)
-        {
-            text_opacity = 255;
-        }
-        else 
-        {
-            text_opacity = value * 2;
-        }
+        //if((value * 2) >= 255)
+        //{
+        //    text_opacity = 255;
+        //}
+        //else 
+        //{
+        //    text_opacity = value * 2;
+        //}
+        text_opacity = value;
         btn_opacity = value;
         UpdateColor();
     }

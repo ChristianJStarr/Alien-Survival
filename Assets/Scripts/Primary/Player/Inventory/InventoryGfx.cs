@@ -15,6 +15,7 @@ public class InventoryGfx : MonoBehaviour
     public Transform itemsParent, armorSlotsContainer, hotBarParent;
     public Slider splitSlider;
     public TextMeshProUGUI splitText;
+    public Image buttonIcon;
     public Item toolTipItem;
     public ItemSlot[] itemSlots, armorSlots, storageCrateSlots;
     public bool invOpen = false;
@@ -49,11 +50,14 @@ public class InventoryGfx : MonoBehaviour
     private UIData storedUIData;
 
     private int uiType = 0;
-    
-    
+
+    public Sprite closeIcon;
+    private Sprite normalIcon;
+
+
     private void Start()
     {
-
+        normalIcon = buttonIcon.sprite;
         allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         craftingMenu = GetComponent<CraftingMenu>();
         ItemSlot[] itemSlotsTemp = itemsParent.GetComponentsInChildren<ItemSlot>(true);
@@ -366,6 +370,7 @@ public class InventoryGfx : MonoBehaviour
             {
                 playerViewCamera.SetActive(false);
             }
+            buttonIcon.sprite = normalIcon;
         }
         else
         {
@@ -376,6 +381,7 @@ public class InventoryGfx : MonoBehaviour
             {
                 playerViewCamera.SetActive(true);
             }
+            buttonIcon.sprite = closeIcon;
         }
         tint.SetActive(invOpen);
         hotBarButtons.SetActive(!invOpen);
