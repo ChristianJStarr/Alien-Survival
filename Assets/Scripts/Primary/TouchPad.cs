@@ -41,7 +41,8 @@ using UnityStandardAssets.CrossPlatformInput;
 		bool m_Dragging;
 		int m_Id = -1;
 		Vector2 m_PreviousTouchPos; // swipe style control touch
-
+    Vector2 previous;
+    float Xspeed, Yspeed;
 
 #if !UNITY_EDITOR
     private Vector3 m_Center;
@@ -135,14 +136,46 @@ using UnityStandardAssets.CrossPlatformInput;
                 m_PreviousTouchPos = Input.touches[m_Id].position;
             }
             Vector2 pointerDelta = new Vector2(Input.touches[m_Id].position.x - m_Center.x , Input.touches[m_Id].position.y - m_Center.y).normalized;
+            
+            
+            
             pointerDelta.x *= Xsensitivity;
             pointerDelta.y *= Ysensitivity;
+            Vector2 speed = pointerDelta - previous;
+
+            speed.x /= Input.touches[m_Id].deltaTime;
+            speed.y /= Input.touches[m_Id].deltaTime;
+
+            pointerDelta.x *= speed.x;
+            pointerDelta.y *= speed.y; pointerDelta = Vector2.SmoothDamp(previous, pointerDelta, ref speed, Time.deltaTime);
+
+            previous = pointerDelta;
 #else
-				Vector2 pointerDelta;
-				pointerDelta.x = Input.mousePosition.x - m_PreviousMouse.x;
-				pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
+            Vector2 pointerDelta;
+            
+            
+            
+            
+            
+            pointerDelta.x = Input.mousePosition.x - m_PreviousMouse.x;
+			pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
             pointerDelta.x *= Xsensitivity;
             pointerDelta.y *= Ysensitivity;
+
+            Vector2 speed = pointerDelta - previous;
+
+            speed.x /= Input.touches[m_Id].deltaTime;
+            speed.y /= Input.touches[m_Id].deltaTime;
+
+            pointerDelta.x *= speed.x;
+            pointerDelta.y *= speed.y;
+
+            pointerDelta = Vector2.SmoothDamp(previous, pointerDelta, ref speed, Time.deltaTime);
+            previous = pointerDelta;
+
+
+            Debug.Log("Speed: " + speed.x + " " + speed.y);
+
             m_PreviousMouse = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f);
 #endif
 				UpdateVirtualAxes(new Vector3(pointerDelta.x, pointerDelta.y, 0));
