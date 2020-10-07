@@ -1,0 +1,87 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class SafeAreaUINotchFix : MonoBehaviour
+{
+    private RectTransform _rectTransform;
+
+    private bool flattenSide = true;
+
+    private void Awake()
+    {
+        _rectTransform = GetComponent<RectTransform>();
+        //Find devices with fucked up notch safe areas.
+        if (UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhone11ProMax 
+            || UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhone11Pro
+            || UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhone11 
+            || UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhoneX 
+            || UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhoneXR 
+            || UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhoneXS
+            || UnityEngine.iOS.Device.generation == UnityEngine.iOS.DeviceGeneration.iPhoneXSMax) 
+        {
+            flattenSide = true;
+            DebugMsg.Notify("Notched Iphone Detected. Fixing Inventory UI", 3);
+        }
+
+        RefreshPanel(Screen.safeArea);
+    }
+
+    private void OnEnable()
+    {
+        SafeAreaDetection.OnSafeAreaChanged += RefreshPanel;
+    }
+
+    private void OnDisable()
+    {
+        SafeAreaDetection.OnSafeAreaChanged -= RefreshPanel;
+    }
+
+    private void RefreshPanel(Rect safeArea)
+    {
+        if (flattenSide) 
+        {
+            if (Screen.orientation == ScreenOrientation.LandscapeLeft)
+            {
+                //Notch is on left, flatten right
+                Vector2 anchorMin = safeArea.position;
+                Vector2 anchorMax = safeArea.position + safeArea.size;
+
+                anchorMin.x /= Screen.width;
+                anchorMin.y /= Screen.height;
+                anchorMax.x = 1;
+                anchorMax.y /= Screen.height;
+
+                _rectTransform.anchorMin = anchorMin;
+                _rectTransform.anchorMax = anchorMax;
+
+            }
+            else if (Screen.orientation == ScreenOrientation.LandscapeRight)
+            {
+                //Notch is on right, flatten left
+                Vector2 anchorMin = safeArea.position;
+                Vector2 anchorMax = safeArea.position + safeArea.size;
+
+                anchorMin.x = 0; 
+                anchorMin.y /= Screen.height;
+                anchorMax.x /= Screen.width;
+                anchorMax.y /= Screen.height;
+
+                _rectTransform.anchorMin = anchorMin;
+                _rectTransform.anchorMax = anchorMax;
+
+            }
+        }
+        else 
+        {
+            Vector2 anchorMin = safeArea.position;
+            Vector2 anchorMax = safeArea.position + safeArea.size;
+            anchorMin.x /= Screen.width;
+            anchorMin.y /= Screen.height;
+            anchorMax.x /= Screen.width;
+            anchorMax.y /= Screen.height;
+            _rectTransform.anchorMin = anchorMin;
+            _rectTransform.anchorMax = anchorMax;
+        }
+    }
+}
