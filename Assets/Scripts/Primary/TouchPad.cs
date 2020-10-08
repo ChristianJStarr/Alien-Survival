@@ -38,6 +38,7 @@ using UnityStandardAssets.CrossPlatformInput;
 		int m_Id = -1;
         private float tune = 2;
 		Vector2 m_PreviousTouchPos;
+        private bool reset = true; 
 
 
 #if !UNITY_EDITOR
@@ -123,6 +124,10 @@ using UnityStandardAssets.CrossPlatformInput;
 			{
 				return;
 			}
+
+            
+
+
 			if (Input.touchCount >= m_Id + 1 && m_Id != -1)
 			{
             Vector2 pointerDelta;
@@ -132,6 +137,11 @@ using UnityStandardAssets.CrossPlatformInput;
             {
                 m_Center = m_PreviousTouchPos;
                 m_PreviousTouchPos = Input.touches[m_Id].position;
+                if (reset)
+                {
+                    m_Center = Input.touches[m_Id].position;
+                    reset = false;
+                }
             }
 
 
@@ -189,6 +199,7 @@ using UnityStandardAssets.CrossPlatformInput;
 			m_Dragging = false;
 			m_Id = -1;
 			UpdateVirtualAxes(Vector3.zero);
+            reset = true;
 		}
 
 		void OnDisable()
