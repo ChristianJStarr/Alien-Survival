@@ -1655,7 +1655,6 @@ GameObject:
   - component: {fileID: 9159223200993277526}
   - component: {fileID: 3269605118692843538}
   - component: {fileID: 6392969436897256531}
-  - component: {fileID: 1298950604341678475}
   - component: {fileID: 1884644639}
   - component: {fileID: 7998926831109204872}
   - component: {fileID: 8814597626916148460}
@@ -1956,9 +1955,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05ec5cf00ca181d45a42ba1870e148c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IsWalking: 0
-  m_WalkSpeed: 8
-  m_RunSpeed: 8
+  m_IsWalking: 1
+  m_WalkSpeed: 5
+  m_RunSpeed: 5
   m_RunstepLenghten: 0.166
   m_JumpSpeed: 6
   m_StickToGroundForce: 3
@@ -2065,22 +2064,6 @@ MonoBehaviour:
   benchmarkObject: {fileID: 11400000, guid: f8648aa6ae65aac41a4a5c8b1708c188, type: 2}
   m_Jump: 0
   m_Crouch: 0
---- !u!114 &1298950604341678475
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3807543680349778164}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 863972a6cf73ec44c89608b2ab82ae3b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  breadcrumbAmount: 1
-  breadRate: 0
-  breadCleanRate: 0
-  _hasUFPS: 0
 --- !u!114 &1884644639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4023,15 +4006,15 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: aba10e3364b15cc428ddee3ef9eb9cf1, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 61af7d3002091c24d9ebc8dc836ea2d6, type: 3}
---- !u!23 &6474718913409960708 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 1433295224521056122, guid: 61af7d3002091c24d9ebc8dc836ea2d6,
-    type: 3}
-  m_PrefabInstance: {fileID: 5349929898370307198}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5301297859068571755 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 265495452232229909, guid: 61af7d3002091c24d9ebc8dc836ea2d6,
+    type: 3}
+  m_PrefabInstance: {fileID: 5349929898370307198}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6474718913409960708 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1433295224521056122, guid: 61af7d3002091c24d9ebc8dc836ea2d6,
     type: 3}
   m_PrefabInstance: {fileID: 5349929898370307198}
   m_PrefabAsset: {fileID: 0}

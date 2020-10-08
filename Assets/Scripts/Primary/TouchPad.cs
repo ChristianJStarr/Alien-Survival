@@ -136,7 +136,7 @@ using UnityStandardAssets.CrossPlatformInput;
 
 
             
-            pointerDelta = new Vector2(Input.touches[m_Id].position.x - m_Center.x , Input.touches[m_Id].position.y - m_Center.y).normalized;
+            pointerDelta = new Vector2(Input.touches[m_Id].position.x - m_Center.x , Input.touches[m_Id].position.y - m_Center.y);
             //Apply Sensitivity
             pointerDelta.x *= Xsensitivity / tune;
             pointerDelta.y *= Ysensitivity / tune;

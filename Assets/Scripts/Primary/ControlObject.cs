@@ -7,6 +7,8 @@ public class ControlObject : MonoBehaviour
     public Image[] icon;
     public Image[] extraBackground;
 
+    public bool changeColor = true;
+
     public int typeId;
     public bool autoShowHide = true;
 }

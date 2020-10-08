@@ -22,7 +22,7 @@ namespace UnityStandardAssets.CrossPlatformInput
 		public AxisOption axesToUse = AxisOption.Both; // The options for the axes that the still will use
 		public string horizontalAxisName = "Horizontal"; // The name given to the horizontal axis for the cross platform input
 		public string verticalAxisName = "Vertical"; // The name given to the vertical axis for the cross platform input
-
+        public int secondsUntilLock = 1;
         private bool isSprintLocked = false;
         private bool isWaitingToLock = false;
         
@@ -107,47 +107,53 @@ namespace UnityStandardAssets.CrossPlatformInput
 				delta = Mathf.Clamp(delta, - MovementRange, MovementRange);
 				newPos.x = delta;
 			}
-			if (m_UseY)
+			if (m_UseY && !isSprintLocked)
 			{
 				int delta = (int)(data.position.y - m_StartPos.y);
-				delta = Mathf.Clamp(delta, -MovementRange, MovementRange * 2);
+                CheckForLock(delta);
+                delta = Mathf.Clamp(delta, -MovementRange, MovementRange);
 				newPos.y = delta;
-                if (delta > (MovementRange * 2 - ((MovementRange) / 5)))
-                {
-                    if (!isSprintLocked && !isWaitingToLock)
-                    {
-                        isWaitingToLock = true;
-                        StartCoroutine(WaitCheckForLock());
-                    }
-                }
-                else if (isSprintLocked)
-                {
-                    isSprintLocked = false;
-                    lockIcon.enabled = false;
-                    isWaitingToLock = false;
-                }
-                else if(isWaitingToLock) 
-                {
-                    isWaitingToLock = false;
-                }
+                
             }
 			transform.position = new Vector3(m_StartPos.x + newPos.x, m_StartPos.y + newPos.y, m_StartPos.z + newPos.z);
 			UpdateVirtualAxes(transform.position);
             vLockPos = transform.position.y;
 		}
 
+        private void CheckForLock(float value) 
+        {
+            if (value > (MovementRange * 3 - ((MovementRange) / 5)))
+            {
+                if (!isSprintLocked && !isWaitingToLock)
+                {
+                    isWaitingToLock = true;
+                    StartCoroutine(WaitCheckForLock());
+                }
+            }
+            else if (isSprintLocked)
+            {
+                isSprintLocked = false;
+                lockIcon.enabled = false;
+                isWaitingToLock = false;
+            }
+            else if (isWaitingToLock)
+            {
+                isWaitingToLock = false;
+            }
+        }
+
         private IEnumerator WaitCheckForLock() 
         {
             if (isWaitingToLock) 
             {
                 int i = 0;
-                while(i < 5)
+                while(i < secondsUntilLock)
                 {
                     lockWaitIcon.enabled = !lockWaitIcon.enabled;
                     i++;
                     if (isWaitingToLock) 
                     {
-                        yield return new WaitForSeconds(0.25f);
+                        yield return new WaitForSeconds(1f);
                     }
                     else{break;}
                 }

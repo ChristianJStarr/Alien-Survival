@@ -73,7 +73,15 @@ public class ControlControl : MonoBehaviour
             {
                 for (int e = 0; e < controlObjects[i].icon.Length; e++)
                 {
-                    controlObjects[i].icon[e].color = iconColor;
+                    if (controlObjects[i].changeColor)
+                    {
+                        controlObjects[i].icon[e].color = iconColor;
+                    }
+                    else 
+                    {
+                        Color32 tempColor = controlObjects[i].icon[e].color;
+                        controlObjects[i].icon[e].color = new Color32(tempColor.r, tempColor.g, tempColor.b, (byte)text_opacity);
+                    }
                 }
             }
             if (controlObjects[i].extraBackground != null)
