@@ -30,7 +30,7 @@ public class InterfaceHider : MonoBehaviour
     //Hide All, Used for Death/Sleep screen etc.
     public void HideAllInterfaces() 
     {
-        chat.Hide();
+        //chat.Hide();
         topBar.Hide();
         inventory.Hide();
         controls.Hide();
@@ -40,7 +40,7 @@ public class InterfaceHider : MonoBehaviour
 
     public void ShowAllInterfaces() 
     {
-        chat.Show();
+        //chat.Show();
         topBar.Show();
         inventory.Show();
         controls.Show();

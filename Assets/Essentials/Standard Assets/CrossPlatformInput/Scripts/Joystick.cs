@@ -100,22 +100,33 @@ namespace UnityStandardAssets.CrossPlatformInput
 
 		public void OnDrag(PointerEventData data)
 		{
+            bool circleRadius = true;
 			Vector3 newPos = Vector3.zero;
 			if (m_UseX)
 			{
 				int delta = (int)(data.position.x - m_StartPos.x);
-				delta = Mathf.Clamp(delta, - MovementRange, MovementRange);
+                if (!circleRadius) 
+                {
+                    delta = Mathf.Clamp(delta, -MovementRange, MovementRange);
+                }
 				newPos.x = delta;
 			}
 			if (m_UseY && !isSprintLocked)
 			{
 				int delta = (int)(data.position.y - m_StartPos.y);
                 CheckForLock(delta);
-                delta = Mathf.Clamp(delta, -MovementRange, MovementRange);
-				newPos.y = delta;
-                
+                if (!circleRadius) 
+                {
+                    delta = Mathf.Clamp(delta, -MovementRange, MovementRange);    
+                }
+                newPos.y = delta;
             }
-			transform.position = new Vector3(m_StartPos.x + newPos.x, m_StartPos.y + newPos.y, m_StartPos.z + newPos.z);
+            if (circleRadius) 
+            {
+                newPos = Vector3.ClampMagnitude(newPos, MovementRange);
+            }
+            
+            transform.position = new Vector3(m_StartPos.x + newPos.x, m_StartPos.y + newPos.y, m_StartPos.z + newPos.z);
 			UpdateVirtualAxes(transform.position);
             vLockPos = transform.position.y;
 		}
