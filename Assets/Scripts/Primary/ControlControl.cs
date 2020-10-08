@@ -80,7 +80,14 @@ public class ControlControl : MonoBehaviour
                     else 
                     {
                         Color32 tempColor = controlObjects[i].icon[e].color;
-                        controlObjects[i].icon[e].color = new Color32(tempColor.r, tempColor.g, tempColor.b, (byte)text_opacity);
+                        if (uiActive)
+                        {
+                            controlObjects[i].icon[e].color = new Color32(tempColor.r, tempColor.g, tempColor.b, (byte)text_opacity);
+                        }
+                        else 
+                        {
+                            controlObjects[i].icon[e].color = new Color32(tempColor.r, tempColor.g, tempColor.b, 0);
+                        }
                     }
                 }
             }
