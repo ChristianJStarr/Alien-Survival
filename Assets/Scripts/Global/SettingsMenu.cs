@@ -199,7 +199,6 @@ public class SettingsMenu : MonoBehaviour
         }
         else
         {
-
             settings.quality = Convert.ToInt32(quality.ActiveToggles().FirstOrDefault().name);
             settings.shadow = Convert.ToInt32(shadows.ActiveToggles().FirstOrDefault().name);
             settings.aliasing = Convert.ToInt32(aliasing.ActiveToggles().FirstOrDefault().name);
