@@ -36,7 +36,7 @@ using UnityStandardAssets.CrossPlatformInput;
 		CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis; // Reference to the joystick in the cross platform input
 		bool m_Dragging;
 		int m_Id = -1;
-        private float tune = 12;
+        private float tune = 2;
 		Vector2 m_PreviousTouchPos;
 
 
@@ -135,7 +135,7 @@ using UnityStandardAssets.CrossPlatformInput;
             }
 
 
-            
+            tune = 12; // mobileTune // DPI?
             pointerDelta = new Vector2(Input.touches[m_Id].position.x - m_Center.x , Input.touches[m_Id].position.y - m_Center.y);
             //Apply Sensitivity
             pointerDelta.x *= Xsensitivity / tune;
@@ -156,7 +156,7 @@ using UnityStandardAssets.CrossPlatformInput;
             //Get Distance Traveled
             pointerDelta.x = Input.mousePosition.x - m_PreviousMouse.x;
 			pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
-      
+            tune = 12;
             //Apply Sensitivity
             pointerDelta.x *= Xsensitivity / tune;
             pointerDelta.y *= Ysensitivity / tune;
