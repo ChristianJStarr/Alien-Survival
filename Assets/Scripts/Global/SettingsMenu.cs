@@ -64,11 +64,7 @@ public class SettingsMenu : MonoBehaviour
         SetToggleBool(showBattery, settings.showBattery);
         scrollRect.verticalNormalizedPosition = 1;
 
-        if (!settings.validated) 
-        {
-            settings = new Settings();
-            settings.validated = true;
-        }
+        
     }
 
 

@@ -1647,7 +1647,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 183597642278683367}
-  - component: {fileID: 3063521734100083474}
+  - component: {fileID: 2400857165136480663}
   - component: {fileID: -6095836722985112236}
   - component: {fileID: 3310272661755385071}
   - component: {fileID: 7783986884845924253}
@@ -1690,7 +1690,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3063521734100083474
+--- !u!114 &2400857165136480663
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1699,47 +1699,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 3807543680349778164}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d894da493370c174ea1e624ec7dfc143, type: 3}
+  m_Script: {fileID: 11500000, guid: 267c820266758284d9d0c9e148388fea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FixedSendsPerSecond: 20
-  AssumeSyncedSends: 1
-  InterpolatePosition: 1
-  SnapDistance: 10
-  InterpolateServer: 0
-  MinMeters: 0.15
-  MinDegrees: 1.5
-  ExtrapolatePosition: 0
-  MaxSendsToExtrapolate: 5
-  Channel: 
-  cameraRig: {fileID: 66108929}
-  cameraRigTarget: {fileID: 8187277705802477858}
-  EnableRange: 1
-  EnableNonProvokedResendChecks: 0
-  DistanceSendrate:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 20
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 500
-      value: 20
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  characterController: {fileID: 9159223200993277526}
+  cameraObject: {fileID: 66108929}
+  collisionFlags: 0
+  crouching: 0
+  jumping: 0
+  positions: []
+  lastSnapshot: 0
 --- !u!114 &-6095836722985112236
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1950,7 +1919,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3807543680349778164}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05ec5cf00ca181d45a42ba1870e148c3, type: 3}
   m_Name: 
@@ -2071,7 +2040,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3807543680349778164}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ed47dafdbb5782b4fa24ebec7b5984ad, type: 3}
   m_Name: 

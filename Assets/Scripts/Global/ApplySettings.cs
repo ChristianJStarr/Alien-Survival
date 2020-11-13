@@ -16,8 +16,15 @@ public class ApplySettings : MonoBehaviour
 
         if (sceneName == "LoadScene") 
         {
+            if (!settings.validated)
+            {
+                settings = (Settings)ScriptableObject.CreateInstance("Settings");
+                settings.validated = true;
+            }
+
+
             //Check if quality settings need to be changed.
-            if(QualitySettings.GetQualityLevel() != settings.quality)
+            if (QualitySettings.GetQualityLevel() != settings.quality)
             {
                 //Change quality settings.
                 QualitySettings.SetQualityLevel(settings.quality, true);

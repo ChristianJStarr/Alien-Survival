@@ -4,9 +4,13 @@ using UnityEngine;
 
 public class SafeAreaUINotchFix : MonoBehaviour
 {
+
+    #if !UNITY_SERVER
     private RectTransform _rectTransform;
 
     private bool flattenSide = false;
+
+
 
     private void Start()
     {
@@ -113,4 +117,5 @@ public class SafeAreaUINotchFix : MonoBehaviour
             _rectTransform.anchorMax = anchorMax;
         }
     }
+#endif
 }

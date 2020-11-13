@@ -1,12 +1,10 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityStandardAssets.CrossPlatformInput;
 
-namespace UnityStandardAssets.CrossPlatformInput
-{
-	public class Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
+public class Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
 	{
 		public enum AxisOption
 		{
@@ -224,4 +222,3 @@ namespace UnityStandardAssets.CrossPlatformInput
 			}
 		}
 	}
-}
