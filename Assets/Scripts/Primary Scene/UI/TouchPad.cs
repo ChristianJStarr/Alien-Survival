@@ -138,8 +138,6 @@ public class TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         tune = 12; // mobileTune // DPI?
         pointerDelta = new Vector2(Input.touches[m_Id].position.x - m_Center.x, Input.touches[m_Id].position.y - m_Center.y);
         //Apply Sensitivity
-        pointerDelta.x *= Xsensitivity / tune;
-        pointerDelta.y *= Ysensitivity / tune;
         //Apply Speed
         if (acceleration)
         {
@@ -164,8 +162,6 @@ public class TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
         tune = 12;
         //Apply Sensitivity
-        pointerDelta.x *= Xsensitivity / tune;
-        pointerDelta.y *= Ysensitivity / tune;
 
         //Apply Speed
         if (acceleration)

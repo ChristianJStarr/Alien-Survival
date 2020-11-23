@@ -12,7 +12,7 @@ public class SettingsMenu : MonoBehaviour
 
     public Settings settings; // Game Settings data.
     public Slider ui, menu, ambient, effects, xSense, ySense, opacity, terrainDis, objectDis; //All settings sliders
-    public ToggleGroup quality, shadows, aliasing, postpro, showFps, showPing, showTime, showBattery; //All settings toggle groups.
+    public ToggleGroup quality, showFps, showPing, showTime, showBattery; //All settings toggle groups.
     public GameObject qualityContainer, manualContainer;
     public Button qualityModeButton_Manual, qualityModeButton_Auto;
 
@@ -31,6 +31,9 @@ public class SettingsMenu : MonoBehaviour
     private PauseControl pauseControl;
     private MainMenuScript mainMenuScript;
 
+    public RenderPipelineAsset low_Pipeline, med_Pipeline, high_Pipeline, ultra_Pipeline;
+
+
 
     void Start() 
     {
@@ -45,8 +48,6 @@ public class SettingsMenu : MonoBehaviour
         //Get Quality
         SetMode(settings.autoQuality);
         SetToggle(quality, settings.quality);
-        SetToggle(shadows, settings.shadow);
-        SetToggle(aliasing, settings.aliasing);
 
         //Get Controls
         xSense.value = settings.xSensitivity;
@@ -196,8 +197,6 @@ public class SettingsMenu : MonoBehaviour
         else
         {
             settings.quality = Convert.ToInt32(quality.ActiveToggles().FirstOrDefault().name);
-            settings.shadow = Convert.ToInt32(shadows.ActiveToggles().FirstOrDefault().name);
-            settings.aliasing = Convert.ToInt32(aliasing.ActiveToggles().FirstOrDefault().name);
             //Change render pipeline asset.
             RenderPipelineAsset newAsset = GetAsset();
             if (GraphicsSettings.renderPipelineAsset != newAsset)
@@ -251,49 +250,28 @@ public class SettingsMenu : MonoBehaviour
         {
             settings.showBattery = false;
         }
-
-
         ChangedSettings();
-
-
         BackButton();
     }
 
     //Get correct pipeline asset based off current settings.
     public RenderPipelineAsset GetAsset() 
     {
-        var cameraData = Camera.main.GetUniversalAdditionalCameraData();
-        int set_1 = settings.shadow;
-        int set_2 = settings.aliasing;
-        int set_3 = settings.postpro;
-        string value_1 = "OFF";
-        string value_2 = "OFF";
-        string value_3 = "OFF";
-
-        if (set_1 == 1) { value_1 = "OFF"; }
-        if (set_1 == 2) { value_1 = "HARD"; }
-        if (set_1 == 3) { value_1 = "SOFT"; }
-
-        if (set_2 == 1) { value_2 = "OFF"; }
-        if (set_2 == 2) { value_2 = "2X"; }
-        if (set_2 == 3) { value_2 = "4X"; }
-
-        if (set_3 == 1) 
+        if (settings.quality == 4)
         {
-            value_3 = "LDR";
-            cameraData.renderPostProcessing = false;
+            return ultra_Pipeline;
         }
-        if (set_3 == 2)
+        else if (settings.quality == 3)
         {
-            value_3 = "LDR";
-            cameraData.renderPostProcessing = true;
+            return high_Pipeline;
         }
-        if (set_3 == 3)
+        else if (settings.quality == 2)
         {
-            value_3 = "HDR";
-            cameraData.renderPostProcessing = true;
+            return med_Pipeline;
         }
-        string filename = value_1 + "-" + value_2 + "-" + value_3;
-        return Resources.Load("Data/URPAssets/" + filename) as RenderPipelineAsset;
+        else
+        {
+            return low_Pipeline;
+        }
     }
 }

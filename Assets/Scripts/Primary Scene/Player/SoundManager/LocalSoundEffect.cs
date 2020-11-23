@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "SFX_01", menuName = "ScriptableObjects/SoundEffectData")]
+[Serializable]
 public class LocalSoundEffect : ScriptableObject
 {
     public int distance = 500;

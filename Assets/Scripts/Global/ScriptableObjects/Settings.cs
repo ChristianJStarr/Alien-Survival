@@ -16,9 +16,6 @@ public class Settings : ScriptableObject
     //Quality
     public bool autoQuality = false; 
     public int quality = 2;
-    public int shadow = 2;
-    public int aliasing = 2;
-    public int postpro = 2;
 
     //Distance
     public float terrainDistance = 500;
@@ -26,6 +23,7 @@ public class Settings : ScriptableObject
 
     //Controls
     public int gameControlsOpacity = 200;
+    public Vector2 sensitivity = new Vector2(0.5F, 0.5F);
     public float xSensitivity = .5F;
     public float ySensitivity = .5F;
 

@@ -2,28 +2,31 @@
 using MLAPI;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityStandardAssets.Characters.FirstPerson;
 
 public class Compass : MonoBehaviour
 {
-
     public RawImage compass;
     private Transform playerRot;
-    private bool client = false;
+    private float currentEulerY = 0;
+    
     private void Start()
     {
         if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient)
         {
-            client = true;
-            playerRot = FindObjectOfType<FirstPersonController>().transform;
+            playerRot = NetworkingManager.Singleton.ConnectedClients[NetworkingManager.Singleton.LocalClientId].PlayerObject.transform;
+        }
+        else 
+        {
+            Destroy(this);
         }
     }
 
     private void Update()
     {
-        if (client && playerRot != null) 
+        if (playerRot != null && playerRot.localEulerAngles.y != currentEulerY) 
         {
-            compass.uvRect = new Rect(playerRot.localEulerAngles.y / 360f, 0, 1, 1);
+            currentEulerY = playerRot.localEulerAngles.y;
+            compass.uvRect = new Rect(currentEulerY / 360f, 0, 1, 1);
         }
     }
 }

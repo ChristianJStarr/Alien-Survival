@@ -788,11 +788,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2896488554549158676}
-  - component: {fileID: 1706636374307943858}
+  - component: {fileID: 4257940228086148272}
   - component: {fileID: 2302049460184378528}
   - component: {fileID: 9138445943285152110}
-  - component: {fileID: 148584097004284298}
-  - component: {fileID: 8420044204442541247}
   - component: {fileID: 4446560709058887197}
   m_Layer: 15
   m_Name: Enemy
@@ -820,7 +818,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1706636374307943858
+--- !u!114 &4257940228086148272
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -829,40 +827,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 2556272531670792622}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 424044f44bd6b1a49a2599be336b3162, type: 3}
+  m_Script: {fileID: 11500000, guid: 87c52f601310fcd46a4e6b57e1f4691e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 4446560709058887197}
-  EnableProximity: 1
-  ProximityRange: 200
-  distanceFalloff:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 20
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 200
-      value: 20
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  CorrectionDelay: 3
-  DriftCorrectionPercentage: 0.15
-  WarpOnDestinationChange: 0
-  channel: AIMovement
+  animator: {fileID: 9138445943285152110}
+  collisionFlags: 0
+  crouching: 0
+  jumping: 0
+  lookUpDownAxis: 0
+  moveTarget: {x: 0, y: 0, z: 0}
+  lookTarget: {x: 0, y: 0}
+  type: 1
+  state: 2
+  stateChanged: 0
+  playerAttackTarget: {fileID: 0}
 --- !u!114 &2302049460184378528
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -899,52 +878,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &148584097004284298
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2556272531670792622}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 623367494, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EnableProximity: 1
-  ProximityRange: 100
-  _animator: {fileID: 9138445943285152110}
-  parameterSendBits: 7
-  param0: 
-  param1: 
-  param2: 
-  param3: 
-  param4: 
-  param5: 
---- !u!114 &8420044204442541247
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2556272531670792622}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbe57bd0db98e194c80c96d3155e4784, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  type: 1
-  state: 2
-  health: 100
-  speed: 3
-  holdableObjectId: 1
-  damageAmount: 10
-  damageFrequency: 1
-  holdableManager: {fileID: 893573354836495213}
-  animator: {fileID: 9138445943285152110}
-  controller: {fileID: 4446560709058887197}
-  aimPosition: {fileID: 6367981760298622427}
-  target: {fileID: 0}
 --- !u!195 &4446560709058887197
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1076,6 +1009,7 @@ SkinnedMeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2887,6 +2821,7 @@ SkinnedMeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

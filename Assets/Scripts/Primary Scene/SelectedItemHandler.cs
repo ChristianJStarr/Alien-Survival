@@ -76,18 +76,23 @@ public class SelectedItemHandler : MonoBehaviour
             selectedItem = inventory.SelectSlot(slot);
             if(selectedItem != null) 
             {
-                if (selectedItem.isPlaceable) 
+                selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemID);
+                if (selectedItemData != null) 
                 {
-                    ShowPlaceableItem();
-                }
-                else if (selectedItem.isHoldable) 
-                {
-                    DeactivateBuilderOverlay();
-                    ShowHoldableItem();
-                }
-                else {
-                    DeactivateBuilderOverlay();
-                    ClearHoldItem();
+                    if (selectedItemData.isPlaceable)
+                    {
+                        ShowPlaceableItem();
+                    }
+                    else if (selectedItemData.isHoldable)
+                    {
+                        DeactivateBuilderOverlay();
+                        ShowHoldableItem();
+                    }
+                    else
+                    {
+                        DeactivateBuilderOverlay();
+                        ClearHoldItem();
+                    }
                 }
             }
             else
@@ -105,8 +110,7 @@ public class SelectedItemHandler : MonoBehaviour
     //Hold Item Function
     private void ShowHoldableItem() 
     {
-        selectedItemData = InvUI.FindItemDataById(selectedItem.itemID); //Get ItemData from ItemID
-
+        selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemID); 
         SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
         holdableManager.PulloutHoldable(selectedItemData.holdableId);
         UpdateTargets();
@@ -115,7 +119,7 @@ public class SelectedItemHandler : MonoBehaviour
     //Show Placeable Item
     private void ShowPlaceableItem()
     {
-        selectedItemData = InvUI.FindItemDataById(selectedItem.itemID); //Get ItemData from ItemID
+        selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemID); //Get ItemData from ItemID
         SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
 
         //Get Prefab from ItemData and Spawn it infront of player when activated

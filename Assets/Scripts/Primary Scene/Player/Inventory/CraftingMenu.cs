@@ -10,13 +10,14 @@ public class CraftingMenu : MonoBehaviour
     public GameObject slideContent, craftSlide, slideParent, typeContainer, typePrefab;
     public TextMeshProUGUI craftTip_name, craftTip_desc, craftAmount_1, craftAmount_2, craftAmount_3, craftAmount_4, craftMaxButton, craftSingleButton;
     public Image craftTip_image, craftImage_1, craftImage_2, craftImage_3, craftImage_4;
-    private List<CraftSlide> slideCache;
-    private List<InventoryResource> inv;
-    private List<TopToolTypeSlide> typeCache;
-    private ItemData[] craftDatas;
+    private List<CraftSlide> slideCache = new List<CraftSlide>();
+    private List<InventoryResource> inv = new List<InventoryResource>();
+    private List<TopToolTypeSlide> typeCache = new List<TopToolTypeSlide>();
     private ItemData currentCraftItem;
     
     public Button craftMaxButton_b, craftSingleButton_b;
+
+    public ItemData[] itemDatas;
 
     private readonly Color onColor = new Color32(255, 255, 255, 255);
     private readonly Color offColor = new Color32(255, 255, 255, 200);
@@ -26,21 +27,20 @@ public class CraftingMenu : MonoBehaviour
 
     void Start()
     {
-        craftDatas = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
-        List<ItemData> tempDatas = new List<ItemData>();
-        inv = new List<InventoryResource>();
-        typeCache = new List<TopToolTypeSlide>();
-        slideCache = new List<CraftSlide>();
-        foreach (ItemData itemData in craftDatas)
+        if(ItemDataManager.Singleton != null) 
         {
-            if (itemData.isCraftable) 
+            itemDatas = ItemDataManager.Singleton.ItemData;
+            for (int i = 0; i < itemDatas.Length; i++)
             {
-                CraftSlide slide = Instantiate(craftSlide, slideContent.transform).GetComponent<CraftSlide>();
-                slide.Craftable(false, itemData, this);
-                slideCache.Add(slide);
+                if (itemDatas[i].isCraftable)
+                {
+                    CraftSlide slide = Instantiate(craftSlide, slideContent.transform).GetComponent<CraftSlide>();
+                    slide.Craftable(false, itemDatas[i], this);
+                    slideCache.Add(slide);
+                }
             }
+            ShowTooltip(slideCache.First().item);
         }
-        ShowTooltip(slideCache.First().item);
     }
 
     //Get Resources
@@ -73,7 +73,7 @@ public class CraftingMenu : MonoBehaviour
                     inv.Add(newRes);
                 }
             }
-            foreach (ItemData item in craftDatas)
+            foreach (ItemData item in itemDatas)
             {
                 int recipeAmount = item.recipe.Length;
                 int recipeAvail = 0;
@@ -214,7 +214,7 @@ public class CraftingMenu : MonoBehaviour
         if (pos == 0)
         {
             craftAmount_1.text = itemAmount + "";
-            craftImage_1.sprite = GetImage(itemId);
+            craftImage_1.sprite = ItemDataManager.Singleton.GetIcon(itemId);
             if (HasItem(itemId, itemAmount, inv))
             {
                 craftImage_1.color = onColor;
@@ -229,7 +229,7 @@ public class CraftingMenu : MonoBehaviour
         if (pos == 1)
         {
             craftAmount_2.text = itemAmount + "";
-            craftImage_2.sprite = GetImage(itemId);
+            craftImage_2.sprite = ItemDataManager.Singleton.GetIcon(itemId);
             if (HasItem(itemId, itemAmount, inv))
             {
                 craftImage_2.color = onColor;
@@ -244,7 +244,7 @@ public class CraftingMenu : MonoBehaviour
         if (pos == 2)
         {
             craftAmount_3.text = itemAmount + "";
-            craftImage_3.sprite = GetImage(itemId);
+            craftImage_3.sprite = ItemDataManager.Singleton.GetIcon(itemId);
             if (HasItem(itemId, itemAmount, inv))
             {
                 craftImage_3.color = onColor;
@@ -259,7 +259,7 @@ public class CraftingMenu : MonoBehaviour
         if (pos == 3)
         {
             craftAmount_4.text = itemAmount + "";
-            craftImage_4.sprite = GetImage(itemId);
+            craftImage_4.sprite = ItemDataManager.Singleton.GetIcon(itemId);
             if (HasItem(itemId, itemAmount, inv))
             {
                 craftImage_4.color = onColor;
@@ -273,21 +273,6 @@ public class CraftingMenu : MonoBehaviour
         }
     }
 
-    //Get item Image by ID
-    public Sprite GetImage(int id)
-    {
-        Sprite image = null;
-        foreach (ItemData item in craftDatas)
-        {
-            if (item.itemID == id)
-            {
-                image = item.icon;
-                break;
-            }
-        }
-        return image;
-    }
-    
     //How many Items
     public int HowManyItem(int itemId, int itemAmount)
     {

@@ -36,7 +36,8 @@ public class DebugMsg : MonoBehaviour
                         Stopwatch watch = new Stopwatch();
                         watch.Start();
                         timerCharts.Add(id, watch);
-                        Messenger(message);
+                        if(message.Length > 0)
+                            Messenger(message);
                     }
                 }
                 else

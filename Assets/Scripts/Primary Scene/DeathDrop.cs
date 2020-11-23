@@ -17,48 +17,6 @@ public class DeathDrop : NetworkedBehaviour
     public List<Item> dropItems;
     private bool isStarted = false;
     
-    
-    private void Awake()
-    {
-        //Serialization for <Item> Object. 
-        SerializationManager.RegisterSerializationHandlers<Item>((Stream stream, Item instance) =>
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(stream))
-            {
-                writer.WriteInt32Packed(instance.itemID);
-                writer.WriteInt32Packed(instance.itemStack);
-                writer.WriteInt32Packed(instance.maxItemStack);
-                writer.WriteInt32Packed(instance.currSlot);
-                writer.WriteInt32Packed(instance.armorType);
-
-                writer.WriteStringPacked(instance.special);
-
-                writer.WriteBool(instance.isCraftable);
-                writer.WriteBool(instance.isHoldable);
-                writer.WriteBool(instance.isArmor);
-                writer.WriteBool(instance.showInInventory);
-            }
-        }, (Stream stream) =>
-        {
-            using (PooledBitReader reader = PooledBitReader.Get(stream))
-            {
-                Item item = new Item();
-                item.itemID = reader.ReadInt32Packed();
-                item.itemStack = reader.ReadInt32Packed();
-                item.maxItemStack = reader.ReadInt32Packed();
-                item.currSlot = reader.ReadInt32Packed();
-                item.armorType = reader.ReadInt32Packed();
-
-                item.special = reader.ReadStringPacked().ToString();
-
-                item.isCraftable = reader.ReadBool();
-                item.isHoldable = reader.ReadBool();
-                item.isArmor = reader.ReadBool();
-                item.showInInventory = reader.ReadBool();
-                return item;
-            }
-        });
-    }
 
     //On Start
     public override void NetworkStart()

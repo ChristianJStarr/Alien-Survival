@@ -1,7 +1,6 @@
 ﻿using MLAPI;
 using System.Collections;
 using UnityEngine;
-using UnityStandardAssets.Characters.FirstPerson;
 
 public class PlayerInfoManager : MonoBehaviour
 {
@@ -21,7 +20,6 @@ public class PlayerInfoManager : MonoBehaviour
     public Topbar topbar;
     private GameServer gameServer;
     private PlayerInfo storedPlayerInfo;
-    private GameObject player;
     private Backpack playerBackpack;
     private ulong clientId;
     private string authKey;
@@ -38,7 +36,6 @@ public class PlayerInfoManager : MonoBehaviour
                 clientId = NetworkingManager.Singleton.LocalClientId;
                 authKey = PlayerPrefs.GetString("authKey");
                 StartCoroutine(MainPlayerLoop());
-                player = FindObjectOfType<FirstPersonController>().gameObject;
             }
         }
         else 
@@ -192,29 +189,9 @@ public class PlayerInfoManager : MonoBehaviour
     {
         yield return new WaitForSeconds(2F);
 
-        //Store Player Location
-        StorePlayerLocation();
-        
         //Restart Infinite Loop
         StartCoroutine(MainPlayerLoop());
     }
 
-    //-------Store Location
-    private void StorePlayerLocation()
-    {
-        if (player != null)
-        {
-            SetPlayer_Location(player.transform.position);
-        }
-        else
-        {
-            FirstPersonController fps = FindObjectOfType<FirstPersonController>();
-            if (fps != null) 
-            {
-                player = fps.gameObject;
-                SetPlayer_Location(player.transform.position);
-            } 
-        }
-    }
     
 }

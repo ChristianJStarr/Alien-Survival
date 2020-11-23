@@ -6,15 +6,6 @@ using UnityEngine;
 public class ServerInventoryTool : MonoBehaviour
 {
     private int space = 33;
-    private ItemData[] itemDatas;
-
-    private void GatherAllItemDatas() 
-    {
-        if(itemDatas == null)
-        {
-            itemDatas = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
-        }
-    }
 
 
     //-----------------------------------------------------------------//
@@ -24,39 +15,34 @@ public class ServerInventoryTool : MonoBehaviour
     //Add Item to Inventory
     public Item[] AddItemToInventory(Item item, Item[] inventory, Action<bool> callback)
     {
-        return SortItemSlotsInInventory(AddItemToInventoryTask(item, inventory, returnValue => 
+        return SortItemSlotsInInventory(AddItemToInventoryTask(item, inventory, returnValue =>
         {
             callback(returnValue);
         }));
     }
 
-    public Item[] AddNewItemToInventory(Item[] inventory, ItemData data, int amount, Action<bool> callback) 
+    //Add New Item To Inventory
+    public Item[] AddNewItemToInventory(Item[] inventory, ItemData data, int amount, Action<bool> callback)
     {
-        foreach (ItemData datas in itemDatas)
+        if (amount > data.maxItemStack)
         {
-            if(datas.itemID == data.itemID) 
+            while (amount > 0)
             {
-                if (amount > datas.maxItemStack)
+                if (amount > data.maxItemStack)
                 {
-                    while (amount > 0)
-                    {
-                        if (amount > datas.maxItemStack)
-                        {
-                            amount -= datas.maxItemStack;
-                            inventory = AddItemToInventory(CreateItemFromData(datas, datas.maxItemStack), inventory, returnValue => { });
-                        }
-                        else
-                        {
-                            inventory = AddItemToInventory(CreateItemFromData(datas, amount), inventory, returnValue => { });
-                            break;
-                        }
-                    }
+                    amount -= data.maxItemStack;
+                    inventory = AddItemToInventory(CreateItemFromData(data, data.maxItemStack), inventory, returnValue => { });
                 }
                 else
                 {
-                    inventory = AddItemToInventory(CreateItemFromData(datas, amount), inventory, returnValue => { });
+                    inventory = AddItemToInventory(CreateItemFromData(data, amount), inventory, returnValue => { });
+                    break;
                 }
             }
+        }
+        else
+        {
+            inventory = AddItemToInventory(CreateItemFromData(data, amount), inventory, returnValue => { });
         }
         return inventory;
     }
@@ -73,7 +59,7 @@ public class ServerInventoryTool : MonoBehaviour
         int stored = 0;
         foreach (Item item in inventory)
         {
-            if(item.itemID == id) 
+            if (item.itemID == id)
             {
                 stored += item.itemStack;
             }
@@ -87,7 +73,7 @@ public class ServerInventoryTool : MonoBehaviour
         int changed = 0;
         foreach (Item item in inventory)
         {
-            if(changed == 2) { break; }
+            if (changed == 2) { break; }
             if (item.currSlot == curSlot)
             {
                 item.currSlot = newSlot;
@@ -103,23 +89,23 @@ public class ServerInventoryTool : MonoBehaviour
     }
 
     //Remove Item From Inventory By Slot
-    public Item[] RemoveItemFromInventoryBySlot(int curSlot, Item[] inventory, Action<Item> callback,int amount = 0)
+    public Item[] RemoveItemFromInventoryBySlot(int curSlot, Item[] inventory, Action<Item> callback, int amount = 0)
     {
         List<Item> inv = inventory.ToList();
         Item item = inv.Single(r => r.currSlot == curSlot);
-        if(item != null) 
+        if (item != null)
         {
-            if(amount != 0) 
+            if (amount != 0)
             {
                 item.itemStack -= amount;
             }
-            else 
+            else
             {
                 inv.Remove(item);
             }
             callback(item);
         }
-        else 
+        else
         {
             return null;
         }
@@ -127,18 +113,18 @@ public class ServerInventoryTool : MonoBehaviour
     }
 
     //Change Item Durability
-    public Item[] ChangeItemDurability(Item[] inventory, int amount, int maxDurability, int slot) 
+    public Item[] ChangeItemDurability(Item[] inventory, int amount, int maxDurability, int slot)
     {
-        
+
         foreach (Item item in inventory)
         {
-            if(item.currSlot == slot) 
+            if (item.currSlot == slot)
             {
-                if (item.durability + amount > 0 && item.durability + amount <= maxDurability) 
+                if (item.durability + amount > 0 && item.durability + amount <= maxDurability)
                 {
                     item.durability += amount;
                 }
-                else if (item.durability + amount <= 0) 
+                else if (item.durability + amount <= 0)
                 {
                     return null;
                 }
@@ -148,45 +134,44 @@ public class ServerInventoryTool : MonoBehaviour
         return inventory;
     }
 
-    
 
     //-----------------------------------------------------------------//
     //                      Blueprint Items                            //
     //-----------------------------------------------------------------//
 
     //Add Blueprint to Blueprint List
-    public int[] AddBlueprintToBlueprints(int id, int[] blueprints) 
+    public int[] AddBlueprintToBlueprints(int id, int[] blueprints)
     {
         List<int> newBlueprints = blueprints.ToList();
-        if (!newBlueprints.Contains(id)) 
+        if (!newBlueprints.Contains(id))
         {
             newBlueprints.Add(id);
         }
         return newBlueprints.ToArray();
     }
 
-    
-    
-    
+
     //-----------------------------------------------------------------//
     //                      Armor Items                                //
     //-----------------------------------------------------------------//
 
-    public ItemArmorArrays MoveArmorInInventory(int curSlot, int newSlot, Item[] inventory, Item[] armor) 
+    public ItemArmorArrays MoveArmorInInventory(int curSlot, int newSlot, Item[] inventory, Item[] armor)
     {
         bool isPlaced = false;
-        if(curSlot > 33) 
+        if (curSlot > 33)
         {
             //Armor move to inventory slot
-            foreach(Item armorItem in armor) 
+            foreach (Item armorItem in armor)
             {
-                if(armorItem.currSlot == curSlot) 
+                if (armorItem.currSlot == curSlot)
                 {
-                    foreach(Item invItem in inventory) 
+                    foreach (Item invItem in inventory)
                     {
-                        if(invItem.currSlot == newSlot) 
+                        if (invItem.currSlot == newSlot)
                         {
-                            if (invItem.isArmor && invItem.armorType == armorItem.armorType) 
+                            ItemData itemData = ItemDataManager.Singleton.GetItemData(invItem.itemID);
+                            ItemData armorData = ItemDataManager.Singleton.GetItemData(armorItem.itemID);
+                            if (itemData.isArmor && itemData.armorType == armorData.armorType)
                             {
                                 //Swap Armor with Inventory Armor
                                 isPlaced = true;
@@ -207,7 +192,7 @@ public class ServerInventoryTool : MonoBehaviour
                             {
                                 //Cant hotswap so -- Place randomly
                                 Item[] newInventory = AddItemToInventory(armorItem, inventory, returnValue => { });
-                                if(newInventory != null) 
+                                if (newInventory != null)
                                 {
                                     //Item was placed successfully.
                                     isPlaced = true;
@@ -227,7 +212,7 @@ public class ServerInventoryTool : MonoBehaviour
                             armor = newArmor.ToArray();
                             armorItem.currSlot = newSlot;
                             Item[] newInventory = AddItemToInventory(armorItem, inventory, returnValue => { });
-                            if(newInventory != null) 
+                            if (newInventory != null)
                             {
                                 inventory = newInventory;
                             }
@@ -237,46 +222,43 @@ public class ServerInventoryTool : MonoBehaviour
                 }
             }
         }
-        else 
+        else
         {
-            //Inventory move to armor slot
-            foreach(Item invItem in inventory) 
+            for (int i = 0; i < inventory.Length; i++)
             {
-                if(invItem.currSlot == curSlot) 
+                if (inventory[i].currSlot == curSlot)
                 {
-                    foreach (Item armorItem in armor)
+                    Item item = inventory[i];
+                    ItemData itemData = ItemDataManager.Singleton.GetItemData(item.itemID);
+                    if (itemData.isArmor) 
                     {
-                        if(armorItem.currSlot == newSlot) 
+                        for (int e = 0; e < armor.Length; e++)
                         {
-                            //Trying to move inventory item to occupied slot 
-                            if (armorItem.isArmor && armorItem.armorType == invItem.armorType)
+                            if (armor[e].currSlot == newSlot)
                             {
-                                isPlaced = true;
-                                invItem.currSlot = newSlot;
-                                armorItem.currSlot = curSlot;
-                                List<Item> newInventory = inventory.ToList();
-                                List<Item> newArmor = armor.ToList();
-                                newArmor.Add(invItem);
-                                newInventory.Remove(invItem);
-                                newInventory.Add(armorItem);
-                                newArmor.Remove(armorItem);
-                                inventory = newInventory.ToArray();
-                                armor = newArmor.ToArray();
+                                Item armorItem = armor[e];
+                                ItemData armorData = ItemDataManager.Singleton.GetItemData(armorItem.itemID);
+                                if (itemData.armorType == armorData.armorType)
+                                {
+                                    item.currSlot = newSlot;
+                                    armorItem.currSlot = curSlot;
+                                    inventory[i] = armorItem;
+                                    armor[e] = item;
+                                }
+                                return CreateItemArmorArray(inventory, armor);
                             }
-                            break;
                         }
-                    }
-                    if (!isPlaced) 
-                    {
                         //Armor slot is empty. Attempt to move item there.
-                        if (invItem.armorType == 33 - newSlot) 
+                        if (itemData.armorType == 33 - newSlot)
                         {
                             //Armor type matches slot. Place it there.
-                            invItem.currSlot = newSlot;
+                            item.currSlot = newSlot;
+
+                            //Moving of item from inventory array to armor array
                             List<Item> newInventory = inventory.ToList();
                             List<Item> newArmor = armor.ToList();
-                            newArmor.Add(invItem);
-                            newInventory.Remove(invItem);
+                            newArmor.Add(item);
+                            newInventory.Remove(item);
                             inventory = newInventory.ToArray();
                             armor = newArmor.ToArray();
                         }
@@ -285,160 +267,101 @@ public class ServerInventoryTool : MonoBehaviour
                 }
             }
         }
-
-
-        ItemArmorArrays result = new ItemArmorArrays();
-        result.items = inventory;
-        result.armor = armor;
-        return result;
+        return CreateItemArmorArray(inventory, armor);
     }
 
 
-
+    
 
     //-----------------------------------------------------------------//
     //                      BIG INVENTORY TASKS                        //
     //-----------------------------------------------------------------//
-    
+
     //Add Item To Inventory
-    private Item[] AddItemToInventoryTask(Item item, Item[] inventory, Action<bool> callback) 
+    private Item[] AddItemToInventoryTask(Item item, Item[] inventory, Action<bool> callback)
     {
-        bool isPlaced = false;
-        List<Item> items = new List<Item>();
-        if(inventory != null) 
+        int inventoryLength = inventory.Length;
+        if(inventory != null && inventoryLength > 0) //Inventory has Items, can we stack?
         {
-            items = inventory.ToList();
-        }
-        if (item.showInInventory)
-        {
-            if (items.Count == 0)
+            Item[] tempItems = inventory;
+            for (int i = 0; i < inventoryLength; i++)
             {
-                item.currSlot = 44;
-                items.Add(item);
-                isPlaced = true;
-            }
-            else if (item.maxItemStack > 1)
-            {
-                foreach (Item stored in items)
+                if (item.itemStack == 0) break;
+                if(inventory[i].itemID == item.itemID) //Same Item Exists 
                 {
-                    if (!isPlaced)
+                    ItemData itemData = ItemDataManager.Singleton.GetItemData(item.itemID);
+                    int stackRoom = itemData.maxItemStack - inventory[i].itemStack;
+                    if(stackRoom > 0) //Room to stack on this item
                     {
-                        if (stored.itemID == item.itemID)
+                        if (item.itemStack <= stackRoom)
                         {
-                            int stack = stored.maxItemStack - stored.itemStack;
-                            if (stack != 0)
-                            {
-                                if (item.itemStack <= stack)
-                                {
-                                    stored.itemStack += item.itemStack;
-                                    isPlaced = true;
-                                    break;
-                                }
-                                else if (item.itemStack > stack && items.Count < space)
-                                {
-                                    stored.itemStack += stack;
-                                    item.itemStack -= stack;
-                                    item.currSlot = 44;
-                                    items.Add(item);
-                                    isPlaced = true;
-                                    break;
-                                }
-                            }
+                            inventory[i].itemStack += item.itemStack;
+                            return inventory;
+                        }
+                        else
+                        {
+                            tempItems[i].itemStack += stackRoom;
+                            item.itemStack -= stackRoom;
                         }
                     }
                 }
-                if (!isPlaced && items.Count < space)
-                {
-                    item.currSlot = 44;
-                    items.Add(item);
-                    isPlaced = true;
-                }
             }
-            else if (items.Count < space)
+            if (inventoryLength < space && item.itemStack != 0)
             {
                 item.currSlot = 44;
-                items.Add(item);
-                isPlaced = true;
+                List<Item> tempList = tempItems.ToList();
+                tempList.Add(item);
+                return tempItems.ToArray();
             }
-            else
+            else if(item.itemStack != 0) 
             {
-                isPlaced = false;
-            }
-        }
-        callback(isPlaced);
-        return items.ToArray();
-    }
-    
-    //Sort Item Slots in Inventory
-    private Item[] SortItemSlotsInInventory(Item[] inventory) 
-    {
-        if(inventory == null) 
-        {
-            return null;
-        }
-        List<Item> unassigned = new List<Item>();
-        List<int> assigned = new List<int>();
-        List<Item> newInventory = new List<Item>();
-
-        foreach(Item item in inventory) 
-        {
-            if(item.currSlot == 44 || item.currSlot == 0) 
-            {
-                unassigned.Add(item);
+                return inventory;
             }
             else 
             {
-                assigned.Add(item.currSlot);
-                newInventory.Add(item);
+                return tempItems;
             }
         }
-        for (int i = 0; i < space; i++)
+        else // Item is Empty, just throw it in
         {
-            int slot = i + 1;
-            if(!assigned.Contains(slot) && unassigned.Count > 0) 
-            {
-                Item item = unassigned.First();
-                item.currSlot = slot;
-                assigned.Add(slot);
-                newInventory.Add(item);
-                unassigned.Remove(item);
-            }
+            item.currSlot = 44; // Slot 44 - Auto-Sort
+            inventory = new Item[1];
+            inventory[0] = item;
+            return inventory;
         }
-        return newInventory.ToArray();
     }
-    
-    //Remove Item From Inventory
-    private Item[] RemoveItemFromInventoryTask(int id, int amount, Item[] inventory)
+
+    //Sort Item Slots in Inventory
+    private Item[] SortItemSlotsInInventory(Item[] inventory)
     {
-        foreach (Item item in inventory) 
+        if(inventory != null) 
         {
-            if(item.itemID == id) 
-            {
-                if (item.itemStack > amount) //More than enough items 
-                {
-                    item.itemStack -= amount;
-                    amount = 0;
-                }
-                else if(item.itemStack == amount) //Just enough items
-                {
-                    item.itemStack = 0;
-                    amount = 0;
-                }
-                else if(item.itemStack < amount) //Not enough items
-                {
-                    item.itemStack = 0;
-                    amount -= item.itemStack;
-                }
-            }
-        }
-        if(amount == 0) 
-        {
+            List<Item> unassigned = new List<Item>();
+            List<int> assigned = new List<int>();
             List<Item> newInventory = new List<Item>();
+
             foreach (Item item in inventory)
             {
-                if (item.itemStack != 0) 
+                if (item.currSlot == 44 || item.currSlot == 0)
                 {
-                    newInventory.Add(item);    
+                    unassigned.Add(item);
+                }
+                else
+                {
+                    assigned.Add(item.currSlot);
+                    newInventory.Add(item);
+                }
+            }
+            for (int i = 0; i < space; i++)
+            {
+                int slot = i + 1;
+                if (!assigned.Contains(slot) && unassigned.Count > 0)
+                {
+                    Item item = unassigned.First();
+                    item.currSlot = slot;
+                    assigned.Add(slot);
+                    newInventory.Add(item);
+                    unassigned.Remove(item);
                 }
             }
             return newInventory.ToArray();
@@ -449,18 +372,58 @@ public class ServerInventoryTool : MonoBehaviour
         }
     }
 
-
+    //Remove Item From Inventory
+    private Item[] RemoveItemFromInventoryTask(int id, int amount, Item[] inventory)
+    {
+        foreach (Item item in inventory)
+        {
+            if (item.itemID == id)
+            {
+                if (item.itemStack > amount) //More than enough items 
+                {
+                    item.itemStack -= amount;
+                    amount = 0;
+                }
+                else if (item.itemStack == amount) //Just enough items
+                {
+                    item.itemStack = 0;
+                    amount = 0;
+                }
+                else if (item.itemStack < amount) //Not enough items
+                {
+                    item.itemStack = 0;
+                    amount -= item.itemStack;
+                }
+            }
+        }
+        if (amount == 0)
+        {
+            List<Item> newInventory = new List<Item>();
+            foreach (Item item in inventory)
+            {
+                if (item.itemStack != 0)
+                {
+                    newInventory.Add(item);
+                }
+            }
+            return newInventory.ToArray();
+        }
+        else
+        {
+            return null;
+        }
+    }
 
 
     //-----------------------------------------------------------------//
     //                      CRAFTING FUNCTIONS                         //
     //-----------------------------------------------------------------//
 
-    public Item GetItemBySlot(Item[] inventory, int slot) 
+    public Item GetItemBySlot(Item[] inventory, int slot)
     {
         foreach (Item item in inventory)
         {
-            if(item.currSlot == slot) 
+            if (item.currSlot == slot)
             {
                 return item;
             }
@@ -468,47 +431,32 @@ public class ServerInventoryTool : MonoBehaviour
         return null;
     }
 
-    public ItemData GetItemDataById(int itemId) 
+    public bool SlotBelongsToItems(int slot)
     {
-        GatherAllItemDatas();
-        foreach (ItemData data in itemDatas)
-        {
-            if(data.itemID == itemId) 
-            {
-                return data;
-            }
-        }
-        return null;
-    }
- 
-    public bool SlotBelongsToItems(int slot) 
-    {
-        if(slot > 0 && slot < 34)
+        if (slot > 0 && slot < 34)
         {
             return true;
         }
         return false;
     }
- 
+
     public bool SlotBelongsToArmor(int slot)
     {
-        if(slot > 33 && slot < 48) 
-        {
-            return true; 
-        }
-        return false;
-    }
-    
-    public bool SlotBelonsToStorage(int slot)
-    {
-        if(slot > 49) 
+        if (slot > 33 && slot < 48)
         {
             return true;
         }
         return false;
     }
 
-
+    public bool SlotBelonsToStorage(int slot)
+    {
+        if (slot > 49)
+        {
+            return true;
+        }
+        return false;
+    }
 
 
     //-----------------------------------------------------------------//
@@ -516,9 +464,9 @@ public class ServerInventoryTool : MonoBehaviour
     //-----------------------------------------------------------------//
 
     //Initiate Craft Sequence
-    public Item[] CraftItem(Item[] inventory, int itemId, int amount) 
+    public Item[] CraftItem(Item[] inventory, int itemId, int amount)
     {
-        ItemData craftItem = GetItemDataById(itemId);
+        ItemData craftItem = ItemDataManager.Singleton.GetItemData(itemId);
         if (HasRecipe(craftItem.recipe, inventory) && CanAddItem(amount * craftItem.craftAmount, itemId, inventory))
         {
             inventory = AddNewItemToInventory(inventory, craftItem, amount, returnValue => { });
@@ -593,17 +541,12 @@ public class ServerInventoryTool : MonoBehaviour
     //Create Item from Item Data
     public Item CreateItemFromData(ItemData itemData, int amount)
     {
-        Item item = new Item();
-        item.itemID = itemData.itemID;
-        item.itemStack = amount;
-        item.maxItemStack = itemData.maxItemStack;
-        item.currSlot = 44;
-        item.armorType = itemData.armorType;
-        item.isPlaceable = itemData.isPlaceable;
-        item.isCraftable = itemData.isCraftable;
-        item.isHoldable = itemData.isHoldable;
-        item.isArmor = itemData.isArmor;
-        item.showInInventory = itemData.showInInventory;
+        Item item = new Item() 
+        {
+            itemID = itemData.itemID,
+            itemStack = amount,
+            currSlot = 44
+        };
         if (itemData.startMaxDurability)
         {
             item.durability = itemData.maxDurability;
@@ -620,23 +563,27 @@ public class ServerInventoryTool : MonoBehaviour
     //Remove Items by Recipe
     public Item[] RemoveItemsByRecipe(string[] recipe, int amount, Item[] inventory)
     {
-        GatherAllItemDatas();
         foreach (string recipeItem in recipe)
         {
             string[] recipeData = recipeItem.Split('-');
-            int itemId = Convert.ToInt32(recipeData[0]);
-            int itemAmount = Convert.ToInt32(recipeData[1]);
-
-            foreach (ItemData itemData in itemDatas)
-            {
-                if (itemData.itemID == itemId)
-                {
-                    inventory = RemoveItemFromInventoryTask(itemData.itemID, itemAmount * amount, inventory);
-                    break;
-                }
-            }
+            int r_itemId = Convert.ToInt32(recipeData[0]);
+            int r_amount = Convert.ToInt32(recipeData[1]);
+            inventory = RemoveItemFromInventoryTask(r_itemId, r_amount * amount, inventory);
         }
         return inventory;
+    }
+
+
+    //-----------------------------------------------------------------//
+    //                      STANDARD DATA TOOLS                        //
+    //-----------------------------------------------------------------//
+    private ItemArmorArrays CreateItemArmorArray(Item[] inventory, Item[] armor)
+    {
+        return new ItemArmorArrays()
+        {
+            items = inventory,
+            armor = armor
+        };
     }
 
 }

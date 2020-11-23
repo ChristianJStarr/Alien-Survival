@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityStandardAssets.Characters.FirstPerson;
 using TMPro;
 using MLAPI;
 using UnityEngine.Rendering;
@@ -49,10 +48,7 @@ public class LoadAwake : MonoBehaviour
             {
                 controls = GetComponent<ControlControl>();
             }
-            if (animator == null)
-            {
-                animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
-            }
+            
             if (image == null)
             {
                 image = loadScreen.GetComponent<Image>();
@@ -64,7 +60,10 @@ public class LoadAwake : MonoBehaviour
             text2Target = 0.0f;
             Cursor.visible = true;
             sleeping = true;
-            animator.SetTrigger("Sleep");
+            if (CheckPlayerAnimator())
+            {
+                animator.SetTrigger("Sleep");
+            }
         }
     }
 
@@ -90,11 +89,10 @@ public class LoadAwake : MonoBehaviour
         if (readyToWake)
         {
             FadeOut();
-            if (animator == null)
+            if (CheckPlayerAnimator())
             {
-                animator = FindObjectOfType<FirstPersonController>().GetComponent<Animator>();
+                animator.SetTrigger("Wake");
             }
-            animator.SetTrigger("Wake");
         }
     }
 
@@ -172,5 +170,25 @@ public class LoadAwake : MonoBehaviour
                 loadScreenText2.enabled = false;
             }
         }
+    }
+
+    //Check if Animator Exists / Grabs Animator from PlayerObject
+    private bool CheckPlayerAnimator() 
+    {
+        if (animator == null) 
+        {
+            if (NetworkingManager.Singleton != null)
+            {
+                NetworkedObject playerObject = NetworkingManager.Singleton.ConnectedClients[NetworkingManager.Singleton.LocalClientId].PlayerObject;
+                if (playerObject != null)
+                {
+                    animator = playerObject.GetComponent<Animator>();
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+        return true;
     }
 }

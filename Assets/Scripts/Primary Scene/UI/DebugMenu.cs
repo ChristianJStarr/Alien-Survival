@@ -73,16 +73,12 @@ public class DebugMenu : MonoBehaviour
 
     private void UpdateItems() 
     {
-        ItemData[] itemDatas = InvUI.GetAllItemDatas();
-        if(itemDatas != null) 
+        foreach (ItemData item in ItemDataManager.Singleton.ItemData)
         {
-            foreach (ItemData item in itemDatas)
-            {
-                DebugMenuSlide slide = Instantiate(playerListPefab, itemListContainer).GetComponent<DebugMenuSlide>();
-                slide.UpdateValues(item.name, item.itemID, this);
-                slide.isItem = true;
-                items.Add(slide);
-            }
+            DebugMenuSlide slide = Instantiate(playerListPefab, itemListContainer).GetComponent<DebugMenuSlide>();
+            slide.UpdateValues(item.name, item.itemID, this);
+            slide.isItem = true;
+            items.Add(slide);
         }
     }
 

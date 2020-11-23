@@ -6,21 +6,17 @@ using System.Collections;
 
 public class PingCounter : MonoBehaviour
 {
-    public float refresh = 20;
-    private int timer, avgPing;
     public TextMeshProUGUI countText;
     public Settings settings;
     private bool showPing = false;
     private GameServer gameServer;
-    private ulong clientId;
     public GameObject toggleObject;
-
+    private int ping = 0;
 
     private void Start()
     {
         if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
         {
-            clientId = NetworkingManager.Singleton.LocalClientId;
             gameServer = GameServer.singleton;
             Change();
             StartCoroutine(UpdateLoop());
@@ -53,26 +49,20 @@ public class PingCounter : MonoBehaviour
         {
             if (showPing) 
             {
-                gameServer.GetPlayerPing(clientId, returnValue =>
+                ping = gameServer.GetPlayerPing();
+                countText.text = ping + " MS";
+                if (ping < 101)
                 {
-                    if (returnValue < 0) { returnValue = 0; }
-                    avgPing += returnValue;
-                    timer++;
-                    returnValue = (avgPing / timer);
-                    countText.text = returnValue + " MS";
-                    if (returnValue < 101)
-                    {
-                        ChangePingIconColor(Color.white);
-                    }
-                    else if (returnValue > 100 && returnValue < 181)
-                    {
-                        ChangePingIconColor(Color.yellow);
-                    }
-                    else if (returnValue > 180)
-                    {
-                        ChangePingIconColor(new Color32(224, 40, 40, 255));
-                    }
-                });
+                    ChangePingIconColor(Color.white);
+                }
+                else if (ping > 100 && ping < 181)
+                {
+                    ChangePingIconColor(Color.yellow);
+                }
+                else if (ping > 180)
+                {
+                    ChangePingIconColor(new Color32(224, 40, 40, 255));
+                }
             }
             yield return new WaitForSeconds(1F);
         }

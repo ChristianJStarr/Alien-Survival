@@ -7,6 +7,10 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class LocalSoundManager : NetworkedBehaviour
 {
     //The Local Sound Manger
@@ -25,13 +29,27 @@ public class LocalSoundManager : NetworkedBehaviour
     private Queue<AudioSource> pool;
 
     //Server Distance Dictionary
-    private Dictionary<string, int> distanceDict = new Dictionary<string, int>();
-
-    //Last AudioClip
-    private LocalSoundEffect lastEffect;
+    [SerializeField]
+    private Dictionary<string, LocalSoundEffect> effects = new Dictionary<string, LocalSoundEffect>();
     
     //NetworkingManager
     private NetworkingManager networkingManager;
+
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:LocalSoundEffect", new[] { "Assets/Content/LocalSoundEffects" });
+        int count = guids.Length;
+        if (effects.Count == count) return;
+        for (int n = 0; n < count; n++)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guids[n]);
+            LocalSoundEffect effect = AssetDatabase.LoadAssetAtPath<LocalSoundEffect>(path);
+            effects.Add(effect.name, effect);
+        }
+    }
+#endif
 
 
     void Awake()
@@ -63,7 +81,6 @@ public class LocalSoundManager : NetworkedBehaviour
         averageSum += currentUsed;
         average = averageSum / averageTimes;
 
-        DebugMsg.Notify("LocalAudio Instances, CURRENT:" + currentUsed + " MAX:" + maxUsed + " AVERAGE:" + average, 3);
         return go.AddComponent<AudioSource>();
     }
 
@@ -90,24 +107,17 @@ public class LocalSoundManager : NetworkedBehaviour
             {
                 using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
                 {
-                    writer.WriteVector3Packed(location);
-                    writer.WriteStringPacked(soundName);
-                    int distance = 0;
-                    
-                    if(distanceDict.Count > 0 && distanceDict.ContainsKey(soundName)) 
+                    if (effects.ContainsKey(soundName)) 
                     {
-                        distance = distanceDict[soundName];
-                    }
-                    else 
-                    {
-                        distance = (Resources.Load<LocalSoundEffect>("Sounds/" + soundName)).distance;
-                        distanceDict.Add(soundName, distance);
-                    }
-                    foreach (ulong client in networkingManager.ConnectedClients.Keys.ToArray())
-                    {
-                        if (excludeClient == 0 && client != excludeClient && Vector3.Distance(location, networkingManager.ConnectedClients[client].PlayerObject.transform.position) < distance)
+                        int distance = effects[soundName].distance;
+                        writer.WriteVector3Packed(location);
+                        writer.WriteStringPacked(soundName);
+                        foreach (ulong client in networkingManager.ConnectedClients.Keys.ToArray())
                         {
-                            InvokeClientRpcOnClientPerformance(Client_SoundCatch, client, writeStream);
+                            if (excludeClient == 0 && client != excludeClient && Vector3.Distance(location, networkingManager.ConnectedClients[client].PlayerObject.transform.position) < distance)
+                            {
+                                InvokeClientRpcOnClientPerformance(Client_SoundCatch, client, writeStream);
+                            }
                         }
                     }
                 }
@@ -160,18 +170,9 @@ public class LocalSoundManager : NetworkedBehaviour
         {
             source.transform.position = location;
             string clipName = soundName;
-            LocalSoundEffect soundEffect = null;
-            if (lastEffect != null && lastEffect.name == clipName)
+            if(effects.ContainsKey(clipName))
             {
-                soundEffect = lastEffect;
-            }
-            else
-            {
-                soundEffect = Resources.Load<LocalSoundEffect>("Sounds/" + clipName);
-            }
-            if (soundEffect != null)
-            {
-                AudioClip clip = null;
+                LocalSoundEffect soundEffect = effects[clipName];
                 source.maxDistance = soundEffect.distance;
                 if (soundEffect.audioClips.Length > 1)
                 {
@@ -185,17 +186,13 @@ public class LocalSoundManager : NetworkedBehaviour
                         }
                     }
                     soundEffect.lastPlayedIndex = random;
-                    clip = soundEffect.audioClips[random];
+                    source.PlayOneShot(soundEffect.audioClips[random], soundEffect.volume);
+                    StartCoroutine(WaitForFinish(source, soundEffect.audioClips[random].length));
                 }
-                else
+                else // Only 1 Sound Effect
                 {
-                    clip = soundEffect.audioClips[0];
-                }
-                if (clip != null)
-                {
-                    source.PlayOneShot(clip, soundEffect.volume);
-                    StartCoroutine(WaitForFinish(source, clip.length));
-                    return;
+                    source.PlayOneShot(soundEffect.audioClips[0], soundEffect.volume);
+                    StartCoroutine(WaitForFinish(source, soundEffect.audioClips[0].length));
                 }
             }
         }
@@ -224,7 +221,5 @@ public class LocalSoundManager : NetworkedBehaviour
             currentUsed--;
         }
     }
-
-
 
 }

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityStandardAssets.Characters.FirstPerson;
 using TMPro;
 using System.Linq;
 using System.Collections.Generic;
@@ -19,7 +18,6 @@ public class InventoryGfx : MonoBehaviour
     public Item toolTipItem;
     public ItemSlot[] itemSlots, armorSlots, storageCrateSlots;
     public bool invOpen = false;
-    FirstPersonController fps;
     CraftingMenu craftingMenu;
     Transform[] holds;
 
@@ -28,7 +26,6 @@ public class InventoryGfx : MonoBehaviour
     private Item[] items;
     private Item[] armor;
     private int[] blueprints;
-    private ItemData[] allItems;
 
 
     //Inventory UI Slide Menus
@@ -58,7 +55,6 @@ public class InventoryGfx : MonoBehaviour
     private void Start()
     {
         normalIcon = buttonIcon.sprite;
-        allItems = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
         craftingMenu = GetComponent<CraftingMenu>();
         ItemSlot[] itemSlotsTemp = itemsParent.GetComponentsInChildren<ItemSlot>(true);
         List<ItemSlot> hotBarSlotsTemp = hotBarParent.GetComponentsInChildren<ItemSlot>(true).ToList();
@@ -317,7 +313,7 @@ public class InventoryGfx : MonoBehaviour
         {
             toolTipHandler.gameObject.SetActive(true);
         }
-        toolTipHandler.SetData(InvUI.FindItemDataById(item.itemID), item);
+        toolTipHandler.SetData(ItemDataManager.Singleton.GetItemData(item.itemID), item);
     }
 
     //Select a slot
@@ -460,10 +456,10 @@ public class InventoryGfx : MonoBehaviour
     //Update UI Storage Crate
     private void UpdateStorageCrateUI(Item[] datas)
     {
-        InvUI.ClearSlots(storageCrateSlots);
+        ClientInventoryTool.ClearSlots(storageCrateSlots);
         if (datas != null)
         {
-            InvUI.SortSlots(datas, storageCrateSlots);
+            ClientInventoryTool.SortSlots(datas, storageCrateSlots);
         }
     }
 
@@ -483,17 +479,17 @@ public class InventoryGfx : MonoBehaviour
     private void UpdateUI()
     {
         //Inventory Slots
-        InvUI.ClearSlots(itemSlots);
+        ClientInventoryTool.ClearSlots(itemSlots);
         if (items != null)
         {
-            InvUI.SortSlots(items, itemSlots);
+            ClientInventoryTool.SortSlots(items, itemSlots);
         }
 
         //Armor Slots
-        InvUI.ClearSlots(armorSlots);
+        ClientInventoryTool.ClearSlots(armorSlots);
         if (armor != null) 
         {
-            InvUI.SortSlots(armor, armorSlots);
+            ClientInventoryTool.SortSlots(armor, armorSlots);
         }
     }
 
@@ -509,10 +505,8 @@ public class InventoryGfx : MonoBehaviour
 }
 
 
-public class InvUI
+public class ClientInventoryTool
 {
-    private static ItemData[] itemDatas;
-
     //TOOL: Sort Slots
     public static void SortSlots(Item[] items, ItemSlot[] slots)
     {
@@ -522,7 +516,7 @@ public class InvUI
             {
                 if (item.currSlot == slot.slotNumber)
                 {
-                    ItemData data = FindItemDataById(item.itemID);
+                    ItemData data = ItemDataManager.Singleton.GetItemData(item.itemID);
                     if (data != null)
                     {
                         slot.AddItem(item, data);
@@ -532,61 +526,6 @@ public class InvUI
             }
         }
     }
-
-
-    //TOOL: Get Item Data from ID
-    public static ItemData FindItemDataById(int id)
-    {
-        if (CheckItemDataList())
-        {
-            ItemData itemData = null;
-            foreach (ItemData data in itemDatas)
-            {
-                if (data.itemID == id)
-                {
-                    itemData = data;
-                    break;
-                }
-            }
-            return itemData;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    //TOOL: Get All Item Datas
-    public static ItemData[] GetAllItemDatas() 
-    {
-        if (CheckItemDataList())
-        {
-            return itemDatas;
-        }
-        return null;
-    }
-
-    //Check and Initialize Item Data List
-    private static bool CheckItemDataList() 
-    {
-        if (itemDatas == null)
-        {
-            itemDatas = Resources.LoadAll("Items", typeof(ItemData)).Cast<ItemData>().ToArray();
-            if(itemDatas != null) 
-            {
-                return true;
-            }
-            else 
-            {
-                return false;
-            }
-        }
-        else 
-        {
-            return true;
-        }
-    }
-
 
     //TOOL: Clear Slots
     public static void ClearSlots(ItemSlot[] slots) 
@@ -602,14 +541,6 @@ public class InvUI
 
 }
 
-
-
-
-
-
-/// <summary>
-/// *
-/// </summary>
 
 public class UIData 
 {

@@ -34,119 +34,54 @@ public class ServerConnect : MonoBehaviour
     public GameObject serverCamera;
 
 
-    public bool devServer = false; //If development Server
-    private ServerProperties storedProperties; //Stored Server Properties
-    [SerializeField]
-    private string storedIp = "";
+    public bool autoConnect = true;
+    public string autoConnectIp = "10.0.0.211";
+    public ushort autoConnectPort = 5055;
 
-    private string command = "";
-    int am = 1;
+
+    private ServerProperties storedProperties; //Stored Server Properties
+
 
     private void Start()
     {
+        DontDestroyOnLoad(gameObject);
         networkManager = NetworkingManager.Singleton;
-        DontDestroyOnLoad(this.gameObject);
-#if UNITY_SERVER
+        if (networkManager == null) return;
+
+
+        #if UNITY_SERVER
         if(networkManager != null)
         {
             StartServer();    
         }
-#endif
-#if UNITY_EDITOR
+        #endif
+        
+        #if UNITY_EDITOR
         string[] data = Application.dataPath.Split('/');
-        if (data[data.Length - 2].Contains("clone")) 
+        if (data[data.Length - 2].Contains("clone"))
         {
-            Application.targetFrameRate = 15;
+            Application.targetFrameRate = 20;
             StartServer();
+        }
+        else if (autoConnect == true) 
+        {
+            networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
+            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = autoConnectIp;
+            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)autoConnectPort;
+            networkManager.OnClientConnectedCallback += PlayerConnected_Player;
+            networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
+            networkManager.StartClient();
         }
         #endif
     }
-
-
-
-
-    //Server Commands
-    public void CommandUpdated()
-    {
-        command = serverCommand.text;
-    }
-    public void SendCommand()
-    {
-        if (command.StartsWith("/"))
-        {
-            serverCommand.text = "";
-            string[] coms = command.Split(null);
-            if (coms.Length > 1)
-            {
-                string newCommand = coms[0].Trim('/');
-                string var1 = coms[1];
-                string var2 = coms[2];
-                if (newCommand == "teleport")
-                {
-                    if (var1.Length > 0 && var2.Length > 0)
-                    {
-                        gameServer.Server_Teleport(var1, var2);
-                    }
-                    else
-                    {
-                        DebugMsg.Notify("Please Specify, '/teleport <player> <target>", 1);
-                    }
-                }
-                else { DebugMsg.Notify("Command Not Recognized. Try /Help for a list of commands.", 1); }
-            }
-            else
-            {
-                string newCommand = coms[0].Trim('/');
-
-                if (newCommand == "Stop") { StopServer(); }
-                else { DebugMsg.Notify("Command Not Recognized. Try /Help for a list of commands.", 1); }
-            }
-        }
-        else
-        {
-            DebugMsg.Notify("Command Not Recognized. Try /Help for a list of commands.", 1);
-        }
-    }
-
-
 
     //-----------------------------------------------------------------//
     //                       Client Side Connect                       //
     //-----------------------------------------------------------------//
 
-    //Request Ping
-    public void RequestPing(Action<int> callback)
-    {
-        StartCoroutine(StartPing(returnValue => { callback(returnValue); }));
-    }
-    //Request Ping Wait
-    private IEnumerator StartPing(Action<int> callback)
-    {
-        int count = 0;
-        int pingTime = 1;
-        WaitForSeconds f = new WaitForSeconds(0.05F);
-        Ping ping = new Ping(storedIp);
-        while (!ping.isDone)
-        {
-            if (count >= 10)
-            {
-                pingTime = 0;
-                break;
-            }
-            count++;
-            yield return f;
-        }
-        if (pingTime != 0)
-        {
-            pingTime = ping.time;
-        }
-        callback(pingTime);
-    }
-
     //Client: Connect to Server
     public void ConnectToServer(string ip, ushort port)
     {
-        storedIp = ip;
         if (mainMenu == null)
         {
             mainMenu = FindObjectOfType<MainMenuScript>();
@@ -240,18 +175,10 @@ public class ServerConnect : MonoBehaviour
     //                       Server Side Connect                       //
     //-----------------------------------------------------------------//
 
-    private void ConsoleLogMessage(string message, string stack, LogType type) 
-    {
-        serverConsole.text += message + "\n";
-    }
 
     //Server: Start Server
     public void StartServer()
     {
-        //serverCamera.SetActive(true);
-        //serverUI.SetActive(true);
-        //Application.logMessageReceived += ConsoleLogMessage;
-
         gameServer = GameServer.singleton;
         storedProperties = new ServerProperties();
         if (GetServerSettings()) 
@@ -277,7 +204,7 @@ public class ServerConnect : MonoBehaviour
     {
         DebugMsg.Notify("Stopping the Server...", 1);
         UpdateServerList(false);
-        GameServer.singleton.StopGameServer();
+        gameServer.StopGameServer();
     }
     
     //Approval Check
@@ -380,7 +307,6 @@ public class ServerConnect : MonoBehaviour
         }
         StartCoroutine(ServerListLoop());
     }
-
 
     //Callback: Player Conencted
     private void PlayerConnected_Server(ulong clientId)
