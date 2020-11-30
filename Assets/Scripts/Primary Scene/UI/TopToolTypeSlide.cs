@@ -4,38 +4,42 @@ using UnityEngine.UI;
 
 public class TopToolTypeSlide : MonoBehaviour
 {
-    public Image background;
-    public TextMeshProUGUI typeText;
+    public Image background; // slide bkg
+    public TextMeshProUGUI typeText; // slide text
 
+    //Colors
+    Color32 color_blue = new Color32(116, 243, 227, 136);
+    Color32 color_orange = new Color32(243, 194, 116, 136);
+    Color32 color_red = new Color32(243, 126, 116, 136);
+
+    //Update this slides Type
     public void UpdateType(int type, int amount) 
     {
-        string prefix = "";
-        string typeName = "";
-        if(type == 1) 
+        if (type == 1)
         {
-            typeName = " Water";
-            prefix = "+";
-            background.color = new Color32(116, 243, 227, 136);
+            SetValues("+", " Water", amount);
+            background.color = color_blue;
         }
-        if (type == 2)
+        else if (type == 2)
         {
-            typeName = " Food";
-            prefix = "+";
-            background.color = new Color32(243, 194, 116, 136);
+            SetValues("+", " Food", amount);
+            background.color = color_orange;
         }
-        if (type == 3)
+        else if (type == 3)
         {
-            typeName = " Health";
-            prefix = "+";
-            background.color = new Color32(243, 126, 116, 136);
+            SetValues("+", " Health", amount);
+            background.color = color_red;
         }
-        if (type == 4)
+        else if (type == 4)
         {
-            typeName = " Health";
-            background.color = new Color32(243, 126, 116, 136);
-            prefix = "-";
+            SetValues("-", " Health", amount);
+            background.color = color_red;
         }
+    }
 
-        typeText.text = prefix + amount.ToString() + typeName;
+    //Set values to type text.
+    private void SetValues(string prefix, string name, float amount) 
+    {
+        typeText.text = prefix + amount + name;
     }
 }

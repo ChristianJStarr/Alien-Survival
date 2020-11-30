@@ -11845,7 +11845,6 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194230}
-  - component: {fileID: 963194231}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -11961,18 +11960,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!114 &963194231
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6a10132dc5987b49b30db04986036e6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &964170660 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1972221999933635828, guid: 02734ab48eebca5469b4c62ab72931b9,
@@ -12348,10 +12335,12 @@ MonoBehaviour:
     Type: 7
   - Name: UnSpeed
     Type: 1
-  - Name: AIMovement
-    Type: 0
   - Name: PlayerCommand
     Type: 6
+  - Name: Snapshot_Full
+    Type: 7
+  - Name: Snapshot_Mini
+    Type: 7
   TransportBufferSize: 8192
   LogLevel: 1
   EnableSyncronizationEvent: 0
@@ -12403,7 +12392,7 @@ MonoBehaviour:
   ReliabilityResendRoundtripMultiplier: 1.2
   ReliabilityMinPacketResendDelay: 100
   ReliabilityMinAckResendDelay: 100
-  UseSimulator: 1
+  UseSimulator: 0
   DropPercentage: 0.1
   MaxLatency: 180
   MinLatency: 30
@@ -12426,7 +12415,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DontDestroy: 1
   RunInBackground: 1
-  LogLevel: 1
+  LogLevel: 3
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 1011803584}
@@ -12438,7 +12427,7 @@ MonoBehaviour:
     - Prefab: {fileID: 3807543680349778164, guid: 46348e5eb4973f447ad770f39e216cc4,
         type: 3}
       PlayerPrefab: 1
-    - Prefab: {fileID: 4680423265421290724, guid: 491e505b0aacc2e4cbf64df2fecf3522,
+    - Prefab: {fileID: 2556272531670792622, guid: 8192ef138f5324f4dbeefd07eaa94b1b,
         type: 3}
       PlayerPrefab: 0
     - Prefab: {fileID: 2556272531670792622, guid: 16890219965a83d48a1aae4097add1a6,
@@ -12455,8 +12444,8 @@ MonoBehaviour:
     ConnectionApproval: 1
     ConnectionData: 
     SecondsHistory: 5
-    EnableTimeResync: 0
-    TimeResyncInterval: 30
+    EnableTimeResync: 1
+    TimeResyncInterval: 60
     EnableNetworkedVar: 1
     EnsureNetworkedVarLengthSafety: 0
     EnableSceneManagement: 1

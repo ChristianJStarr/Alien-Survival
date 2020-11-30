@@ -27,8 +27,8 @@ MonoBehaviour:
   maxDurability: 1000
   durabilityId: 0
   holdableId: 1
-  name: Axe
-  description: This is an Axe
+  itemName: Axe
+  description: This is aAxe.
   recipe:
   - 37-1
   useSound: 

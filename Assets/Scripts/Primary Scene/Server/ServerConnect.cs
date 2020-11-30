@@ -218,7 +218,7 @@ public class ServerConnect : MonoBehaviour
         string authKey = connectDataSplit[1].ToString();
         string username = connectDataSplit[2].ToString();
         GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-        Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
+        Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length - 1)].transform.position;
         //Check if player has stored PlayerInfo
 
         if (gameServer.MovePlayerToActive(clientId, userId, authKey))
@@ -232,7 +232,7 @@ public class ServerConnect : MonoBehaviour
         {
             PlayerInfo newPlayer = new PlayerInfo
             {
-                name = username,
+                username = username,
                 authKey = authKey,
                 id = userId,
                 health = 100,
@@ -285,7 +285,7 @@ public class ServerConnect : MonoBehaviour
             {
                 if (returnValue)
                 {
-                    DebugMsg.Notify("Updated Server List.", 2);
+                    DebugMsg.Notify("Updated Server List.", 4);
                 }
             });
         }
@@ -301,7 +301,7 @@ public class ServerConnect : MonoBehaviour
             {
                 if (onRequestFinished) 
                 {
-                    DebugMsg.Notify("Updated Server List.", 2);
+                    DebugMsg.Notify("Updated Server List.", 4);
                 }
             });
         }
@@ -338,11 +338,11 @@ public class ServerConnect : MonoBehaviour
             {
                 if (returnValue) 
                 {
-                    DebugMsg.Notify("Saving Player Statistics Successful.", 2);
+                    DebugMsg.Notify("Saving Player Statistics Successful.", 4);
                 }
                 else 
                 {
-                    DebugMsg.Notify("Failed Saving Player Statistics.", 1);
+                    DebugMsg.Notify("Failed Saving Player Statistics.", 4);
                 }
             });
         }
@@ -359,11 +359,11 @@ public class ServerConnect : MonoBehaviour
                 if (returnValue)
                 {
                     //Player Count updated successfully
-                    DebugMsg.Notify("Updating Server List, Player Count.", 1);
+                    DebugMsg.Notify("Updating Server List, Player Count.", 4);
                 }
                 else 
                 {
-                    DebugMsg.Notify("Updating Server List Failed", 1);
+                    DebugMsg.Notify("Updating Server List Failed", 4);
                 }
             });
         }

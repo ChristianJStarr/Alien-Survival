@@ -29,37 +29,6 @@ public class PlayerActionManager : MonoBehaviour
 
 
 
-    //-----------------------------------------------------------------//
-    //                   Interact With Item                            //
-    //-----------------------------------------------------------------//
-
-    //Interact with Something
-    public void PlayerInteract(Ray ray, int selectedSlot) 
-    {
-        gameServer.PlayerInteract(authKey, ray, selectedSlot);
-    }
-
-    //Callback if successful
-    public void PlayerInteractCallback(bool success) 
-    {
-        if (itemHandler == null)
-        {
-            itemHandler = FindObjectOfType<SelectedItemHandler>();
-        }
-        if (itemHandler != null)
-        {
-            itemHandler.SelectedReturn(success);
-        }
-    }
-
-    //Add to Durability (Reload)
-    public void ReloadToDurability(int slot)
-    {
-       // gameServer.ReloadToDurability(authKey, slot);
-    }
-
-
-
 
     //-----------------------------------------------------------------//
     //                   Player Requests                               //
@@ -69,10 +38,6 @@ public class PlayerActionManager : MonoBehaviour
     {
         gameServer.RequestToDisconnect(authKey);
     }
-
-
-
-
 
 
 

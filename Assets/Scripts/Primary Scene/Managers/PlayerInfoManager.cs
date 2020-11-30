@@ -27,23 +27,17 @@ public class PlayerInfoManager : MonoBehaviour
 
     private void Start()
     {
-        if(NetworkingManager.Singleton != null) 
+        if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient)
         {
-            if (NetworkingManager.Singleton.IsClient)
-            {
-                storedPlayerInfo = new PlayerInfo();
-                gameServer = GameServer.singleton;
-                clientId = NetworkingManager.Singleton.LocalClientId;
-                authKey = PlayerPrefs.GetString("authKey");
-                StartCoroutine(MainPlayerLoop());
-            }
+            storedPlayerInfo = new PlayerInfo();
+            gameServer = GameServer.singleton;
+            authKey = PlayerPrefs.GetString("authKey");
         }
         else 
         {
             DebugMsg.Notify("InfoManager : Networking Manager Null.", 1);
         }
     }
-
 
     //-------Update Inventory
     private void UpdatedInventory()
@@ -80,7 +74,6 @@ public class PlayerInfoManager : MonoBehaviour
         playerBackpack = backpack;
     }
 
-
     public void CloseInventory() 
     {
         inventory.CloseInventory();
@@ -93,17 +86,19 @@ public class PlayerInfoManager : MonoBehaviour
    
     public void UpdateAll(PlayerInfo info)
     {
+        if (storedPlayerInfo == null) return;
         storedPlayerInfo = info;
         UpdatedInventory();
         UpdatedTopbar();
         if (firstRequest && loadAwake != null)
         {
-            loadAwake.ReadyWake();
+            loadAwake.playerHasInfo = true;
             firstRequest = false;
         }
     }
     public void UpdateHealth(int health) 
     {
+        if (storedPlayerInfo == null) return;
         if (storedPlayerInfo.health > health)
         {
             if (playerBackpack != null)
@@ -123,26 +118,31 @@ public class PlayerInfoManager : MonoBehaviour
     }
     public void UpdateFood(int food) 
     {
+        if (storedPlayerInfo == null) return;
         storedPlayerInfo.food = food;
         UpdatedTopbar();
     }
     public void UpdateWater(int water) 
     {
+        if (storedPlayerInfo == null) return;
         storedPlayerInfo.water = water;
         UpdatedTopbar();
     }
     public void UpdateItems(Item[] items) 
     {
+        if (storedPlayerInfo == null) return;
         storedPlayerInfo.items = items;
         UpdatedInventory();
     }
     public void UpdateArmor(Item[] armor) 
     {
+        if (storedPlayerInfo == null) return;
         storedPlayerInfo.armor = armor;
         UpdatedInventory();
     }
     public void UpdateBlueprints(int[] blueprints) 
     {
+        if (storedPlayerInfo == null) return;
         storedPlayerInfo.blueprints = blueprints;
         UpdatedInventory();
     }
@@ -155,14 +155,6 @@ public class PlayerInfoManager : MonoBehaviour
     //-----------------------------------------------------------------//
 
 
-    //-------Set Player Location
-    public void SetPlayer_Location(Vector3 location) 
-    {
-        gameServer.SetPlayerLocation(authKey, location);
-    }
-
-    //-------INVENTORY
-
     //Move Item By Slots
     public void MoveItemBySlots(int oldSlot, int newSlot) 
     {
@@ -171,26 +163,18 @@ public class PlayerInfoManager : MonoBehaviour
     //Remove Item By Slot
     public void RemoveItemBySlot(int curSlot) 
     {
-        gameServer.RemovePlayerItemBySlot(clientId, authKey, curSlot);
+        gameServer.ClientRemoveItemBySlot(authKey, curSlot);
     }
     //Craft Item By Item
     public void CraftItemById(int itemId, int amount)
     {
-        gameServer.CraftItemById(clientId, authKey, itemId, amount);
+        gameServer.CraftItemById(authKey, itemId, amount);
     }
 
- 
-    //-----------------------------------------------------------------//
-    //                      Client Side Loops                          //
-    //-----------------------------------------------------------------//
-
-    //-------Main Player Loop
-    private IEnumerator MainPlayerLoop() 
+    //Split Item by Slot & Amount
+    public void SplitItemBySlot(int slot, int amount) 
     {
-        yield return new WaitForSeconds(2F);
-
-        //Restart Infinite Loop
-        StartCoroutine(MainPlayerLoop());
+        gameServer.ClientSplitItemBySlot(authKey, slot, amount);
     }
 
     

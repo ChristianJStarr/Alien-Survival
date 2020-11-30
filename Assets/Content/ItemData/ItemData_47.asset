@@ -15,15 +15,29 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 8e764bee3407df049a49ad8579cfbbbb, type: 3}
   itemID: 47
   craftAmount: 20
-  name: Thread
-  description: This is an Pipe
-  recipe:
-  - 36-4
   maxItemStack: 200
   armorType: 0
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: String
+  description: This is aString.
+  recipe:
+  - 36-4
+  useSound: 
+  hitSound: 
   isCraftable: 1
+  isPlaceable: 0
   isHoldable: 0
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}

@@ -141,13 +141,11 @@ public class TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         //Apply Speed
         if (acceleration)
         {
-            Vector2 speed = pointerDelta;
-            if (speed.x < 0) { speed.x *= -1; }
-            if (speed.y < 0) { speed.y *= -1; }
-            speed /= Time.deltaTime;
-            pointerDelta *= speed.normalized;
-            pointerDelta.x = Mathf.Clamp(pointerDelta.x, -10, 10);
-            pointerDelta.y = Mathf.Clamp(pointerDelta.y, -10, 10);
+            Vector2 pointerAbsolute = new Vector2(Mathf.Abs(pointerDelta.x), Mathf.Abs(pointerDelta.y));
+            pointerDelta *= pointerAbsolute;
+            pointerDelta *= tune;
+            pointerDelta.x = Mathf.Clamp(pointerDelta.x, -20, 20);
+            pointerDelta.y = Mathf.Clamp(pointerDelta.y, -20, 20);
         }
         //Update Axies
         UpdateVirtualAxes(new Vector3(pointerDelta.x, pointerDelta.y, 0));
@@ -160,19 +158,17 @@ public class TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         //Get Distance Traveled
         pointerDelta.x = Input.mousePosition.x - m_PreviousMouse.x;
         pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
-        tune = 12;
+        tune = .2F;
         //Apply Sensitivity
 
         //Apply Speed
         if (acceleration)
         {
-            Vector2 speed = pointerDelta;
-            if (speed.x < 0) { speed.x *= -1; }
-            if (speed.y < 0) { speed.y *= -1; }
-            speed /= Time.deltaTime;
-            pointerDelta *= speed.normalized;
-            pointerDelta.x = Mathf.Clamp(pointerDelta.x, -10, 10);
-            pointerDelta.y = Mathf.Clamp(pointerDelta.y, -10, 10);
+            Vector2 pointerAbsolute = new Vector2(Mathf.Abs(pointerDelta.x), Mathf.Abs(pointerDelta.y));
+            pointerDelta *= pointerAbsolute;
+            pointerDelta *= tune;
+            pointerDelta.x = Mathf.Clamp(pointerDelta.x, -20, 20);
+            pointerDelta.y = Mathf.Clamp(pointerDelta.y, -20, 20);
         }
         //Update Previous
         m_PreviousMouse = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f);
@@ -181,7 +177,4 @@ public class TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         UpdateVirtualAxes(new Vector3(pointerDelta.x, pointerDelta.y, 0));
 
     }
-
-    //GTP, Ghetto Touch Pad
-    //Last Modified 10/10
 }

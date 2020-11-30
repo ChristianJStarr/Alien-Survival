@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System.Linq;
 using System.Collections.Generic;
 using System;
@@ -8,20 +7,16 @@ using System.Collections;
 
 public class InventoryGfx : MonoBehaviour
 {
-    public TopToolTipHandler toolTipHandler;
+    public UI_Tooltip ui_tooltip;
     public GameObject inventoryUI, inventoryBkg, bounds, bounds2, bounds3, hotBarButtons, tint, tint2, playerViewCamera, storageCrateSlotContainer;
     public ControlControl controls;
     public Transform itemsParent, armorSlotsContainer, hotBarParent;
-    public Slider splitSlider;
-    public TextMeshProUGUI splitText;
     public Image buttonIcon;
     public Item toolTipItem;
     public ItemSlot[] itemSlots, armorSlots, storageCrateSlots;
     public bool invOpen = false;
     CraftingMenu craftingMenu;
     Transform[] holds;
-
-    private SelectedItemHandler selectedHandler;
 
     private Item[] items;
     private Item[] armor;
@@ -80,21 +75,12 @@ public class InventoryGfx : MonoBehaviour
         items = _items;
         armor = _armor;
         blueprints = _blueprints;
-
-
-
-
         if (craftingMenu == null)
         {
             craftingMenu = GetComponent<CraftingMenu>();
         }
         craftingMenu.GetResources(items, blueprints);
         UpdateUI();
-        if (selectedHandler != null)
-        {
-            selectedHandler.UpdateSelectedSlot();
-        }
-
     }
 
     //Assign Slot Numbers To Slots
@@ -217,12 +203,6 @@ public class InventoryGfx : MonoBehaviour
         }
     }
 
-    //Handover Selected Item
-    public void SelectedItemHandover(SelectedItemHandler handler) 
-    {
-        selectedHandler = handler;
-    }
-
     //Update Menu Positions
     private void UpdateMenus() 
     {
@@ -309,31 +289,35 @@ public class InventoryGfx : MonoBehaviour
     //Active Top Tip (item)
     public void ActivateToolTip(Item item) 
     {
-        if (!toolTipHandler.gameObject.activeSelf)
+        if (!ui_tooltip.gameObject.activeSelf)
         {
-            toolTipHandler.gameObject.SetActive(true);
+            ui_tooltip.gameObject.SetActive(true);
         }
-        toolTipHandler.SetData(ItemDataManager.Singleton.GetItemData(item.itemID), item);
+        ui_tooltip.SetData(ItemDataManager.Singleton.GetItemData(item.itemID), item);
     }
 
-    //Select a slot
-    public Item SelectSlot(int slot) 
+    //Set Slot to Focused
+    public void SetSlotFocused(int slot) 
     {
-        Item item = null;
         for (int i = 0; i < 6; i++)
         {
-            if (itemSlots[i].slotNumber == slot) 
+            itemSlots[i].Selected(itemSlots[i].slotNumber == slot);
+        }
+    }
+
+    //Get Item from Slot
+    public Item GetItemFromSlot(int slot) 
+    {
+        for (int i = 0; i < items.Length; i++)
+        {
+            if(items[i].currSlot == slot) 
             {
-                itemSlots[i].Selected(true);
-                item = itemSlots[i].item;
-            }
-            else 
-            {
-                itemSlots[i].Selected(false);
+                return items[i];
             }
         }
-        return item;
+        return null;
     }
+
 
     //Button: Inventory Open/Close
     public void InvButton(string data = null) 
@@ -358,7 +342,7 @@ public class InventoryGfx : MonoBehaviour
         {
             invOpen = false;
             controls.Show();
-            toolTipHandler.gameObject.SetActive(false);
+            ui_tooltip.gameObject.SetActive(false);
             SlideMenu(true, false);
             SlideMenu(false, false);
             tint.SetActive(false);

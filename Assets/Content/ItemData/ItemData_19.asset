@@ -17,16 +17,29 @@ MonoBehaviour:
   craftAmount: 1
   maxItemStack: 1
   armorType: 0
-  name: Knife
-  description: This is a knife.
-  recipe:
-  - 39-1
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
   itemUse:
   - 4-30
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: Knife
+  description: This is aKnife.
+  recipe:
+  - 39-1
+  useSound: 
+  hitSound: 
   isCraftable: 1
+  isPlaceable: 0
   isHoldable: 1
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 649383010222498335, guid: 00ae67bd486d5054789f68bc84de8485,
     type: 3}
+  placeableItem: {fileID: 0}

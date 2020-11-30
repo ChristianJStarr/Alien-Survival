@@ -2,6 +2,9 @@
 using MLAPI.Connection;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -18,6 +21,15 @@ public class WorldAISystem : MonoBehaviour
     [SerializeField] private GameObject[] enemyPrefabs; //All of the Enemy Prefabs
     [SerializeField] private GameObject[] friendlyPrefabs; //All the Friendly Prefabs
     private Vector3[] spawnpoints; //Spawnpoints for All Spawns
+
+    //JOBS - State Change
+    NativeArray<Vector3> playerLocations;
+    NativeArray<Vector3> aiLocations;
+    NativeArray<int> states;
+    NativeArray<int> targets;
+    JobHandle enemyStateChangeHandle;
+    EnemyStateChange enemyStateChange;
+
 
     //Configs
     public int c_EnemyAttackRadius = 80;
@@ -87,6 +99,31 @@ public class WorldAISystem : MonoBehaviour
 
 
 
+    //-------------------AI Functions--------------------
+    public void DamageAI(ulong networkId, int amount) 
+    {
+        for (int i = 0; i < ai.Count; i++)
+        {
+            if (ai[i] != null && ai[i].NetworkId == networkId)
+            {
+                if(ai[i].health - amount > 0) 
+                {
+                    ai[i].health -= amount;
+                }
+                else 
+                {
+                    ai[i].health = 0;
+
+                }
+                break;
+            }
+        }
+    }
+
+
+
+
+
     //Find Spawn Points
     private bool FindSpawnPoints() 
     {
@@ -131,10 +168,11 @@ public class WorldAISystem : MonoBehaviour
     {
         if (controlObject.state == AI_State.attacking) //ATTACK LOGIC 
         {
-            if (controlObject.playerAttackTarget != null && Vector3.Distance(controlObject.transform.position, controlObject.playerAttackTarget.transform.position) < 100)
+            if (controlObject.playerAttackTarget != null)
             {
                 if (controlObject.agent.hasPath)
                 {
+                    controlObject.agent.isStopped = false;
                     RaycastHit hit;
                     bool canSeeTarget = false;
                     if (Physics.Raycast(controlObject.transform.position, controlObject.playerAttackTarget.transform.position, out hit, 30))
@@ -143,10 +181,9 @@ public class WorldAISystem : MonoBehaviour
                     }
                     if (canSeeTarget)
                     {
-                        controlObject.agent.speed = 0.01f; //SLOW SLOW SLOW WALK
-                                                           //Shoot here
-                                                           //PEW PEW
-                                                           //Stop Shooting here
+                        controlObject.agent.speed = 0.01f; 
+                        //SLOW SLOW SLOW WALK
+                        //Stop Shooting here
                     }
                     else if (controlObject.agent.speed != c_RunSpeed)
                     {
@@ -168,6 +205,7 @@ public class WorldAISystem : MonoBehaviour
         {
             if (!controlObject.agent.hasPath)
             {
+                controlObject.agent.isStopped = false;
                 controlObject.agent.speed = c_WalkSpeed;
                 float distance = Random.Range(20, 70);
                 Vector3 randomDirection = Random.insideUnitSphere * distance;
@@ -206,7 +244,21 @@ public class WorldAISystem : MonoBehaviour
         }
     }
 
+
+
+
+
+
+
     //Register AI Object
+    
+    public static void Register(AIControlObject controlObject) 
+    {
+        if(Singleton != null) 
+        {
+            Singleton.RegisterAI(controlObject);
+        }
+    }
     public void RegisterAI(AIControlObject controlObject) 
     {
         for (int i = 0; i < ai.Count; i++)
@@ -221,6 +273,13 @@ public class WorldAISystem : MonoBehaviour
     }
 
     //Remove AI Object
+    public static void Remove(ulong networkId) 
+    {
+        if(Singleton != null) 
+        {
+            Singleton.RemoveAI(networkId);
+        }
+    }
     public void RemoveAI(ulong networkId) 
     {
         for (int i = 0; i < ai.Count; i++)
@@ -233,45 +292,66 @@ public class WorldAISystem : MonoBehaviour
         }
     }
 
-    //Update AI State LOOP
-    private void UpdateAIState()
-    {
-        for (int i = 0; i < ai.Count; i++)
-        {
-            if (ai[i] != null)
-            {
-                int playersNearby = 0;
-                PlayerControlObject attack = null;
-                float currentLowestDistance = c_EnemyAttackRadius;
 
-                foreach (PlayerControlObject controlObject in playerCommandSystem.players.Values)
-                {
-                    float distance = Vector3.Distance(controlObject.transform.position, ai[i].transform.position);
-                    if (distance < c_EnemyAttackRadius && distance < currentLowestDistance)
-                    {
-                        currentLowestDistance = distance;
-                        attack = controlObject;
-                    }
-                    else if (distance < c_EnemyWanderRadius)
-                    {
-                        playersNearby++;
-                    }
-                }
-                if (attack != null)
-                {
-                    ai[i].playerAttackTarget = attack;
-                    ai[i].state = AI_State.attacking;
-                }
-                else if (playersNearby > 0)
-                {
-                    ai[i].state = AI_State.wandering;
-                }
-                else
-                {
-                    ai[i].state = AI_State.guarding;
-                }
+    
+
+    //Update AI State LOOP
+    private void UpdateAIState() 
+    {
+        int aiCount = ai.Count;
+        Vector3[] aiPositions = new Vector3[aiCount];
+        for (int i = 0; i < aiCount; i++)
+        {
+            aiPositions[i] = ai[i].transform.position;
+        }
+
+        PlayerControlObject[] players = playerCommandSystem.players.Values.ToArray();
+
+        int count = players.Length;
+        Vector3[] playerPositions = new Vector3[count];
+        for (int i = 0; i < count; i++)
+        {
+            playerPositions[i] = players[i].transform.position;
+        }
+
+        playerLocations = new NativeArray<Vector3>(playerPositions, Allocator.TempJob);
+        aiLocations = new NativeArray<Vector3>(aiPositions, Allocator.TempJob);
+        states = new NativeArray<int>(aiCount, Allocator.TempJob);
+        targets = new NativeArray<int>(aiCount, Allocator.TempJob);
+
+        enemyStateChange = new EnemyStateChange();
+        enemyStateChange.attack_radius = c_EnemyAttackRadius;
+        enemyStateChange.wander_radius = c_EnemyWanderRadius;
+        enemyStateChange.players = playerLocations;
+        enemyStateChange.ai = aiLocations;
+        enemyStateChange.state = states;
+        enemyStateChange.targetIndex = targets;
+        enemyStateChangeHandle = enemyStateChange.Schedule(aiCount, enemyStateChangeHandle);
+
+        enemyStateChangeHandle.Complete();
+
+        for (int i = 0; i < aiCount; i++)
+        {
+            if(states[i] == 0) 
+            {
+                ai[i].state = AI_State.guarding;
+            }
+            else if (states[i] == 1)
+            {
+                ai[i].state = AI_State.wandering;
+            }
+            else if (states[i] == 2 && ai[i].type == AI_Type.enemy)
+            {
+                ai[i].state = AI_State.attacking;
+                ai[i].playerAttackTarget = players[targets[i] - 1];
             }
         }
+
+        playerLocations.Dispose();
+        aiLocations.Dispose();
+        states.Dispose();
+        targets.Dispose();
+
     }
 
     //Keep Spawn Levels LOOP
@@ -339,6 +419,54 @@ public class WorldAISystem : MonoBehaviour
         }
     }
 
+}
+
+
+public struct EnemyStateChange : IJobFor
+{
+    public int attack_radius;
+    public int wander_radius;
+    public NativeArray<Vector3> players;
+    public NativeArray<Vector3> ai;
+    public NativeArray<int> state;
+    public NativeArray<int> targetIndex;
+    public void Execute(int i) 
+    {
+        int attackIndex = 0;
+        int playersNearby = 0;
+        float currentClosest = attack_radius;
+        for (int x = 0; x < players.Length; x++)
+        {
+            float distance = Vector3.Distance(ai[i], players[x]);
+            if (distance < attack_radius && distance < currentClosest)
+            {
+                currentClosest = distance;
+                attackIndex = x + 1;
+            }
+            else if(distance < wander_radius) 
+            {
+                playersNearby++;
+            }
+        }
+
+        if(attackIndex != 0) 
+        {
+            //State = Attack
+            state[i] = 2;
+            targetIndex[i] = attackIndex;
+        }
+        else if(playersNearby > 0) 
+        {
+            //State = Wander
+            state[i] = 1;
+        }
+        else 
+        {
+            //State = Guard 3
+            state[i] = 0;
+        }
+        
+    }
 }
 
 

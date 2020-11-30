@@ -34,7 +34,7 @@ public class CraftSlide : MonoBehaviour, IPointerClickHandler
         craftingMenu = menu;
         item = itemData;
         image.sprite = itemData.icon;
-        name.text = itemData.name;
+        name.text = itemData.itemName;
         craftable = value;
         if (value) 
         {

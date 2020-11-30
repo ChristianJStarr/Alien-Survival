@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections;
 
-public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
+public class ItemSlot : MonoBehaviour, IDragHandler, IPointerClickHandler, IEndDragHandler
 {
     public TextMeshProUGUI slot_Amount;
     public int numberItems = 0;
@@ -47,14 +47,16 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
             SetTooltip();
         }
     }
-
     private void MoveTempIcon() 
     {
         if (!tempHoverIcon.image.enabled) 
         {
             tempHoverIcon.image.enabled = true;
             icon.enabled = false;
-            slider.gameObject.SetActive(false);
+            if(itemData.maxDurability > 0 && itemData.durabilityId == 0) 
+            {
+                slider.gameObject.SetActive(false);
+            }
             slot_Amount.text = "";
         }
         if (tempHoverIcon.image.sprite != icon.sprite)
@@ -80,7 +82,10 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
         if(item != null) 
         {
             icon.enabled = true;
-            slider.gameObject.SetActive(true);
+            if (itemData.maxDurability > 0 && item.durability < 100 && itemData.durabilityId == 0)
+            {
+                slider.gameObject.SetActive(true);
+            }
             if (item.itemStack > 1)
             {
                 slot_Amount.text = item.itemStack.ToString();
@@ -91,40 +96,63 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     //Update Item to Slot
     public void AddItem(Item newItem, ItemData data)
     {
+        //Store Item
         item = newItem;
         itemData = data;
+
+        //Handle Icon
         if (data.icon != null)
         {
             icon.sprite = data.icon;
             icon.enabled = true;
-            if(data.maxDurability > 0) 
+        }
+        bool durability = false;
+        //Handle Durability
+        if(data.maxDurability > 0) 
+        {
+            durability = true;
+            if (data.durabilityId == 0) 
             {
-                if(data.durabilityId == 0) 
+                //Normal Durability
+                if (data.maxDurability > item.durability) 
                 {
-                    numberItems = 0;
-                    slider.value = item.durability;
                     slider.gameObject.SetActive(true);
+                    slider.maxValue = data.maxDurability;
+                    slider.minValue = 0;
+                    slider.value = item.durability;
                 }
-                else 
+                else //Hide Slider, Durability Full 
                 {
-                    numberItems = item.durability;
                     slider.gameObject.SetActive(false);
                 }
             }
             else 
             {
-                numberItems = item.itemStack;
-            }
-            if (numberItems > 1)
-            {
-                slot_Amount.text = numberItems.ToString();
-            }
-            else if (numberItems == 0)
-            {
-                if (slot_Amount.text != "")
+                //Ammo Durability
+                slider.gameObject.SetActive(false);
+                numberItems = item.durability;
+                if (numberItems > 0)
+                {
+                    slot_Amount.text = numberItems.ToString();
+                }
+                else if (numberItems == 0 && slot_Amount.text != "")
                 {
                     slot_Amount.text = "";
                 }
+            }
+        }
+
+        //Handle Item Count Text
+        if (!slider.gameObject.activeSelf && !durability) 
+        {
+            numberItems = item.itemStack;
+            if (numberItems > 1) 
+            {
+                slot_Amount.text = numberItems.ToString();
+            }
+            else if(numberItems < 2 && slot_Amount.text != "") 
+            {
+                slot_Amount.text = "";
             }
         }
     }
@@ -158,14 +186,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IEndDragHandler
     //Get this slots Item
     public Item getItem() 
     {
-        if (item != null) 
-        {
-            return item;
-        }
-        else
-        {
-            return null;
-        }
+        return item;
     }
     
     //Toggle this Slot

@@ -1,291 +1,130 @@
 ﻿using MLAPI;
-using MLAPI.Messaging;
-using MLAPI.Serialization.Pooled;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 
 public class HoldableManager : NetworkedBehaviour
 {
-    [Header("Parent for Holdables")]
-    public Transform holdableParent;
+    public static HoldableManager Singleton;
+    //Holdable Data
+    [SerializeField]private HoldableObjectData[] HoldableData;
 
-    [Header("Max Distance to Send")]
-    public int FixedSendDistance = 20;
-
-    [Header("Max Sends/Second")]
-    [Range(0,120)]
-    public float FixedSendsPerSecond = 1f;
-
-    [Header("Holdables Prefabs (Ordered by ID)")]
-    public GameObject[] holdablePrefabs;
-
-    //Managers
-    private NetworkingManager networkManager;
-    //Time
-    private float lastSendTime;
-    //Current: Held Object
-    public int currentHeldObject = 0;
-    //Arrays
-    private List<HoldableObject> holdableObjects = new List<HoldableObject>();
-
-
-    private void Start()
+#if UNITY_EDITOR
+    private void OnValidate()
     {
-        networkManager = NetworkingManager.Singleton;
-    }
-    private void Update()
-    {
-        if (IsOwner)
+        string[] guids = AssetDatabase.FindAssets("t:HoldableObjectData", new[] { "Assets/Content/HoldableData" });
+        int count = guids.Length;
+        if (HoldableData.Length == count) return;
+        HoldableData = new HoldableObjectData[count];
+        for (int n = 0; n < count; n++)
         {
-            if (networkManager.NetworkTime - lastSendTime >= (1f / FixedSendsPerSecond))
+            var path = AssetDatabase.GUIDToAssetPath(guids[n]);
+            HoldableData[n] = AssetDatabase.LoadAssetAtPath<HoldableObjectData>(path);
+        }
+    }
+#endif
+
+    private void Awake() 
+    {
+        Singleton = this;
+    }
+
+    //A Held Object has Changed for Player 
+    public void HeldObjectChanged(PlayerControlObject controlObject) 
+    {
+        int holdableId = controlObject.holdableId;
+        if (controlObject.holdableObject != null && controlObject.holdableObject.gameObject.activeSelf) //Currently Holding Object
+        {
+            if (holdableId == 0)
             {
-                lastSendTime = networkManager.NetworkTime;
-                
-                if (IsServer)
+                controlObject.holdableObject.gameObject.SetActive(false);
+            }
+            else
+            {
+                GameObject holdable = PooledManager.InstantiatePooledObject(GetHoldablePrefabById(holdableId), controlObject.handParent);
+                if(holdable != null) 
                 {
-                    Server_PulloutHoldable(currentHeldObject);
-                }
-                else
-                {
-                    Client_PulloutHoldable(currentHeldObject);
+                    HoldableObject holdableObject = holdable.GetComponent<HoldableObject>();
+                    if(holdableObject != null) 
+                    {
+                        controlObject.holdableObject = holdableObject;
+                    }
                 }
             }
         }
-    }
-
-
-
-    //USE: Holdable
-    public void UseHoldable(int holdableId)
-    {
-        if (currentHeldObject == holdableId)
+        else// Currently no held object
         {
-            if (IsOwner)
+            if(holdableId != 0) 
             {
-                Client_UseHoldable(holdableId);
-            }
-            if (IsClient) 
-            {
-                for (int i = 0; i < holdableObjects.Count; i++)
+                GameObject holdable = PooledManager.InstantiatePooledObject(GetHoldablePrefabById(holdableId), controlObject.handParent);
+                if (holdable != null)
                 {
-                    if (holdableObjects[i] != null && holdableObjects[i].id == holdableId && holdableObjects[i].gameObject.activeSelf)
+                    HoldableObject holdableObject = holdable.GetComponent<HoldableObject>();
+                    if (holdableObject != null)
                     {
-                        holdableObjects[i].animator.SetTrigger("Use");
-                        break;
+                        controlObject.holdableObject = holdableObject;
                     }
                 }
             }
         }
     }
 
-    //PULLOUT: Holdable
-    public void PulloutHoldable(int holdableId) 
+    //A Held Object has Changed for AI
+    public void HeldObjectChanged(AIControlObject controlObject) 
     {
-        if(currentHeldObject != holdableId)
+        int holdableId = controlObject.holdableId;
+        if (controlObject.holdableObject != null && controlObject.holdableObject.gameObject.activeSelf) //Currently Holding Object
         {
-            currentHeldObject = holdableId;
-            if (IsOwner)
+            if (holdableId == 0)
             {
-                if (IsServer) 
-                {
-                    Server_PulloutHoldable(holdableId);
-                }
-                else 
-                {
-                    Client_PulloutHoldable(holdableId);
-                }
+                controlObject.holdableObject.gameObject.SetActive(false);
             }
-            if (IsClient) 
+            else
             {
-                if (holdableId != 0) //Pullout
+                GameObject holdable = PooledManager.InstantiatePooledObject(GetHoldablePrefabById(holdableId), controlObject.handParent);
+                if (holdable != null)
                 {
-                    PutAwayHoldables();
-                    //Check if Holdable is Pooled
-
-                    for (int i = 0; i < holdableObjects.Count; i++)
+                    HoldableObject holdableObject = holdable.GetComponent<HoldableObject>();
+                    if (holdableObject != null)
                     {
-                        if (holdableObjects[i] != null && holdableObjects[i].id == holdableId)
-                        {
-                            holdableObjects[i].gameObject.SetActive(true);
-                            return;
-                        }
-                    }
-                    //Else SpawnHoldable
-                    if (holdablePrefabs[holdableId - 1] != null)
-                    {
-                        GameObject holdable = Instantiate(holdablePrefabs[holdableId - 1], holdableParent);
-                        HoldableObject holdableObject = holdable.GetComponent<HoldableObject>();
-                        holdableObjects.Add(holdableObject);
+                        controlObject.holdableObject = holdableObject;
                     }
                 }
-                else //Put Away 
+            }
+        }
+        else// Currently no held object
+        {
+            if (holdableId != 0)
+            {
+                GameObject holdable = PooledManager.InstantiatePooledObject(GetHoldablePrefabById(holdableId), controlObject.handParent);
+                if (holdable != null)
                 {
-                    PutAwayHoldables();
-                }
-            }
-        }
-    }
-
-    //Put Away Holdable
-    private void PutAwayHoldables() 
-    {
-        foreach (HoldableObject holdable in holdableObjects)
-        {
-            if (holdable.gameObject != null && holdable.gameObject.activeSelf)
-            {
-                StartCoroutine(PutAwayHoldableDelay(holdable));
-            }
-        }
-        if(holdableObjects.Count > 5) 
-        {
-            for (int i = 0; i < holdableObjects.Count; i++)
-            {
-                if(holdableObjects[i] != null) 
-                {
-                    Destroy(holdableObjects[i].gameObject);
-                }
-            }
-            holdableObjects.Clear();
-        }
-    }
-    private IEnumerator PutAwayHoldableDelay(HoldableObject holdable) 
-    {
-        holdable.animator.SetTrigger("PutAway");
-        yield return new WaitForSeconds(.5F);
-        holdable.gameObject.SetActive(false);
-    }
-
-    
-
-
-
-    //-----------------//
-    //   Network Sync  //
-    //-----------------//
-
-    //Pullout
-    private void Client_PulloutHoldable(int holdableId)
-    {
-        using (PooledBitStream stream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(stream))
-            {
-                writer.WriteInt32Packed(holdableId);
-                InvokeServerRpcPerformance(PulloutHoldable_ServerRpc, stream);
-            }
-        }
-    }
-
-    private void Server_PulloutHoldable(int holdableId) 
-    {
-        using (PooledBitStream stream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(stream))
-            {
-                writer.WriteInt32Packed(holdableId);
-
-                using (PooledBitStream secondStream = PooledBitStream.Get())
-                {
-                    using (PooledBitWriter secondWriter = PooledBitWriter.Get(secondStream))
+                    HoldableObject holdableObject = holdable.GetComponent<HoldableObject>();
+                    if (holdableObject != null)
                     {
-                        secondWriter.WriteInt32Packed(0);
-
-                        foreach (ulong client in networkManager.ConnectedClients.Keys.ToArray())
-                        {
-                            if (Vector3.Distance(transform.position, networkManager.ConnectedClients[client].PlayerObject.transform.position) < FixedSendDistance)
-                            {
-                                InvokeClientRpcOnClientPerformance(PulloutHoldable_ClientRpc, client, stream);
-                            }
-                            else
-                            {
-                                InvokeClientRpcOnClientPerformance(UseHoldable_ClientRpc, client, secondStream);
-                            }
-                        }
+                        controlObject.holdableObject = holdableObject;
                     }
                 }
             }
         }
     }
 
-    [ServerRPC]
-    private void PulloutHoldable_ServerRpc(ulong clientId, Stream stream)
+    //Get the holdable prefab by ID
+    private GameObject GetHoldablePrefabById(int holdableId) 
     {
-        foreach (ulong client in networkManager.ConnectedClients.Keys.ToArray())
+        for (int i = 0; i < HoldableData.Length; i++)
         {
-            if (client != clientId && Vector3.Distance(transform.position, networkManager.ConnectedClients[client].PlayerObject.transform.position) < FixedSendDistance)
+            if(HoldableData[i].holdableId == holdableId) 
             {
-                InvokeClientRpcOnClientPerformance(PulloutHoldable_ClientRpc, client, stream);
-            }
-            else if (client != clientId)
-            {
-                using (PooledBitStream newStream = PooledBitStream.Get())
-                {
-                    using (PooledBitWriter writer = PooledBitWriter.Get(newStream))
-                    {
-                        writer.WriteInt32Packed(0);
-                        InvokeClientRpcOnClientPerformance(UseHoldable_ClientRpc, client, newStream);
-                    }
-                }
+                return HoldableData[i].prefab;
             }
         }
+        return null;
     }
 
-    [ClientRPC]
-    private void PulloutHoldable_ClientRpc(ulong clientId, Stream stream) 
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            PulloutHoldable(reader.ReadInt32Packed());
-        }
-    }
 
-    //Use
-    private void Client_UseHoldable(int holdableId)
-    {
-        using (PooledBitStream stream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(stream))
-            {
-                writer.WriteInt32Packed(holdableId);
-                InvokeServerRpcPerformance(UseHoldable_ServerRpc, stream);
-            }
-        }
-    }
-
-    [ServerRPC]
-    private void UseHoldable_ServerRpc(ulong clientId, Stream stream)
-    {
-        ulong[] connectedClients = networkManager.ConnectedClients.Keys.ToArray();
-        for (int i = 0; i < connectedClients.Length; i++)
-        {
-            if (connectedClients[i] != clientId && Vector3.Distance(transform.position, networkManager.ConnectedClients[connectedClients[i]].PlayerObject.transform.position) < FixedSendDistance)
-            {
-                InvokeClientRpcOnClientPerformance(UseHoldable_ClientRpc, connectedClients[i], stream);
-            }
-            else if(connectedClients[i] != clientId) 
-            {
-                using (PooledBitStream newStream = PooledBitStream.Get())
-                {
-                    using (PooledBitWriter writer = PooledBitWriter.Get(newStream))
-                    {
-                        writer.WriteInt32Packed(0);
-                        InvokeClientRpcOnClientPerformance(UseHoldable_ClientRpc, connectedClients[i], newStream);
-                    }
-                }
-            }
-        }
-    }
-
-    [ClientRPC]
-    private void UseHoldable_ClientRpc(ulong clientId, Stream stream)
-    {
-        using(PooledBitReader reader = PooledBitReader.Get(stream)) 
-        {
-            UseHoldable(reader.ReadInt32Packed());
-        }
-    }
 
 }
+

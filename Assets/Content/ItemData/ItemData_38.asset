@@ -15,14 +15,28 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 0f736bba448a4ab48ae6ba2c26cadc50, type: 3}
   itemID: 38
   craftAmount: 1
-  name: Iron Ore
-  description: This is an Pipe
-  recipe: []
   maxItemStack: 200
   armorType: 0
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: Iron Ore
+  description: This is aIron Ore.
+  recipe: []
+  useSound: 
+  hitSound: 
   isCraftable: 0
+  isPlaceable: 0
   isHoldable: 0
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}

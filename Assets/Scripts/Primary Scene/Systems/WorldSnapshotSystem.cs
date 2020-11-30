@@ -100,7 +100,7 @@ public class WorldSnapshotSystem : MonoBehaviour
     {
         if (lastSnapshot != null && lastSnapshot.players != null && lastSnapshot.players.ContainsKey(player.networkId)) 
         {
-            if (lastSnapshot.players[player.networkId].location != player.location || lastSnapshot.players[player.networkId].rotation != player.rotation) 
+            if(lastSnapshot.players[player.networkId] != player) 
             {
                 return true;
             }
@@ -111,9 +111,9 @@ public class WorldSnapshotSystem : MonoBehaviour
 
     private bool AIHasChanged(Snapshot_AI ai)
     {
-        if (lastSnapshot != null && lastSnapshot.ai.ContainsKey(ai.networkId))
+        if (lastSnapshot != null && lastSnapshot.ai != null && lastSnapshot.ai.ContainsKey(ai.networkId))
         {
-            if (lastSnapshot.ai[ai.networkId].location != ai.location || lastSnapshot.ai[ai.networkId].rotation != ai.rotation)
+            if (lastSnapshot.ai[ai.networkId] != ai)
             {
                 return true;
             }
@@ -128,8 +128,8 @@ public class QuickAccess_Snapshot
 {
     public int snapshotId;
     public float networkTime;
-    public Dictionary<ulong, Snapshot_Player> players;
-    public Dictionary<ulong, Snapshot_AI> ai;
+    public Dictionary<ulong, Snapshot_Player> players = new Dictionary<ulong, Snapshot_Player>();
+    public Dictionary<ulong, Snapshot_AI> ai = new Dictionary<ulong, Snapshot_AI>();
     
 }
 
@@ -138,8 +138,8 @@ public class Snapshot
 {
     public int snapshotId;
     public float networkTime;
-    public Snapshot_Player[] players;
-    public Snapshot_AI[] ai;
+    public Snapshot_Player[] players = new Snapshot_Player[0];
+    public Snapshot_AI[] ai = new Snapshot_AI[0];
 
 
 
@@ -226,6 +226,8 @@ public class Snapshot_Player
     public ulong networkId;
     public Vector3 location;
     public Vector2 rotation;
+    public int holdId;
+    public int holdState;
 }
 
 public class Snapshot_AI 
@@ -233,6 +235,8 @@ public class Snapshot_AI
     public ulong networkId;
     public Vector3 location;
     public Vector2 rotation;
+    public int holdId;
+    public int holdState;
 }
 
 

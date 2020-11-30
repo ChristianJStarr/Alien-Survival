@@ -19,6 +19,7 @@ public class ItemDataManager : MonoBehaviour
         {
             var path = AssetDatabase.GUIDToAssetPath(guids[n]);
             ItemData[n] = AssetDatabase.LoadAssetAtPath<ItemData>(path);
+            //ItemData[n].description = "This is a " + ItemData[n].itemName + ".";
         }
     }
 #endif
@@ -55,10 +56,6 @@ public class ItemDataManager : MonoBehaviour
     public bool IsArmor(int itemId)
     {
         return GetItemData(itemId).isArmor;
-    }
-    public bool IsDragging(int itemId)
-    {
-        return GetItemData(itemId).isDragging;
     }
     public GameObject GetHoldableObject(int itemId) 
     {

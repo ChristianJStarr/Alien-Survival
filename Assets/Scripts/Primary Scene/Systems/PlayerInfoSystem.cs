@@ -1,28 +1,27 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
 public class PlayerInfoSystem : MonoBehaviour
 {
-    public delegate void OnSystemStopped();
-    public static event OnSystemStopped systemStopped;
-
+    private string savedPlayerInfoPath;
     private bool systemEnabled = false;
     private GameServer gameServer;
     private Dictionary<ulong, PlayerInfo> active = new Dictionary<ulong, PlayerInfo>();
     private List<ulong> activeIds = new List<ulong>();
     private List<PlayerInfo> inactive = new List<PlayerInfo>();
     public ServerInventoryTool sit;
-    //Configuration
-    private bool confirmNetworkKey = true; // Authenticates ID and Authkey when updating player info. Increases CPU if TRUE
+    private bool confirmNetworkKey = true;
 
 
-    //START SYSTEM
     public bool StartSystem()
     {
         systemEnabled = true;
+        savedPlayerInfoPath = Application.dataPath + "/inventory-data.alien";
+        LoadSaveFile();
         //Read temp list from json file.
         //return true if successfull
 
@@ -31,11 +30,10 @@ public class PlayerInfoSystem : MonoBehaviour
         gameServer = GameServer.singleton;
         return true;
     }
-
     public void StopSystem()
     {
+        SaveAllInfo();
         systemEnabled = false;
-        SaveAllPlayerInfo();
     }
 
 
@@ -65,6 +63,7 @@ public class PlayerInfoSystem : MonoBehaviour
                 if (!active.ContainsKey(clientId))
                 {
                     active.Add(clientId, inactive[i]);
+                    active[clientId].time = DateTime.Now;
                     inactive.RemoveAt(i);
                     activeIds.Add(clientId);
                     return true;
@@ -87,17 +86,22 @@ public class PlayerInfoSystem : MonoBehaviour
         }
         return returnedInfo;
     }
-    public void SaveAllPlayerInfo()
+    public void SaveAllInfo() 
     {
-        List<PlayerInfo> tempPlayerInfo = active.Values.ToList();
-        for (int i = 0; i < inactive.Count; i++)
-        {
-            tempPlayerInfo.Add(inactive[i]);
-        }
-
-        //Save temp list to json file.
+        File.WriteAllText(savedPlayerInfoPath, JsonUtility.ToJson(new PackedPlayerInfo(){players = active.Values.ToArray()}));
     }
-   
+    public void LoadSaveFile() 
+    {
+        if (File.Exists(savedPlayerInfoPath))
+        {
+            PackedPlayerInfo packed = JsonUtility.FromJson<PackedPlayerInfo>(File.ReadAllText(savedPlayerInfoPath));
+            if (packed != null && packed.players.Length > 0)
+            {
+                inactive = packed.players.ToList();
+            }
+        }
+    }
+
 
     //-----------------------------------------------------------------//
     //         BASE-LEVEL PLAYERINFO MODIFICATION | GET & SET          //
@@ -113,17 +117,15 @@ public class PlayerInfoSystem : MonoBehaviour
         return null;
     }
 
-
     //Player Name
     public string GetPlayerName(ulong clientId)
     {
         if (active.ContainsKey(clientId))
         {
-            return active[clientId].name;
+            return active[clientId].username;
         }
         return "";
     }
-
 
     //Player Items
     public Item[] GetPlayerItems(ulong clientId)
@@ -143,7 +145,6 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-
     //Player Armor
     public Item[] GetPlayerArmor(ulong clientId)
     {
@@ -162,7 +163,6 @@ public class PlayerInfoSystem : MonoBehaviour
             ForceRequestInfoById(clientId, 6);
         }
     }
-
 
     //Player Blueprints
     public int[] GetPlayerBlueprints(ulong clientId)
@@ -209,7 +209,6 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-
     //Player Health
     public int GetPlayerHealth(ulong clientId)
     {
@@ -223,20 +222,24 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if (active.ContainsKey(clientId))
         {
+            PlayerInfo info = active[clientId];
             if (subtract)
             {
                 active[clientId].health += amount;
-                ForceRequestInfoById(clientId, 2);
             }
             else
             {
                 active[clientId].health = amount;
-
-                ForceRequestInfoById(clientId, 2);
             }
+            if(active[clientId].health == 0) 
+            {
+                active[clientId].isDead = true;
+                gameServer.Server_PlayerDeath(clientId, info.items, info.armor, info.username);
+            }
+
+            ForceRequestInfoById(clientId, 2);
         }
     }
-
 
     //Player Food
     public int GetPlayerFood(ulong clientId)
@@ -264,7 +267,6 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-
     //Player Water
     public int GetPlayerWater(ulong clientId)
     {
@@ -291,7 +293,6 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-
     //Player Coins
     public int GetPlayerCoins(ulong clientId)
     {
@@ -308,7 +309,6 @@ public class PlayerInfoSystem : MonoBehaviour
             active[clientId].coinsAdd += amount;
         }
     }
-
 
     //Player Hours
     public float GetPlayerHours(ulong clientId)
@@ -327,7 +327,6 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-
     //Player Experience
     public int GetPlayerExp(ulong clientId)
     {
@@ -345,7 +344,6 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-
     //Player isDead
     public bool GetPlayerDead(ulong clientId)
     {
@@ -362,7 +360,6 @@ public class PlayerInfoSystem : MonoBehaviour
             active[clientId].isDead = isDead;
         }
     }
-
 
     //Player Location
     public Vector3 GetPlayerLocation(ulong clientId)
@@ -393,28 +390,38 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-    //Player Time
-    public void SetPlayerTime(ulong clientId, DateTime time) 
-    {
-        if (Confirm(clientId)) 
-        {
-            active[clientId].time = time;
-        }
-    }
+    
 
     //-----------------------------------------------------------------//
     //         BASE-LEVEL PLAYERINFO QUICK SET FUNCTIONS               //
     //-----------------------------------------------------------------//
 
-    
     //Reset Info For Respawn
     public void ResetPlayerInfo(ulong clientId, Vector3 location) 
     {
-        active[clientId].health = 100;
-        active[clientId].food = 100;
-        active[clientId].water = 100;
-        active[clientId].location = location;
-        ForceRequestInfoById(clientId);
+        if (Confirm(clientId)) 
+        {
+            active[clientId].health = 100;
+            active[clientId].food = 100;
+            active[clientId].water = 100;
+            active[clientId].location = location;
+            active[clientId].isDead = false;
+            ForceRequestInfoById(clientId);
+        }
+    }
+
+    //Reset the Time Survived for Player (Called On Death) Adds to HoursAdd Stat
+    public TimeSpan ResetTimeSurvived(ulong clientId) 
+    {
+        if (Confirm(clientId)) 
+        {
+            DateTime lastRespawn = active[clientId].time;
+            TimeSpan span = DateTime.Now - lastRespawn;
+            active[clientId].time = DateTime.Now;
+            active[clientId].hoursAdd += (float)span.TotalHours;
+            return span;
+        }
+        return TimeSpan.FromSeconds(1);
     }
 
 
@@ -423,7 +430,7 @@ public class PlayerInfoSystem : MonoBehaviour
     //-----------------------------------------------------------------//
 
     //Clear Player Items
-    public void ClearPlayerInventory(ulong clientId)
+    public void Inventory_Clear(ulong clientId)
     {
         if (active.ContainsKey(clientId))
         {
@@ -485,27 +492,43 @@ public class PlayerInfoSystem : MonoBehaviour
             {
                 ItemData newItemData = ItemDataManager.Singleton.GetItemData(newItem.itemID);
                 //Check if Item can add Durability
-                if (newItem.durability + oldItem.itemStack <= newItemData.maxDurability && newItemData.durabilityId == oldItem.itemID)
+                if(newItemData.maxDurability != 0) 
                 {
-                    Item[] temp = sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { });
-                    inventory = sit.ChangeItemDurability(temp, oldItem.itemStack, newItemData.maxDurability, newSlot);
+                    if (newItem.durability + oldItem.itemStack <= newItemData.maxDurability && newItemData.durabilityRefilId == oldItem.itemID)
+                    {
+                        Item[] temp = sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { });
+                        inventory = sit.ChangeItemDurability(temp, oldItem.itemStack, newItemData.maxDurability, newSlot);
 
-                    if (inventory != null)
+                        if (inventory != null)
+                        {
+                            active[clientId].items = inventory;
+                            ForceRequestInfoById(clientId, 5);
+                        }
+                    }
+                    else if (newItemData.durabilityRefilId == oldItem.itemID)
                     {
-                        active[clientId].items = inventory;
+                        Item[] temp = sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { }, newItemData.maxDurability - newItem.durability);
+                        inventory = sit.ChangeItemDurability(temp, oldItem.itemStack, newItemData.maxDurability, newSlot);
+                        if (inventory != null)
+                        {
+                            active[clientId].items = inventory;
+                            ForceRequestInfoById(clientId, 5);
+                        }
+                    }
+                    else 
+                    {
+                        active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
                         ForceRequestInfoById(clientId, 5);
                     }
                 }
-                else if (newItemData.durabilityId == oldItem.itemID)
+                else 
                 {
-                    Item[] temp = sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { }, newItemData.maxDurability - newItem.durability);
-                    inventory = sit.ChangeItemDurability(temp, oldItem.itemStack, newItemData.maxDurability, newSlot);
-                    if (inventory != null)
-                    {
-                        active[clientId].items = inventory;
-                        ForceRequestInfoById(clientId, 5);
-                    }
+                    active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
+                    ForceRequestInfoById(clientId, 5);
                 }
+
+
+                
             }
             else if(oldItem != null) 
             {
@@ -619,7 +642,16 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
-    
+    //Split Item from Slot
+    public void Inventory_SplitItem(ulong clientId, string authKey, int slot, int amount) 
+    {
+        if(Confirm(clientId, authKey)) 
+        {
+            active[clientId].items = sit.SplitItemStackById(active[clientId].items, slot, amount);
+        }
+    }
+
+
     //-----------------------------------------------------------------//
     //                           TOOLS .. TOOLS                        //
     //-----------------------------------------------------------------//
@@ -651,6 +683,20 @@ public class PlayerInfoSystem : MonoBehaviour
         return false;
     }
 
+    //Force Request Info
+    private void ForceRequestInfoById(ulong clientId, int depth = 1)
+    {
+        //------DEPTH KEY------//
+        //   1 - ALL           //
+        //   2 - HEALTH        //
+        //   3 - FOOD          //
+        //   4 - WATER         //
+        //   5 - ITEMS         //
+        //   6 - ARMOR         //
+        //   7 - BLUEPRINTS    //
+        //   8 - H/F/W         //
+        gameServer.ForceRequestInfoById(clientId, depth);
+    }
 
 
     //-----------------------------------------------------------------//
@@ -662,124 +708,131 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         while (systemEnabled) 
         {
-            yield return new WaitForSeconds(15f);
-            DebugMsg.Begin(340, "Starting Deplete of All Players", 4);
+            yield return new WaitForSeconds(15);
             for (int i = 0; i < activeIds.Count; i++)
             {
-                ResourceDeplete(activeIds[i]);
+                ulong clientId = activeIds[i];
+                PlayerInfo info = active[clientId];
+                if (!info.isDead)
+                {
+                    bool foodChanged = false;
+                    bool waterChanged = false;
+                    bool healthChanged = false;
+
+                    //Deplete Food
+                    if (info.food > 0)
+                    {
+                        active[clientId].food -= 1;
+                        foodChanged = true;
+                    }
+                    //Deplete Water
+                    if (info.water > 0)
+                    {
+                        active[clientId].water -= 2;
+                        waterChanged = true;
+                    }
+                    //Deplete or Increase Health
+                    if (info.water <= 0 && info.food <= 0)
+                    {
+                        if (info.health > 5)
+                        {
+                            active[clientId].health -= 5;
+                            healthChanged = true;
+                        }
+                        else
+                        {
+                            active[clientId].health = 0;
+                            active[clientId].isDead = true;
+                            healthChanged = true;
+                            gameServer.Server_PlayerDeath(clientId, info.items, info.armor, info.username);
+                        }
+                    }
+                    else if (info.food > 1 && info.water > 3 && info.health < 100)
+                    {
+                        active[clientId].food -= 2;
+                        active[clientId].water -= 4;
+                        foodChanged = true;
+                        waterChanged = true;
+                        if (info.health > 98)
+                        {
+                            active[clientId].health = 100;
+                            healthChanged = true;
+                        }
+                        else
+                        {
+                            active[clientId].health += 2;
+                            healthChanged = true;
+                        }
+                    }
+
+                    if ((foodChanged && waterChanged) || (waterChanged && healthChanged) || (foodChanged && healthChanged))
+                    {
+                        ForceRequestInfoById(clientId, 8);
+                    }
+                    else if (healthChanged)
+                    {
+                        ForceRequestInfoById(clientId, 2);
+                    }
+                    else if (foodChanged)
+                    {
+                        ForceRequestInfoById(clientId, 3);
+                    }
+                    else if (waterChanged)
+                    {
+                        ForceRequestInfoById(clientId, 4);
+                    }
+                }
             }
-            DebugMsg.End(340, "Finished Deplete of All Players", 4);
         }
     }
     
     //Auto-Save Called by Primary GameServer Loop
     public void AutoSave()
     {
-        SaveAllPlayerInfo();
-    }
-
-    //Resource Depletion Task
-    private void ResourceDeplete(ulong clientId) 
-    {
-        PlayerInfo player = active[clientId];
-        if(player != null) 
-        {
-            if (player.food > 0)
-            {
-                active[clientId].food -= 1;
-                ForceRequestInfoById(player.clientId, 3);
-            }
-            if (player.water > 0)
-            {
-                active[clientId].water -= 2;
-                ForceRequestInfoById(player.clientId, 4);
-            }
-            if (player.water == 0 && player.food == 0)
-            {
-                if (player.health > 0)
-                {
-                    active[clientId].health -= 5;
-                    ForceRequestInfoById(player.clientId, 2);
-                }
-                else if (player.health - 1 == 0)
-                {
-                    active[clientId].health = 0;
-                    ForceRequestInfoById(player.clientId, 2);
-                    gameServer.Server_RespawnPlayer(player.clientId);
-                }
-                else if (!player.isDead && player.health == 0)
-                {
-                    active[clientId].isDead = true;
-                    gameServer.Server_RespawnPlayer(player.clientId);
-                }
-            }
-            else if(player.water != 0 && player.water - 2 >= 0 && player.food != 0 && player.food - 4 >= 0 && player.health < 100)
-            {
-                if(player.health + 2 <= 100) 
-                {
-                    active[clientId].health += 2;
-                }
-                else 
-                {
-                    active[clientId].health = 100;
-                }
-                active[clientId].water -= 4;
-                active[clientId].food -= 2;
-                ForceRequestInfoById(player.clientId, 8);
-            }
-        }
-    }
-
-
-    //------DEPTH KEY------//
-    //   1 - ALL           //
-    //   2 - HEALTH        //
-    //   3 - FOOD          //
-    //   4 - WATER         //
-    //   5 - ITEMS         //
-    //   6 - ARMOR         //
-    //   7 - BLUEPRINTS    //
-    //   8 - H/F/W         //
-
-    //Force Request Info
-    private void ForceRequestInfoById(ulong clientId, int depth = 1) 
-    {
-        gameServer.ForceRequestInfoById(clientId, depth);
+        SaveAllInfo();
     }
 
     
 }
 
 
+[Serializable]
+public class PackedPlayerInfo
+{
+    public PlayerInfo[] players;
+}
+
+
 //Player Info Object
+[Serializable]
 public class PlayerInfo
 {
     //Authentication
-    public string name;
-    public string authKey;
-    public int id;
-    public ulong clientId;
-    public ulong networkId;
+    [SerializeField]public string username = "X";
+    [SerializeField] public string authKey = "X";
+    [SerializeField] public int id = 0;
+    [SerializeField] public ulong clientId = 0;
+    [SerializeField] public ulong networkId = 0;
 
     //Local Stats
-    public int health;
-    public int food;
-    public int water;
+    [SerializeField] public int health = 0;
+    [SerializeField] public int food = 0;
+    [SerializeField] public int water = 0;
 
     //Player Arrays
-    public Item[] items;
-    public Item[] armor;
-    public int[] blueprints;
-    
+    [SerializeField] public Item[] items = new Item[0];
+    [SerializeField] public Item[] armor = new Item[0];
+    [SerializeField] public int[] blueprints = new int[0];
+
     //Bool Checks
-    public bool isDead;
+    [SerializeField] public bool isDead = false;
 
     //Acumulative Points
-    public int coinsAdd;
-    public int expAdd;
-    public float hoursAdd;
+    [SerializeField] public int coinsAdd = 0;
+    [SerializeField] public int expAdd = 0;
+    [SerializeField] public float hoursAdd = 0;
 
     //Data for InfoChecks
-    public System.DateTime time;
-    public Vector3 location;
+    [SerializeField] public DateTime time;
+    [SerializeField] public Vector3 location;
 }

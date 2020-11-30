@@ -17,15 +17,28 @@ MonoBehaviour:
   craftAmount: 1
   maxItemStack: 1
   armorType: 0
-  name: Metal Pipe
-  description: This is an Pipe
-  recipe:
-  - 39-2
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
   itemUse:
   - 4-15
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: Pipe
+  description: This is aPipe.
+  recipe:
+  - 39-2
+  useSound: 
+  hitSound: 
   isCraftable: 1
+  isPlaceable: 0
   isHoldable: 1
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}

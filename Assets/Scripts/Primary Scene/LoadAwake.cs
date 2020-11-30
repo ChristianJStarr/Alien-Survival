@@ -6,6 +6,8 @@ using UnityEngine.Rendering;
 
 public class LoadAwake : MonoBehaviour
 {
+    public static LoadAwake Singleton;
+
     public TimeSystem timeSystem;
     public GameObject loadScreen, topBar, inventory;
     public Volume volume;
@@ -20,6 +22,14 @@ public class LoadAwake : MonoBehaviour
     private bool readyToWake = false;
     private bool sleeping = false;
 
+    public bool playerHasInfo = false;
+    public bool playerHasCamera = false;
+
+
+    void Awake() 
+    {
+        Singleton = this;
+    }
     void Start()
     {
         if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
@@ -37,6 +47,11 @@ public class LoadAwake : MonoBehaviour
         {
             ColorFade();
         } 
+        if(!readyToWake && playerHasInfo && playerHasCamera) 
+        {
+            timeSystem.ForceCheckTime();
+            ReadyWake();
+        }
     }
     
     //Enter the Sleep State
@@ -68,19 +83,16 @@ public class LoadAwake : MonoBehaviour
     }
 
     //Ready to Wakeup Function
-    public void ReadyWake() 
+    private void ReadyWake() 
     {
-        timeSystem.UpdateClientTime(onReturnValue =>
+        if (!readyToWake)
         {
-            if (!readyToWake && onReturnValue)
-            {
-                readyToWake = true;
-                targetAlpha = .3f;
-                text2Target = .73f;
-                text1Target = .73f;
-                loadScreen.GetComponent<Button>().interactable = true;
-            }
-        });
+            readyToWake = true;
+            targetAlpha = .3f;
+            text2Target = .73f;
+            text1Target = .73f;
+            loadScreen.GetComponent<Button>().interactable = true;
+        }
     }
 
     //Wake up Function

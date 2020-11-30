@@ -17,6 +17,8 @@ MonoBehaviour:
   craftAmount: 0
   maxItemStack: 1
   armorType: 0
+  toolId: 0
+  toolGatherAmount: 0
   useType: 0
   useRange: 10
   useParticleId: 1
@@ -24,12 +26,18 @@ MonoBehaviour:
   - 4-7
   maxDurability: 10
   durabilityId: 50
-  name: HP Laser Rifle
+  holdableId: 0
+  itemName: Clay
   description: This is the description for this item
   recipe: []
+  useSound: 
+  hitSound: 
   isCraftable: 0
+  isPlaceable: 0
   isHoldable: 1
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}

@@ -4,8 +4,19 @@ using UnityEngine.AI;
 
 public class AIControlObject : NetworkedBehaviour
 {
+    //--------AI Stats-----------
+    public int health = 100;
+
+
+
+
+
+
     public NavMeshAgent agent;
     public Animator animator;
+    public Vector2 lastAnimationVector;
+
+
     public CollisionFlags collisionFlags;
     
     public bool crouching = false;
@@ -23,12 +34,22 @@ public class AIControlObject : NetworkedBehaviour
     public PlayerControlObject playerAttackTarget;
 
 
+
+    //Holdable Object
+    public HoldableObject holdableObject;
+    public int holdableId = 0;
+    public Transform handParent;
+
+    public Transform cameraObject;
+
+
     public Snapshot_AI ConvertToSnapshot()
     {
         return new Snapshot_AI()
         {
             networkId = NetworkId,
             location = transform.position,
+            holdId = holdableId,
             rotation = new Vector2(lookUpDownAxis, transform.localRotation.eulerAngles.y)
         };
     }
@@ -38,11 +59,11 @@ public class AIControlObject : NetworkedBehaviour
     {
         if (IsServer)
         {
-            WorldAISystem.Singleton.RegisterAI(this);
+            WorldAISystem.Register(this);
         }
         else 
         {
-            WorldSnapshotManager.Singleton.RegisterAIObject(NetworkId, this);
+            WorldSnapshotManager.RegisterObject(this);
             Destroy(agent);
         }
     }
@@ -51,11 +72,38 @@ public class AIControlObject : NetworkedBehaviour
     {
         if (IsServer)
         {
-            WorldAISystem.Singleton.RemoveAI(NetworkId);
+            WorldAISystem.Remove(NetworkId);
         }
         else 
         {
-            WorldSnapshotManager.Singleton.RemoveAIObject(NetworkId);
+            WorldSnapshotManager.RemoveObject(NetworkId);
         }
     }
+
+
+
+    public void Animate(Vector2 animateAxis) 
+    {
+        lastAnimationVector = animateAxis;
+        if (animator != null)
+        {
+            if(animateAxis.magnitude > 0)
+            {
+                animator.SetBool("shouldMove", true);
+            }
+            else 
+            {
+                animator.SetBool("shouldMove", false);
+            }
+            if (animator.GetFloat("vertical") != animateAxis.y)
+            {
+                animator.SetFloat("vertical", animateAxis.y);
+            }
+            if (animator.GetFloat("horizontal") != animateAxis.x)
+            {
+                animator.SetFloat("horizontal", animateAxis.x);
+            }
+        }
+    }
+
 }

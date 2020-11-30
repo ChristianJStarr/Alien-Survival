@@ -76,7 +76,7 @@ public class DebugMenu : MonoBehaviour
         foreach (ItemData item in ItemDataManager.Singleton.ItemData)
         {
             DebugMenuSlide slide = Instantiate(playerListPefab, itemListContainer).GetComponent<DebugMenuSlide>();
-            slide.UpdateValues(item.name, item.itemID, this);
+            slide.UpdateValues(item.itemName, item.itemID, this, item.icon);
             slide.isItem = true;
             items.Add(slide);
         }

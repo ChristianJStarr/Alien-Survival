@@ -15,15 +15,29 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 153d2525eea23d14595d1379e5724324, type: 3}
   itemID: 41
   craftAmount: 4
-  name: Wood Plank
-  description: This is an Pipe
-  recipe:
-  - 40-1
   maxItemStack: 200
   armorType: 0
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: Wood Plank
+  description: This is aWood Plank.
+  recipe:
+  - 40-1
+  useSound: 
+  hitSound: 
   isCraftable: 1
+  isPlaceable: 0
   isHoldable: 0
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}

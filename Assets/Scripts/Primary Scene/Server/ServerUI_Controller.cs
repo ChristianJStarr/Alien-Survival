@@ -1,7 +1,4 @@
 ﻿using MLAPI;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using TMPro;
 using UnityEngine;
 
@@ -44,5 +41,10 @@ public class ServerUI_Controller : MonoBehaviour
                 statusText.color = new Color32(255, 112, 94, 255);
             }
         }
+    }
+
+    public void StopServer() 
+    {
+        if (GameServer.singleton != null) GameServer.singleton.StopGameServer();
     }
 }

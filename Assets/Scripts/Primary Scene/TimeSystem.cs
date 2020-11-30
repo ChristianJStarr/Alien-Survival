@@ -1,91 +1,67 @@
 ﻿using MLAPI;
-using MLAPI.Messaging;
-using MLAPI.Serialization.Pooled;
 using System;
 using System.Collections;
-using System.IO;
 using UnityEngine;
 
-public class TimeSystem : NetworkedBehaviour
+public class TimeSystem : MonoBehaviour
 {
     public Light directionalLight;
     private Camera mainCamera;
-    private DateTime now;
-    private TimeSpan timeNow;
-    private TimeSpan gameTime;
+
+    int partOfDay = 0;
+
+    //Sun & Sky Targets
     private float sunIntensityTarget;
     private Color32 fogColorTarget;
     private Color32 skyColorTarget;
+    
+    //Configuration
     private bool allowSunFade = false;
     private bool allowSkyFade = false;
     private bool allowFogFade = false;
-    private int minutesInDay = 48;
-    private int tickRate = 5;
-    private int fadeStep = 2;
-    private int tickCount = 0;
+    private int fadeStep = 1;
+    private int secondsInHour = 120;
 
-    public override void NetworkStart()
+
+
+    private void Start()
     {
-        if (IsServer) 
+        if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
         {
-            StartCoroutine(DayCycle());
+            StartCoroutine(CheckTimeForDayChange());
         }
     }
 
-    public void UpdateClientTime(Action<bool> callback) 
+    //Check Time Loop
+    private IEnumerator CheckTimeForDayChange() 
     {
-        mainCamera = Camera.main;
-        StartCoroutine(RequestTheTimeWait(onReturnValue =>
+        WaitForSeconds wait = new WaitForSeconds(10);
+        while (true)
         {
-            ChangeSky(onReturnValue, true);
-            callback(true);
-        }));
-    }
-    
-    private IEnumerator RequestTheTimeWait(Action<int> callback)
-    {
-        RpcResponse<int> response = InvokeServerRpc(RequestTimeServer_Rpc);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    
-    [ServerRPC(RequireOwnership = false)]
-    public int RequestTimeServer_Rpc()
-    {
-        return GetTime().Hours;
-    }
-
-    private IEnumerator DayCycle() 
-    {
-        yield return new WaitForSeconds(120);
-        StartCoroutine(DayCycle());
-        DayNightTick();
-    }
-
-    private void DayNightTick() 
-    {
-        using (PooledBitStream stream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(stream))
+            int hour = GetCurrentGameTimeHour();
+            if (partOfDay != GetPartOfDay(hour)) 
             {
-                writer.WriteInt32Packed(GetTime().Hours);
-                InvokeClientRpcOnEveryonePerformance(DayNightTickClient_Rpc, stream);
+                partOfDay = GetPartOfDay(hour);
+                ChangeSky(hour, false);
             }
+            yield return wait;
         }
     }
 
-    [ClientRPC]
-    private void DayNightTickClient_Rpc(ulong clientId, Stream stream) 
+    public void ForceCheckTime() 
     {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        int hour = GetCurrentGameTimeHour();
+        if (partOfDay != GetPartOfDay(hour))
         {
-            ChangeSky(reader.ReadInt32Packed() ,false);
+            partOfDay = GetPartOfDay(hour);
+            ChangeSky(hour, true);
         }
     }
 
+    //Change the Sky to GameHour (force = noLerp)
     private void ChangeSky(int hour, bool force) 
     {
-        int partOfDay = GetPartOfDay(hour);
+        
         if (force) 
         {
             float sunIntensity = GetSunIntensity(partOfDay);
@@ -116,7 +92,7 @@ public class TimeSystem : NetworkedBehaviour
             }
 
             Color32 skyColor = GetSkyColor(partOfDay);
-            if (mainCamera.backgroundColor != skyColor)
+            if (mainCamera != null && mainCamera.backgroundColor != skyColor)
             {
                 skyColorTarget = skyColor;
                 allowSkyFade = true;
@@ -131,21 +107,15 @@ public class TimeSystem : NetworkedBehaviour
         }
     }
 
+    //Manage Sun,Sky,Fog Lerpping
     private void Update()
     {
-        if (tickCount == tickRate)
-        {
-            tickCount = 0;
-            if (allowSunFade) { FadeSun(); }
-            if (allowSkyFade) { FadeSky(); }
-            if (allowFogFade) { FadeFog(); }
-        }
-        else 
-        {
-            tickCount++;
-        }
+        if (allowSunFade) { FadeSun(); }
+        if (allowSkyFade) { FadeSky(); }
+        if (allowFogFade) { FadeFog(); }
     }
 
+    //Sun Lerp
     private void FadeSun()
     {
         if(directionalLight.intensity != sunIntensityTarget) 
@@ -158,6 +128,7 @@ public class TimeSystem : NetworkedBehaviour
         }
     }
     
+    //Sky Lerp
     private void FadeSky() 
     {
         if(mainCamera.backgroundColor != skyColorTarget) 
@@ -170,6 +141,7 @@ public class TimeSystem : NetworkedBehaviour
         }
     }
     
+    //Fog Lerp
     private void FadeFog()
     {
         if(RenderSettings.fogColor != fogColorTarget) 
@@ -181,21 +153,18 @@ public class TimeSystem : NetworkedBehaviour
             allowFogFade = false;
         }
     }   
-  
-    public TimeSpan GetTime()
-    {
-        now = DateTime.Now;
-        timeNow = now.TimeOfDay;
-        double hours = timeNow.TotalMinutes % minutesInDay;
-        double minutes = (hours % 1) * 60;
-        double seconds = (minutes % 1) * 60;
-        gameTime = new TimeSpan((int)hours, (int)minutes, (int)seconds);
-
-        return gameTime;
-    }
-
+ 
+    //Get Part of Day from GameHour
     private int GetPartOfDay(int hour)
     {
+        //-----Part of Day Key-----//
+        //     0 = Early Morning   //
+        //     1 = Morning         //
+        //     2 = Afternoon       //
+        //     3 = MidEvening      //
+        //     4 = Evening         //
+        //     5 = Night           //
+        //-------------------------//
         if (hour >= 7 && hour <= 10)
         {
             return 1;
@@ -226,6 +195,7 @@ public class TimeSystem : NetworkedBehaviour
         }
     }
 
+    //Get target Fog Color
     private Color32 GetFogColor(int partOfDay) 
     {
         if (partOfDay == 1)//Morning 
@@ -254,6 +224,7 @@ public class TimeSystem : NetworkedBehaviour
         }
     }
     
+    //Get target Sky Color
     private Color32 GetSkyColor(int partOfDay) 
     {
         if (partOfDay == 1)//Morning 
@@ -282,6 +253,7 @@ public class TimeSystem : NetworkedBehaviour
         }
     }
 
+    //Get target Sun Intensity
     private float GetSunIntensity(int partOfDay) 
     {
         if(partOfDay == 1)//Morning 
@@ -308,6 +280,13 @@ public class TimeSystem : NetworkedBehaviour
         {
             return 0.2F;
         }
+    }
+
+    //Get Current Game Time in Hours
+    private int GetCurrentGameTimeHour()
+    {
+        if (NetworkingManager.Singleton == null) return 0;
+        return TimeSpan.FromSeconds(NetworkingManager.Singleton.NetworkTime).Hours;
     }
 
 }

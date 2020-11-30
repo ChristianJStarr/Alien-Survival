@@ -156,7 +156,7 @@ public class CraftingMenu : MonoBehaviour
                 break;
             }
         }
-        craftTip_name.text = item.name;
+        craftTip_name.text = item.itemName;
         craftTip_desc.text = item.description;
         craftTip_image.sprite = item.icon;
         craftAmount_1.text = craftAmount_2.text = craftAmount_3.text = craftAmount_4.text = "";

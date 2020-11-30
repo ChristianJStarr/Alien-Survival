@@ -15,14 +15,28 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 4f61213f599ceac4f8c55a6c10295acb, type: 3}
   itemID: 40
   craftAmount: 1
-  name: Wood Log
-  description: This is an Pipe
-  recipe: []
   maxItemStack: 200
   armorType: 0
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: Log
+  description: This is aLog.
+  recipe: []
+  useSound: 
+  hitSound: 
   isCraftable: 0
+  isPlaceable: 0
   isHoldable: 0
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}

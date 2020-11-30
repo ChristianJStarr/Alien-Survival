@@ -15,6 +15,10 @@ public class PlayerCameraManager : MonoBehaviour
             {
                 Instantiate(playerCamera, playerMount.mainCameraSpawnAnchor);
                 Instantiate(playerViewCamera, playerMount.viewCameraSpawnAnchor);
+                if(LoadAwake.Singleton != null) 
+                {
+                    LoadAwake.Singleton.playerHasCamera = true;
+                }
             }
         }
     }

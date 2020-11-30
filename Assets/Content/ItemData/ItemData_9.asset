@@ -15,16 +15,30 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 631e630c66341cb419d3cd3087f8bfb8, type: 3}
   itemID: 9
   craftAmount: 15
-  name: 7.62 Round
+  maxItemStack: 200
+  armorType: 0
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: 7.62 Ammo
   description: This is the description for this item
   recipe:
   - 39-1
   - 49-2
-  maxItemStack: 200
-  armorType: 0
+  useSound: 
+  hitSound: 
   isCraftable: 1
+  isPlaceable: 0
   isHoldable: 0
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}

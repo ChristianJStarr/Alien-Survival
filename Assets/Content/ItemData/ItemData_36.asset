@@ -15,14 +15,28 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 6bf9fdae30ff7f34ebb400a01c5119e0, type: 3}
   itemID: 36
   craftAmount: 1
-  name: Cotton
-  description: This is an Pipe
-  recipe: []
   maxItemStack: 200
   armorType: 0
+  toolId: 0
+  toolGatherAmount: 0
+  useType: 0
+  useRange: 10
+  useParticleId: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  holdableId: 0
+  itemName: Cotton
+  description: This is aCotton.
+  recipe: []
+  useSound: 
+  hitSound: 
   isCraftable: 0
+  isPlaceable: 0
   isHoldable: 0
   isArmor: 0
   isDragging: 0
   showInInventory: 1
+  startMaxDurability: 0
   holdableObject: {fileID: 0}
+  placeableItem: {fileID: 0}
