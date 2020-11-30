@@ -223,9 +223,7 @@ public class ServerConnect : MonoBehaviour
 
         if (gameServer.MovePlayerToActive(clientId, userId, authKey))
         {
-            gameServer.InitializePlayerInfo(clientId);
-                Vector3 location = gameServer.GetPlayerLocation(clientId);
-                spawnPoint = location;
+            spawnPoint = gameServer.GetPlayerLocation(clientId);
             approve = true;
         }
         else

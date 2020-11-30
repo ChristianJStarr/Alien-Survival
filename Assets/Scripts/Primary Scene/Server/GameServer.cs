@@ -175,12 +175,7 @@ public class GameServer : NetworkedBehaviour
         return playerInfoSystem.GetPlayerLocation(clientId);
     }
 
-    //Initialize Player Info
-    public void InitializePlayerInfo(ulong clientId)
-    {
-        playerInfoSystem.SetPlayerTime(clientId, DateTime.Now);
-    }
-
+    
 
     //-----------------------------------------------------------------//
     // (S)  SERVER          SIDE CALLBACKS                             //
@@ -287,10 +282,10 @@ public class GameServer : NetworkedBehaviour
     public void Server_PlayerDeath(ulong clientId, Item[] items, Item[] armor, string username) 
     {
         Server_UICloseInventory(clientId);
-        ServerUI_ShowDeathScreen(clientId); //Show Death Screen
+        ServerUI_ShowDeathScreen(clientId, playerInfoSystem.ResetTimeSurvived(clientId)); //Show Death Screen
         Server_PlayerRagdoll(clientId); //Player Ragdoll Object
         Server_PlayerDeathDrop(items, armor, playerCommandSystem.players[clientId].transform.position, username);
-        playerInfoSystem.ClearPlayerInventory(clientId);
+        playerInfoSystem.Inventory_Clear(clientId);
         playerCommandSystem.Teleport_ToVector(clientId, tempPlayerPosition);
         //Wait for Respawn Response
     }
@@ -362,16 +357,27 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Force Death Screen on Client
-    public void ServerUI_ShowDeathScreen(ulong clientId)
+    public void ServerUI_ShowDeathScreen(ulong clientId, TimeSpan span)
     {
-        InvokeClientRpcOnClient(Server_UIShowDeathScreenRpc, clientId);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+
+                writer.WriteDoublePacked(span.TotalHours);
+                InvokeClientRpcOnClientPerformance(Server_UIShowDeathScreenRpc, clientId, writeStream);
+            }
+        }
     }
 
     //Client RPC - Force Death Screen
     [ClientRPC]
-    private void Server_UIShowDeathScreenRpc()
+    private void Server_UIShowDeathScreenRpc(ulong clientId, Stream stream)
     {
-        PlayerActionManager.singleton.ShowDeathScreen();
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            playerActionManager.ShowDeathScreen(reader.ReadDoublePacked());
+        }
     }
 
     //Hide Death Screen on Client

@@ -118,6 +118,10 @@ public class PlayerControlObject : NetworkedBehaviour
         {
             desiredMove += Physics.gravity * 2 * Time.fixedDeltaTime;
         }
+
+        Debug.Log(moveAxis.ToString() + "  " + desiredMove.ToString());
+
+
         collisionFlags = characterController.Move(desiredMove * Time.fixedDeltaTime);
     }
 

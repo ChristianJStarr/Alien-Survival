@@ -78,9 +78,12 @@ public class PlayerInfoSystem : MonoBehaviour
         PlayerInfo returnedInfo = null;
         if (active.ContainsKey(clientId))
         {
-            inactive.Add(active[clientId]);
+            
             returnedInfo = active[clientId];
-            returnedInfo.hoursAdd = (float)DateTime.Now.Subtract(returnedInfo.time).TotalMinutes / 60;
+            active[clientId].hoursAdd = 0;
+            active[clientId].expAdd = 0;
+            active[clientId].coinsAdd = 0;
+            inactive.Add(active[clientId]);
             active.Remove(clientId);
             activeIds.Remove(clientId);
         }

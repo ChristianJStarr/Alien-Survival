@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class PlayerActionManager : MonoBehaviour
 {
@@ -18,7 +19,11 @@ public class PlayerActionManager : MonoBehaviour
     private GameServer gameServer;
     private SelectedItemHandler itemHandler;
     public Topbar topbar;
-    public GameObject DeathScreen;
+
+
+
+    //----Death Screen
+    public UI_DeathScreen deathScreen;
     
     void Start()
     {
@@ -34,22 +39,24 @@ public class PlayerActionManager : MonoBehaviour
     //                   Player Requests                               //
     //-----------------------------------------------------------------//
 
+    //Request to Disconnect
     public void RequestDisconnect() 
     {
         gameServer.RequestToDisconnect(authKey);
     }
 
 
-
-    public void ShowDeathScreen() 
+    //----Death Screen
+    //Show
+    public void ShowDeathScreen(double hours) 
     {
         InterfaceHider.Singleton.HideAllInterfaces();
-        DeathScreen.SetActive(true);
+        deathScreen.EnableScreen(TimeSpan.FromHours(hours));
     }
-
+    //Hide
     public void HideDeathScreen() 
     {
         InterfaceHider.Singleton.ShowAllInterfaces();
-        DeathScreen.SetActive(false);
+        deathScreen.DisableScreen();
     }
 }
