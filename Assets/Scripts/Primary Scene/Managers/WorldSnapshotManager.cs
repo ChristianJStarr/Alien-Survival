@@ -10,8 +10,11 @@ public class WorldSnapshotManager : NetworkedBehaviour
 {
     public static WorldSnapshotManager Singleton;
 
+    //Managers
     public HoldableManager holdableManager;
     public PlayerCommandManager playerCommandManager;
+    public WorldObjectManager worldObjectManager;
+
 
     //Control Object Dictionaries
     public Dictionary<ulong, PlayerControlObject> players = new Dictionary<ulong, PlayerControlObject>();
@@ -144,8 +147,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
             ai.Remove(networkId);
         }
     }
-
-    
+ 
     //Process Icomming Snapshot
     public void ProcessSnapshot(Snapshot snapshot)
     {
@@ -297,6 +299,12 @@ public class WorldSnapshotManager : NetworkedBehaviour
         aRotationsNative.Dispose();
         bRotationsNative.Dispose();
 
+        //Update World Objects
+        if (players.ContainsKey(selfNetworkId) && snapshot.worldObjects.Length > 0)
+        {
+            worldObjectManager.UpdateWorldObjects(snapshot.worldObjects, players[selfNetworkId].transform.position);
+        }
+
         //Convert & Save this Snapshot
         oldSnapshot = Snapshot.ConvertQuick(snapshot);
     }
@@ -392,13 +400,15 @@ public class WorldSnapshotManager : NetworkedBehaviour
             objLerpJob.animation = nativeAnimations;
             objLerpJobHandle = objLerpJob.Schedule(objectTransformArray);
 
+
+            objLerpJobHandle.Complete();
+
             camLerpJob = new CameraLerpJob();
             camLerpJob.deltaTime = Time.fixedDeltaTime;
             camLerpJob.lookXTargets = nativeLookXTargets;
             camLerpJob.lerpSpeed = lerpSpeed;
             camLerpJobHandle = camLerpJob.Schedule(cameraTransformArray);
 
-            objLerpJobHandle.Complete();
             camLerpJobHandle.Complete();
 
             writeCount = 0;

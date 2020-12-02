@@ -20,7 +20,7 @@ public class InterfaceHider : MonoBehaviour
 
     public Topbar topBar;
 
-    public InventoryGfx inventory;
+    public UI_Inventory inventory;
 
     public ControlControl controls;
 

@@ -100,7 +100,6 @@ public class PlayerControlObject : NetworkedBehaviour
         RaycastHit hitInfo;
         Physics.SphereCast(transform.position, characterController.radius, Vector3.down, out hitInfo, characterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
         desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized * 5;
-        Debug.Log("Desired: " + desiredMove.ToString());
         if (characterController.isGrounded)
         {
             desiredMove.y = -2;
@@ -118,10 +117,6 @@ public class PlayerControlObject : NetworkedBehaviour
         {
             desiredMove += Physics.gravity * 2 * Time.fixedDeltaTime;
         }
-
-        Debug.Log(moveAxis.ToString() + "  " + desiredMove.ToString());
-
-
         collisionFlags = characterController.Move(desiredMove * Time.fixedDeltaTime);
     }
 

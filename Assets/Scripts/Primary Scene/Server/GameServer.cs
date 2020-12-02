@@ -41,7 +41,7 @@ public class GameServer : NetworkedBehaviour
     // -- MANAGERS
     [Header("Managers")]
     public PlayerInfoManager playerInfoManager;
-    public PlayerActionManager playerActionManager;
+    public PlayerUIManager playerUIManager;
     public ChatManager chatManager;
     public WorldSnapshotManager snapshotManager;
 
@@ -55,10 +55,18 @@ public class GameServer : NetworkedBehaviour
     //Temp Location for Respawn
     public Vector3 tempPlayerPosition = new Vector3(0, -5000, 0);
 
+
+    //----ServerDebug
+    public int DebugSnapshotId = 0;
+    public float DebugSnapshotSize = 0;
+    public int DebugCommandPerSecond = 0;
+
+
+
     private void Start()
     {
         playerInfoManager = PlayerInfoManager.singleton;
-        playerActionManager = PlayerActionManager.singleton;
+        playerUIManager = PlayerUIManager.Singleton;
         networkingManager = NetworkingManager.Singleton;
         if (IsServer)
         {
@@ -233,41 +241,7 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-    //-----------------------------------------------------------------//
-    // (S)  SERVER            SIDE TOOL                                //
-    //-----------------------------------------------------------------//
-
-    //Generate UniqueID
-    public string GenerateUnique()
-    {
-        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var stringChars = new char[20];
-        var random = new System.Random();
-        for (int i = 0; i < stringChars.Length; i++)
-        {
-            stringChars[i] = chars[random.Next(chars.Length)];
-        }
-        return new string(stringChars);
-    }
-
-    //Get Item from ItemData Damage
-    public int ServerGetItemDamage(ItemData itemData)
-    {
-        int damage = 0;
-        foreach (string data in itemData.itemUse)
-        {
-            string[] datas = data.Split('-');
-            int type = Convert.ToInt32(datas[0]);
-            int amount = Convert.ToInt32(datas[1]);
-            if (type == 4)
-            {
-                damage += amount;
-            }
-        }
-        return damage;
-    }
-
-
+    
     //-----------------------------------------------------------------//
     // (S) SERVER         Tasks                                        //
     //-----------------------------------------------------------------//
@@ -281,7 +255,7 @@ public class GameServer : NetworkedBehaviour
     //Handle Player Death (called from player info system when health reaches 0)
     public void Server_PlayerDeath(ulong clientId, Item[] items, Item[] armor, string username) 
     {
-        Server_UICloseInventory(clientId);
+        Server_UIClosePlayerInventory(clientId);
         ServerUI_ShowDeathScreen(clientId, playerInfoSystem.ResetTimeSurvived(clientId)); //Show Death Screen
         Server_PlayerRagdoll(clientId); //Player Ragdoll Object
         Server_PlayerDeathDrop(items, armor, playerCommandSystem.players[clientId].transform.position, username);
@@ -340,23 +314,57 @@ public class GameServer : NetworkedBehaviour
         Server_UIHideDeathScreen(clientId);
     }
 
+    //Get ClientId from NetworkId
+    public ulong Server_GetClientIdFromNetworkId(ulong networkId) 
+    {
+        return GetNetworkedObject(networkId).OwnerClientId;
+    }
 
     //-----------------------------------------------------------------//
     // (S)  SERVER         Tasks : User Interface                      //
     //-----------------------------------------------------------------//
 
-    //Close Inventory on Client
-    public void Server_UICloseInventory(ulong clientId)
+
+    //-----Player Inventory
+    //Show
+    private void Server_UIShowPlayerInventory(ulong clientId, int uiType, UIData uiData)
     {
-        InvokeClientRpcOnClient(Server_UICloseInventoryRpc, clientId);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(uiType);
+                //Write UI Data
+
+
+                InvokeClientRpcOnClientPerformance(Server_UIShowPlayerInventoryRpc, clientId, writeStream);
+            }
+        }
     }
     [ClientRPC]
-    private void Server_UICloseInventoryRpc()
+    private void Server_UIShowPlayerInventoryRpc(ulong clientId, Stream stream)
     {
-        playerInfoManager.CloseInventory();
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            int uiType = reader.ReadInt32Packed();
+            UIData data = null;
+            playerInfoManager.ShowInventoryScreen(uiType, data);
+        }
+    }
+    //Hide
+    public void Server_UIClosePlayerInventory(ulong clientId)
+    {
+        InvokeClientRpcOnClient(Server_UIClosePlayerInventoryRpc, clientId);
+    }
+    [ClientRPC]
+    private void Server_UIClosePlayerInventoryRpc()
+    {
+        playerInfoManager.HideInventoryScreen();
     }
 
-    //Force Death Screen on Client
+
+    //-----Player Death Screen
+    //Show
     public void ServerUI_ShowDeathScreen(ulong clientId, TimeSpan span)
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -369,49 +377,26 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-
-    //Client RPC - Force Death Screen
     [ClientRPC]
     private void Server_UIShowDeathScreenRpc(ulong clientId, Stream stream)
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            playerActionManager.ShowDeathScreen(reader.ReadDoublePacked());
+            playerUIManager.ShowDeathScreen(reader.ReadDoublePacked());
         }
     }
-
-    //Hide Death Screen on Client
+    //Hide
     public void Server_UIHideDeathScreen(ulong clientId)
     {
         InvokeClientRpcOnClient(Server_UIHideDeathScreenRpc, clientId);
     }
-
-    //Client RPC - Hide Death Screen
     [ClientRPC]
     private void Server_UIHideDeathScreenRpc()
     {
-        PlayerActionManager.singleton.HideDeathScreen();
+        playerUIManager.HideDeathScreen();
     }
 
-    private void Server_UIShowStorage(ulong clientId, string data)
-    {
-        InvokeClientRpcOnClient(Server_UIShowStorageRpc, clientId, data);
-    }
-    [ClientRPC]
-    private void Server_UIShowStorageRpc(string data)
-    {
-        playerInfoManager.ShowStorage(data);
-    }
-
-    private void Server_UIUpdateStorage(ulong clientId, string data)
-    {
-        InvokeClientRpcOnClient(Server_UIUpdateStorageRpc, clientId, data);
-    }
-    [ClientRPC]
-    private void Server_UIUpdateStorageRpc(string data)
-    {
-        playerInfoManager.UpdateExtraUIData(data);
-    }
+    
 
 
     //-----------------------------------------------------------------//
@@ -437,6 +422,7 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    
     //Authenticate Player Command
     [ServerRPC(RequireOwnership = false)]
     private void Server_AuthenticatePlayerCommand(ulong _clientId, Stream stream)
@@ -459,110 +445,25 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Send World Snapshot to Clients
-    public void ServerSendSnapshot(Snapshot snapshot)
+    public void ServerSendSnapshot(ulong clientId, Stream snapshot, bool full = false)
     {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        Debug.Log("Sending Snapshot.");
+        DebugSnapshotSize = snapshot.Length / 1000;
+        if (full) 
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                ulong[] clientIds = networkingManager.ConnectedClients.Keys.ToArray();
-
-                for (int i = 0; i < clientIds.Length; i++)
-                {
-                    if (playerCommandSystem.players.ContainsKey(clientIds[i]))
-                    {
-                        Snapshot talored = Snapshot.TrimForDistance(playerCommandSystem.players[clientIds[i]].transform.position, snapshot);
-                        writer.WriteInt32Packed(talored.snapshotId);
-                        writer.WriteSinglePacked(talored.networkTime);
-
-                        //Players
-                        if (talored.players != null)
-                        {
-                            writer.WriteInt32Packed(talored.players.Length);
-                            for (int e = 0; e < talored.players.Length; e++)
-                            {
-                                writer.WriteUInt64Packed(talored.players[e].networkId);
-                                writer.WriteVector3Packed(talored.players[e].location);
-                                writer.WriteVector2Packed(talored.players[e].rotation);
-                                writer.WriteInt16Packed((short)talored.players[e].holdId);
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-
-                        //AI
-                        if (talored.ai != null)
-                        {
-                            writer.WriteInt32Packed(talored.ai.Length);
-                            for (int e = 0; e < talored.ai.Length; e++)
-                            {
-                                writer.WriteUInt64Packed(talored.ai[e].networkId);
-                                writer.WriteVector3Packed(talored.ai[e].location);
-                                writer.WriteVector2Packed(talored.ai[e].rotation);
-                                writer.WriteInt16Packed((short)talored.ai[e].holdId);
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-
-
-
-                        Debug.Log("Current Snapshot Size: " + writeStream.BitLength / 8 + " bytes");
-                        InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientIds[i], writeStream, "Snapshot_Mini");
-                    }
-                    else
-                    {
-                        writer.WriteInt32Packed(snapshot.snapshotId);
-                        writer.WriteSinglePacked(snapshot.networkTime);
-
-                        //Players
-                        if (snapshot.players != null)
-                        {
-                            writer.WriteInt32Packed(snapshot.players.Length);
-                            for (int e = 0; e < snapshot.players.Length; e++)
-                            {
-                                writer.WriteUInt64Packed(snapshot.players[e].networkId);
-                                writer.WriteVector3Packed(snapshot.players[e].location);
-                                writer.WriteVector2Packed(snapshot.players[e].rotation);
-                                writer.WriteInt16Packed((short)snapshot.players[e].holdId);
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-
-                        //AI
-                        if (snapshot.ai != null)
-                        {
-                            writer.WriteInt32Packed(snapshot.ai.Length);
-                            for (int e = 0; e < snapshot.ai.Length; e++)
-                            {
-                                writer.WriteUInt64Packed(snapshot.ai[e].networkId);
-                                writer.WriteVector3Packed(snapshot.ai[e].location);
-                                writer.WriteVector2Packed(snapshot.ai[e].rotation);
-                                writer.WriteInt16Packed((short)snapshot.ai[e].holdId);
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-                        Debug.Log("Current Snapshot Size: " + writeStream.BitLength / 8 + " bytes");
-                        InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientIds[i], writeStream, "Snapshot_Full");
-                    }
-                }
-            }
+            InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, snapshot, "Snapshot_Full");
+        }
+        else 
+        {
+            InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, snapshot, "Snapshot_Mini");
         }
     }
+    
     //Handle Incoming World Snapshot
     [ClientRPC]
     private void Client_RecieveWorldSnapshot(ulong clientId, Stream stream)
     {
+        Debug.Log("Received Snapshot. " + stream.Length + "bytes");
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
             Snapshot snapshot = new Snapshot()
@@ -570,44 +471,56 @@ public class GameServer : NetworkedBehaviour
                 snapshotId = reader.ReadInt32Packed(),
                 networkTime = reader.ReadSinglePacked()
             };
-
             //Players
             int playerLength = reader.ReadInt32Packed();
             if (playerLength > 0)
             {
-                List<Snapshot_Player> playerList = new List<Snapshot_Player>();
+                snapshot.players = new Snapshot_Player[playerLength];
                 for (int i = 0; i < playerLength; i++)
                 {
-                    playerList.Add(new Snapshot_Player()
+                    snapshot.players[i] = new Snapshot_Player()
                     {
                         networkId = reader.ReadUInt64Packed(),
                         location = reader.ReadVector3Packed(),
                         rotation = reader.ReadVector2Packed(),
                         holdId = reader.ReadInt16Packed()
-                    });
+                    };
                 }
-                snapshot.players = playerList.ToArray();
             }
 
             //AI
             int aiLength = reader.ReadInt32Packed();
             if (aiLength > 0)
             {
-                List<Snapshot_AI> aiList = new List<Snapshot_AI>();
+                snapshot.ai = new Snapshot_AI[aiLength];
                 for (int i = 0; i < aiLength; i++)
                 {
-                    aiList.Add(new Snapshot_AI()
+                    snapshot.ai[i] = new Snapshot_AI()
                     {
                         networkId = reader.ReadUInt64Packed(),
                         location = reader.ReadVector3Packed(),
                         rotation = reader.ReadVector2Packed(),
                         holdId = reader.ReadInt16Packed()
-                    });
+                    };
                 }
-                snapshot.ai = aiList.ToArray();
             }
 
+            //World Object
+            int worldObjectLength = reader.ReadInt32Packed();
+            if(worldObjectLength > 0) 
+            {
+                snapshot.worldObjects = new Snapshot_WorldObject[worldObjectLength];
+                for (int i = 0; i < worldObjectLength; i++)
+                {
+                    snapshot.worldObjects[i] = new Snapshot_WorldObject()
+                    {
+                        spawnId = reader.ReadInt32Packed(),
+                        objectId = reader.ReadInt32Packed()
+                    };
+                }
+            }
 
+            //Process This Snapshot
             snapshotManager.ProcessSnapshot(snapshot);
             if (networkingManager != null)
             {
@@ -641,33 +554,6 @@ public class GameServer : NetworkedBehaviour
     private string GetNameByClientId_Rpc(ulong clientId)
     {
         return playerInfoSystem.GetPlayerName(clientId);
-    }
-
-    //--Request Player Name
-    //CLIENT
-    public void GetAllConnectedClients(Action<ulong[]> callback)
-    {
-        DebugMsg.Notify("Requesting a List of All Clients.", 2);
-        StartCoroutine(GetAllConnectedClients_Wait(returnValue => { callback(returnValue); }));
-    }
-    private IEnumerator GetAllConnectedClients_Wait(Action<ulong[]> callback)
-    {
-        RpcResponse<ulong[]> response = InvokeServerRpc(GetAllConnectedClients_Rpc);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    //SERVER
-    [ServerRPC(RequireOwnership = false)]
-    private ulong[] GetAllConnectedClients_Rpc()
-    {
-        if (NetworkingManager.Singleton != null)
-        {
-            return NetworkingManager.Singleton.ConnectedClients.Keys.ToArray();
-        }
-        else
-        {
-            return null;
-        }
     }
 
     //--Request to Move Item
@@ -833,7 +719,6 @@ public class GameServer : NetworkedBehaviour
         }
     }
     
-
     //--Request Ping
     //CLIENT
     public int GetPlayerPing()
@@ -896,7 +781,6 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-
     [ClientRPC]
     private void ChatSendTo_Rpc(ulong clientId, Stream stream)
     {
@@ -1247,10 +1131,11 @@ public class GameServer : NetworkedBehaviour
     }
 
 }
-//1156 6/20/20
-//1692 6/25/20
-//2106 7/11/20 
-//2212 8/15/20 
-//1451 8/25/20 
-//1123 9/22/20 
+//1156 06/20/20
+//1692 06/25/20
+//2106 07/11/20 
+//2212 08/15/20 
+//1451 08/25/20 
+//1123 09/22/20 
 //1374 11/23/20 
+//1229 11/30/20

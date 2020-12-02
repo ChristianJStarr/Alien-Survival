@@ -1,5 +1,4 @@
 ﻿using MLAPI;
-using System.Collections;
 using UnityEngine;
 
 public class PlayerInfoManager : MonoBehaviour
@@ -15,13 +14,12 @@ public class PlayerInfoManager : MonoBehaviour
     }
 
     #endregion
-    public InventoryGfx inventory;
+    public UI_Inventory inventory;
     public LoadAwake loadAwake;
     public Topbar topbar;
     private GameServer gameServer;
     private PlayerInfo storedPlayerInfo;
     private Backpack playerBackpack;
-    private ulong clientId;
     private string authKey;
     private bool firstRequest = true;
 
@@ -59,31 +57,32 @@ public class PlayerInfoManager : MonoBehaviour
     //                      Clickable - Storage                        //
     //-----------------------------------------------------------------//
 
-    public void ShowStorage(string data)
-    {
-        inventory.InvButton(data);
-    }
 
-    public void UpdateExtraUIData(string data) 
-    {
-        inventory.UpdateExtraUIData(data);
-    }
     //-------Backpack Initialize
     public void InitializeBackpackEffect(Backpack backpack) 
     {
         playerBackpack = backpack;
     }
 
-    public void CloseInventory() 
+    //-------Inventory
+    //Show
+    public void ShowInventoryScreen(int uiType, UIData data)
+    {
+        inventory.OpenInventory(uiType, data);
+    }
+    //Hide
+    public void HideInventoryScreen()
     {
         inventory.CloseInventory();
     }
 
 
+
+
     //-----------------------------------------------------------------//
     //             Update PlayerInfo Called From Server                //
     //-----------------------------------------------------------------//
-   
+
     public void UpdateAll(PlayerInfo info)
     {
         if (storedPlayerInfo == null) return;

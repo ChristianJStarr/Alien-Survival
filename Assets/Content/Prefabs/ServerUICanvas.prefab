@@ -398,7 +398,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'CPU: 0%  0ms'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -803,7 +803,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'RAM: 0% (0mb)'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -883,7 +883,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7770075899323244106}
   m_Layer: 0
-  m_Name: Server_RAM
+  m_Name: Server_CMD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -956,7 +956,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7770075899481289415}
   m_Layer: 0
-  m_Name: Server_CPU
+  m_Name: Server_SNAP
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1158,6 +1158,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   statusText: {fileID: 7770075898637438454}
+  snapshotText: {fileID: 7770075898087964409}
+  commandText: {fileID: 7770075899016420898}
 --- !u!1001 &7770075899410380902
 PrefabInstance:
   m_ObjectHideFlags: 0

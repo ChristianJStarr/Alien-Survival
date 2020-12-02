@@ -5,7 +5,7 @@ using UnityEngine;
 public class ServerUI_Controller : MonoBehaviour
 {
 
-    public TextMeshProUGUI statusText;
+    public TextMeshProUGUI statusText, snapshotText, commandText;
 
     private bool isRunning = false;
 
@@ -15,6 +15,8 @@ public class ServerUI_Controller : MonoBehaviour
         if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsServer) 
         {
             SetServerStatus(true);
+            UpdateCommandStats();
+            UpdateSnapshotStats();
         }
         else 
         {
@@ -46,5 +48,18 @@ public class ServerUI_Controller : MonoBehaviour
     public void StopServer() 
     {
         if (GameServer.singleton != null) GameServer.singleton.StopGameServer();
+    }
+
+    public void UpdateSnapshotStats() 
+    {
+        int snapshot_Id = GameServer.singleton.DebugSnapshotId;
+        float snapshot_Size = GameServer.singleton.DebugSnapshotSize;
+        snapshotText.text = "Snapshot Id: " + snapshot_Id + " Size: " + snapshot_Size + "kb";
+    }
+
+    public void UpdateCommandStats() 
+    {
+        int commandsPer = GameServer.singleton.DebugCommandPerSecond;
+        commandText.text = "Commands: " + commandsPer + "/s";
     }
 }

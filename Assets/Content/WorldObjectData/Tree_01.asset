@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f23dd96797c1a946bd2967b536e89dc, type: 3}
+  m_Name: Tree_01
+  m_EditorClassIdentifier: 
+  objectId: 2
+  objectType: 1
+  objectLevel: 0
+  objectPrefab: {fileID: 1753629015251499655, guid: 71667553015b515449c2e9669611c85a,
+    type: 3}
+  gatherItemId: 40
+  gatherAmount: 100
+  toolId: 1

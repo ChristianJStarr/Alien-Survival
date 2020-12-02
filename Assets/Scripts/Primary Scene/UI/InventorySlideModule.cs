@@ -9,4 +9,9 @@ public class InventorySlideModule : MonoBehaviour
     public int uiID;
     public RectTransform rect;
     public bool allowActivateOnHover;
+
+
+    // UI Data
+    public bool needsUIData;
+    public UIData storedUIData;
 }

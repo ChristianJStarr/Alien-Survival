@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections;
 
-public class ItemSlot : MonoBehaviour, IDragHandler, IPointerClickHandler, IEndDragHandler
+public class ItemSlot : MonoBehaviour, IDragHandler, IBeginDragHandler, IPointerClickHandler, IEndDragHandler
 {
     public TextMeshProUGUI slot_Amount;
     public int numberItems = 0;
@@ -15,10 +15,15 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IPointerClickHandler, IEndD
     public int dragType = 1;
     public Item item;
     public ItemData itemData;
-    public InventoryGfx inventoryGfx;
+    public UI_Inventory inventory;
     public Slider slider;
     public TempHoverSlot tempHoverIcon;
+    public bool isTooltipped = false;
 
+    public void OnBeginDrag(PointerEventData eventData) 
+    {
+        MusicManager.PlayUISound(1);
+    }
 
     //Drag: On Drag
     public void OnDrag(PointerEventData eventData)
@@ -30,7 +35,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IPointerClickHandler, IEndD
             if (dragType == 1)
             {
                 SetTooltip();
-                inventoryGfx.CheckHoverObject();
+                inventory.CheckHoverObject();
             }
         }
     }
@@ -38,6 +43,7 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IPointerClickHandler, IEndD
     public void OnEndDrag(PointerEventData eventData)
     {
         ResetTempIcon();
+        MusicManager.PlayUISound(2);
     }
     //Drag: PointerClick
     public void OnPointerClick(PointerEventData eventData)
@@ -181,6 +187,11 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IPointerClickHandler, IEndD
         }
         slider.gameObject.SetActive(false);
         numberItems = 0;
+        if (isTooltipped) 
+        {
+            isTooltipped = false;
+            inventory.HideTooltip(slotNumber);
+        }
     }
 
     //Get this slots Item
@@ -200,7 +211,8 @@ public class ItemSlot : MonoBehaviour, IDragHandler, IPointerClickHandler, IEndD
     {
         if(item != null) 
         {
-            inventoryGfx.ActivateToolTip(item);
+            inventory.ActivateToolTip(item);
+            isTooltipped = true;
         }
     }
 }

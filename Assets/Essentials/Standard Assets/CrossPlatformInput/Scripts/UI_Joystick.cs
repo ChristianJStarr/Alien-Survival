@@ -34,6 +34,19 @@ public class UI_Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         MovementRange = Screen.height / 5;
     }
 
+    //Force stop Auto-Sprint
+    public void ForceStopAutoSprint() 
+    {
+        if (isSprintLocked) 
+        {
+            isSprintLocked = false;
+            lockIcon.enabled = false;
+            isWaitingToLock = false;
+            transform.position = joy_Center;
+            UpdateVirtualAxes(transform.position);
+        }
+    }
+
     //Update the Virtual Axes
     void UpdateVirtualAxes(Vector3 value)
     {
@@ -159,6 +172,7 @@ public class UI_Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         Debug.Log(joy_Center + " Firing");
     }
 
+    //On Pointer Down Event
     public void OnPointerDown(PointerEventData eventData)
     {
         if (isSprintLocked) 

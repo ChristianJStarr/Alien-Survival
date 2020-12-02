@@ -1,11 +1,9 @@
 ﻿using MLAPI;
 using MLAPI.SceneManagement;
 using MLAPI.Spawning;
-using MLAPI.Transports.UNET;
 using System;
 using System.Collections;
 using System.IO;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -27,13 +25,10 @@ public class ServerConnect : MonoBehaviour
     private NetworkingManager networkManager; //Networking Manager
     private GameServer gameServer; //Game Server
     public WebServer webServer; //Web Server
-    public MainMenuScript mainMenu; //Main Menu
-    public TMP_InputField serverConsole;
-    public TMP_InputField serverCommand;
-    public GameObject serverUI;
-    public GameObject serverCamera;
-
-
+    private MainMenuScript mainMenu; //Main Menu
+    [Space]
+    [Space]
+    [Tooltip("Auto-Connect On Scene Load")]
     public bool autoConnect = true;
     public string autoConnectIp = "10.0.0.211";
     public ushort autoConnectPort = 5055;

@@ -13,25 +13,21 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
 
 
     public RectTransform deathDropBounds;
-    private InventoryGfx inventoryGfx;
+    public UI_Inventory inventory;
     private PlayerInfoManager playerInfoManager;
 
     private void Start()
     {
-        inventoryGfx = GetComponent<InventoryGfx>();
         playerInfoManager = PlayerInfoManager.singleton;
     }
 
     //On Item Drop
     public void OnDrop(PointerEventData eventData)
     {
-        DebugMsg.Begin(230, "Drop Event Started", 4);
-
         GameObject drop = eventData.pointerDrag;
         ItemSlot parent = drop.GetComponentInParent<ItemSlot>();
         if (parent == null)
         {
-            DebugMsg.End(230, "Drop Event Finished", 4);
             return;
         }
         Item item = parent.getItem();
@@ -62,7 +58,6 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
                         {
                             playerInfoManager.MoveItemBySlots(parent.slotNumber, newSlot.slotNumber);
                         }
-                        DebugMsg.End(230, "Drop Event Finished", 4);
                     }
                 }
             }
@@ -70,21 +65,13 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
             {
                 if (parent.getItem() != null)
                 {
-                    DebugMsg.End(230, "Drop Event Finished", 4);
                     playerInfoManager.RemoveItemBySlot(item.currSlot);
                 }
             }
         }
         else if (parent.dragType == 2)
         {
-            if (!RectTransformUtility.RectangleContainsScreenPoint(deathDropBounds, Input.mousePosition))
-            {
-                if (parent.getItem() != null)
-                {
-                    DebugMsg.End(230, "Drop Event Finished", 4);
-                    //PlayerActionManager.singleton.TakeSingleDeathDrop(item.currSlot);
-                }
-            }
+            
         }
     }
 

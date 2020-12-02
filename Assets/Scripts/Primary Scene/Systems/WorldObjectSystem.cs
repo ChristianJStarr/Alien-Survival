@@ -9,17 +9,32 @@ using UnityEngine;
 public class WorldObjectSystem : MonoBehaviour
 {
     private bool systemEnabled = false;
-
+    
     //NetworkingManager
     private NetworkingManager networkingManager;
-    private GameServer gameServer;
 
     //World Object Lists
-    private List<WorldObject> worldObjects = new List<WorldObject>();
-    private List<WorldObject> worldObjectsHidden = new List<WorldObject>();
-    private List<ulong> connectedClients = new List<ulong>();
+    private Dictionary<int, WorldObject> worldObjects = new Dictionary<int, WorldObject>();
 
-    public WorldObjectData[] worldObjectDatas;
+    //-----Configuration-----
+    public int c_TreeMaxAmount = 1500;
+    public int c_RockMaxAmount = 0;
+    public int c_LootMaxAmount = 0;
+    public int c_TreeRespawnTime = 60; //Seconds
+    public int c_RockRespawnTime = 60; //Seconds
+    public int c_LootRespawnTime = 60; //Seconds
+
+    //-----Spawnpoint Objects------
+    private List<int> occupiedSpawnpoints = new List<int>();
+    [HideInInspector] public SpawnpointObject[] spawnpoints;
+    private Vector3[] spawnpointLocations;
+    private int spawnpointsLength = 0;
+
+
+    //-----Counters-----
+    private int currentTrees = 0;
+    private int currentRocks = 0;
+    private int currentLoot = 0;
 
 
     //-----------------------------------------------------------------//
@@ -29,202 +44,201 @@ public class WorldObjectSystem : MonoBehaviour
     //Start System
     public bool StartSystem()
     {
-        systemEnabled = true;
-        //System Started
-
         //Load world Objects
-        LoadSavedObjects();
-        gameServer = GameServer.singleton;
         networkingManager = NetworkingManager.Singleton;
-        if(networkingManager != null) 
-        {
-            networkingManager.OnClientConnectedCallback += PlayerConnected;
-            networkingManager.OnClientDisconnectCallback += PlayerDisconnected;
-        }
-        else 
-        {
-            return false;
-        }
-
+        //Load Spawnpoints
+        systemEnabled = LoadSpawnpoints();
         //Start Respawner Loop
-        StartCoroutine(WorldObjectRespawner());
-        return true;
+        StartCoroutine(SpawnObjectLoop());
+        return systemEnabled;
     }
 
     //Stop System
-    public bool StopSystem() 
+    public bool StopSystem()
     {
         systemEnabled = false;
         return true;
     }
 
     //Load Saved Objects
-    private void LoadSavedObjects() 
+    private bool LoadSpawnpoints()
     {
-        worldObjects = FindObjectsOfType<WorldObject>().ToList();
-        worldObjects.Shuffle();
-
-        foreach (WorldObject worldObject in worldObjects)
+        spawnpoints = FindObjectsOfType<SpawnpointObject>();
+        spawnpointsLength = spawnpoints.Length;
+        spawnpointLocations = new Vector3[spawnpointsLength];
+        for (int i = 0; i < spawnpointsLength; i++)
         {
-            WorldObjectData data = GetObjectDataFromId(worldObject.objectDataId);
-            if(data != null) 
-            {
-                worldObject.objectAmount = data.gatherAmount;
-            }
-            else 
-            {
-                NetworkHideForAll(worldObject.networkObject);
-            }
+            spawnpointLocations[i] = spawnpoints[i].transform.position;
         }
+        if(spawnpointsLength > 0) 
+        {
+            return true;
+        }
+        return false;
     }
 
     //Save Loaded Objects
-    public void AutoSave() 
+    public void AutoSave()
     {
         //Save all world objects
     }
 
-    //ConnectCallbacks
-    public void PlayerConnected(ulong clientId) 
+    //Get Array of All World Objects
+    public Snapshot_WorldObject[] GetWorldObjectsSnapshot() 
     {
-        for (int i = 0; i < worldObjectsHidden.Count; i++)
+        Snapshot_WorldObject[] snap = new Snapshot_WorldObject[spawnpointsLength];
+        for (int i = 0; i < spawnpointsLength; i++)
         {
-            worldObjectsHidden[i].networkObject.NetworkHide(clientId);
+            snap[i] = new Snapshot_WorldObject()
+            {
+                objectId = spawnpoints[i].spawn_objectId,
+                spawnId = spawnpoints[i].spawn_id,
+                location = spawnpointLocations[i]
+            };
         }
-        connectedClients.Add(clientId);
+        return snap;
     }
-    public void PlayerDisconnected(ulong clientId) 
-    {
-        connectedClients.Remove(clientId);
-    }
-
     
 
 
     //-----------------------------------------------------------------//
-    //                    World Object Respawning                      //
+    //                    World Object Spawning                        //
     //-----------------------------------------------------------------//
-    
-    //Loop for Respawning
-    private IEnumerator WorldObjectRespawner() 
+
+    private IEnumerator SpawnObjectLoop() 
     {
+        WaitForSeconds wait = new WaitForSeconds(120);
         while (systemEnabled) 
         {
-            for (int i = 0; i < worldObjectsHidden.Count; i++)
+            CheckSpawnpoints();
+            yield return wait;
+        }
+    }
+
+    //Look for Available Spawnpoints
+    private void CheckSpawnpoints()
+    {
+        float networkTime = networkingManager.NetworkTime;
+        for (int i = 0; i < spawnpoints.Length; i++)
+        {
+            SpawnpointObject spawn = spawnpoints[i];
+            if ((spawn.lastSpawntime == 0 || networkTime - spawn.lastSpawntime > GetRespawnTime(spawn.spawn_type)) && !occupiedSpawnpoints.Contains(spawn.spawn_id))
             {
-                WorldObject worldObject = worldObjectsHidden[i];
-                WorldObjectData data = GetObjectDataFromId(worldObject.objectDataId);
-                if (data != null && worldObject.objectDestroyedTime != 0) 
+                if (GetCurrentAmount(spawn.spawn_type) < GetMaxAmount(spawn.spawn_type))
                 {
-                    if (GetNetworkTime() - worldObject.objectDestroyedTime >= data.respawnTime) 
+                    float randomY = 5;
+                    GameObject worldObject = PooledManager.InstantiatePooledObject(WorldObjectDataManager.GetPrefabFromSpawnpointData(spawn.spawn_type, spawn.spawn_level), spawn.transform.position, Quaternion.Euler(0,randomY,0));
+                    if (worldObject != null)
                     {
-                        NetworkShowForAll(worldObject.networkObject);
-                        worldObjectsHidden[i].objectAmount = data.gatherTotal;
+                        WorldObject world = worldObject.GetComponent<WorldObject>();
+                        if (world != null) 
+                        {
+                            WorldObjectData objectData = WorldObjectDataManager.GetWorldObjectDataById(world.objectDataId);
+                            if(objectData != null)
+                            {
+                                occupiedSpawnpoints.Add(spawn.spawn_id);
+                                AddCurrentAmount(spawn.spawn_type);
+                                spawnpoints[i].worldObject = worldObject;
+                                world.objectAmount = objectData.gatherAmount;
+                                world.spawn_Id = spawn.spawn_id;
+                                spawnpoints[i].spawn_objectId = world.objectDataId;
+                                worldObjects.Add(world.spawn_Id, world);
+                            }
+                            else { worldObject.SetActive(false); }
+                        }
+                        else { worldObject.SetActive(false); }
                     }
+                    else { worldObject.SetActive(false); }
                 }
             }
-            yield return new WaitForSeconds(60); 
         }
     }
 
-    //DepleteWorldObject
-    public void DepleteWorldObject(ulong networkId, int toolId, int amount, Action<WorldObjectTransferData> callback) 
+    //Remove World Object
+    private void RemoveWorldObject(int spawnpoint_Id) 
     {
-        DebugMsg.Notify("Starting Deplete of WorldObject", 3);
-        for (int i = 0; i < worldObjects.Count; i++)
+        if (worldObjects.ContainsKey(spawnpoint_Id)) 
         {
-            if (worldObjects[i].NetworkId == networkId)
+            if (occupiedSpawnpoints.Contains(spawnpoint_Id)) 
             {
-                DebugMsg.Notify("WorldObject with Matching ID found", 4);
-                WorldObject obj = worldObjects[i];
-                WorldObjectData data = GetObjectDataFromId(obj.objectDataId);
-                if (data.toolId == toolId)
-                {
-                    DebugMsg.Notify("Tool ID matches", 4);
-                    if (obj.objectAmount - amount > 0)
-                    {
-                        DebugMsg.Notify("Depleting", 4);
-                        worldObjects[i].objectAmount -= amount;
-                        callback(new WorldObjectTransferData() { itemId = data.gatherItemId, amount = amount });
-                    }
-                    else if (obj.objectAmount > 0)
-                    {
-                        DebugMsg.Notify("Depleting and Destroying", 4);
-                        worldObjects[i].objectAmount = 0;
-                        worldObjectsHidden.Add(worldObjects[i]);
-                        NetworkHideForAll(obj.networkObject);
-                        callback(new WorldObjectTransferData() { itemId = data.gatherItemId, amount = obj.objectAmount });
-                    }
-                }
-                break;
+                occupiedSpawnpoints.Remove(spawnpoint_Id);
             }
+            spawnpoints[spawnpoint_Id].lastSpawntime = networkingManager.NetworkTime;
+            worldObjects[spawnpoint_Id].gameObject.SetActive(false);
+            worldObjects.Remove(spawnpoint_Id);
         }
     }
 
-    //-----------------------------------------------------------------//
-    //                    World Object  TOOLS                          //
-    //-----------------------------------------------------------------//
-
-    //Get Network Time
-    private float GetNetworkTime() 
+    //Get Respawn Time from Spawn Type
+    private int GetRespawnTime(int spawnType)
     {
-        if(networkingManager != null) 
+        if (spawnType == 1)
         {
-            return networkingManager.NetworkTime;
+            return c_TreeRespawnTime;
         }
-        else 
+        else if (spawnType == 2)
         {
-            networkingManager = NetworkingManager.Singleton;
-            if (networkingManager != null)
-            {
-                return networkingManager.NetworkTime;
-            }
-            else 
-            {
-                return 0;
-            }
+            return c_RockRespawnTime;
         }
+        else if (spawnType == 3)
+        {
+            return c_LootRespawnTime;
+        }
+        return 999999;
     }
-
-    //Get World Object Data
-    private WorldObjectData GetObjectDataFromId(int objectId) 
+    //Get Max Amount from Spawn Type
+    private int GetMaxAmount(int spawnType)
     {
-        foreach (WorldObjectData data in worldObjectDatas)
+        if (spawnType == 1)
         {
-            if(objectId == data.objectId) 
-            {
-                return data;
-            }
+            return c_TreeMaxAmount;
         }
-        return null;
+        else if (spawnType == 2)
+        {
+            return c_RockMaxAmount;
+        }
+        else if (spawnType == 3)
+        {
+            return c_LootMaxAmount;
+        }
+        return 0;
     }
-    
-    //Show NetworkObject for ALL
-    private void NetworkShowForAll(NetworkedObject networkObject)
+    //Get Max Amount from Spawn Type
+    private int GetCurrentAmount(int spawnType)
     {
-        for (int id = 0; id < connectedClients.Count; id++)
+        if (spawnType == 1)
         {
-            networkObject.NetworkShow(connectedClients[id]);
+            return currentTrees;
         }
+        else if (spawnType == 2)
+        {
+            return currentRocks;
+        }
+        else if (spawnType == 3)
+        {
+            return currentLoot;
+        }
+        return 999999;
     }
-
-    //Hide NetworkObject for ALL
-    private void NetworkHideForAll(NetworkedObject networkObject)
+    //Add to Current Amount
+    private void AddCurrentAmount(int spawnType) 
     {
-        for (int id = 0; id < connectedClients.Count; id++)
+        if (spawnType == 1)
         {
-            networkObject.NetworkHide(connectedClients[id]);
+            currentTrees++;
+        }
+        else if (spawnType == 2)
+        {
+            currentRocks++;
+        }
+        else if (spawnType == 3)
+        {
+            currentLoot++;
         }
     }
-
-
 }
 
-public class WorldObjectTransferData 
-{
-    public int itemId;
-    public int amount;
-}
+
 
 
 //Tools Below for List Scrambling

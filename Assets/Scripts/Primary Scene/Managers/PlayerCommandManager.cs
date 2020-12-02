@@ -45,6 +45,7 @@ public class PlayerCommandManager : MonoBehaviour
     //Attempt to send Player Command to Server
     private void SendPlayerCommand()
     {
+        if (networkingManager == null) return;
         UpdatePlayerCommand(); //update player command values
         if(CommandIsValuable()) //Is this command valuable enough to send
         {

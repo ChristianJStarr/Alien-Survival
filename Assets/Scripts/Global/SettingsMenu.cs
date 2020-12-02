@@ -3,7 +3,6 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -28,7 +27,7 @@ public class SettingsMenu : MonoBehaviour
     private bool realignScroll = false;
 
 
-    private PauseControl pauseControl;
+    private UI_PauseControl pauseControl;
     private MainMenuScript mainMenuScript;
 
     public RenderPipelineAsset low_Pipeline, med_Pipeline, high_Pipeline, ultra_Pipeline;
@@ -155,7 +154,7 @@ public class SettingsMenu : MonoBehaviour
         {
             if(pauseControl == null) 
             {
-                pauseControl = FindObjectOfType<PauseControl>();
+                pauseControl = FindObjectOfType<UI_PauseControl>();
             }
             if(pauseControl != null) 
             {

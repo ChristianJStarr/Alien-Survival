@@ -4,7 +4,7 @@ public class UI_HotbarButtons : MonoBehaviour
 {
     public HoldableManager holdableManager;
     public PlayerCommandManager commandManager;
-    public InventoryGfx inventory;
+    public UI_Inventory inventory;
     private int selectedSlot;
     
 

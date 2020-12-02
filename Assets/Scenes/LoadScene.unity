@@ -758,6 +758,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!1 &168936470
 GameObject:
   m_ObjectHideFlags: 0
@@ -1093,6 +1094,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!114 &196844031
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1400,6 +1402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!1 &291859024
 GameObject:
   m_ObjectHideFlags: 0
@@ -1452,6 +1455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!114 &291859027
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1885,13 +1889,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1f2af9eea7cbc448b653bde4b37b918, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 585bda0bffd0a724c9e8ea9565c3245d, type: 2}
   musicAudio: {fileID: 394924670}
   ambientAudio: {fileID: 1846341983}
   uiAudio: {fileID: 89545412}
-  settings: {fileID: 11400000, guid: 585bda0bffd0a724c9e8ea9565c3245d, type: 2}
   gameClip: {fileID: 8300000, guid: cb39a4c2a84de054f9d820bac5fca119, type: 3}
   menuClip: {fileID: 8300000, guid: 194b5de3233fd744a99d4a9b86e3a244, type: 3}
   ambientClip: {fileID: 8300000, guid: 910b09929d5cb6949bd8abdc482c3cc0, type: 3}
+  uiSounds:
+  - {fileID: 8300000, guid: 1e694d51895cc4416970222f96028f01, type: 3}
+  - {fileID: 8300000, guid: 04b513f7bd286ca4c98fdaa0e3447c8f, type: 3}
+  - {fileID: 8300000, guid: cd719154976f8374bb20cd6fa21eaab6, type: 3}
 --- !u!82 &394924670
 AudioSource:
   m_ObjectHideFlags: 0
@@ -3320,6 +3328,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!1 &651450741
 GameObject:
   m_ObjectHideFlags: 0
@@ -3924,6 +3933,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!1 &694222632
 GameObject:
   m_ObjectHideFlags: 0
@@ -4292,6 +4302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!1 &747033677
 GameObject:
   m_ObjectHideFlags: 0
@@ -4848,6 +4859,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!114 &809981992
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6863,6 +6875,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!114 &1260904945
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7625,6 +7638,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!114 &1413034646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8946,6 +8960,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!1 &1629200445
 GameObject:
   m_ObjectHideFlags: 0
@@ -9774,6 +9789,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!114 &1740158240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10036,6 +10052,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!1 &1778754871
 GameObject:
   m_ObjectHideFlags: 0
@@ -10313,6 +10330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d2492adc629208498549493afad7d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ui_soundId: 0
 --- !u!114 &1820865701
 MonoBehaviour:
   m_ObjectHideFlags: 0

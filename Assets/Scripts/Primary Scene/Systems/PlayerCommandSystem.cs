@@ -43,6 +43,8 @@ public class PlayerCommandSystem : MonoBehaviour
         }
     }
 
+    private int commandsExecuted = 0;
+    private float lastTime = 0;
 
     //------------Player Object Commands------------//
 
@@ -92,13 +94,27 @@ public class PlayerCommandSystem : MonoBehaviour
 
     private void FixedUpdate() 
     {
-        if(systemEnabled && commandQueue.Count > 0) 
+        //Debug Counting
+        if(NetworkingManager.Singleton != null && GameServer.singleton != null) 
+        {
+            float currentTime = NetworkingManager.Singleton.NetworkTime;
+            if (currentTime - lastTime >= 1)
+            {
+                lastTime = currentTime;
+                GameServer.singleton.DebugCommandPerSecond = commandsExecuted;
+                commandsExecuted = 0;
+            }
+        }
+
+        //Read Queue & Execute Commands
+        if (systemEnabled && commandQueue.Count > 0) 
         {
             ulong[] clients = players.Keys.ToArray();
             for (int i = 0; i < clients.Length; i++)
             {
                 if (commandQueue.ContainsKey(clients[i]) && commandQueue[clients[i]].Count > 0) 
                 {
+                    commandsExecuted++;
                     PlayerCommand command = commandQueue[clients[i]].Dequeue();
                     PlayerControlObject controlObject = players[command.clientId];
                     //ROTATE Player
@@ -106,7 +122,6 @@ public class PlayerCommandSystem : MonoBehaviour
                     //MOVE Player
                     if (command.move.magnitude > 0 || command.jump || command.crouch)
                     {
-                        Debug.Log("Command: " + command.move.ToString());
                         controlObject.Move(command.move, command.jump, command.crouch);
                     }
                     //Selected Slot Holdable

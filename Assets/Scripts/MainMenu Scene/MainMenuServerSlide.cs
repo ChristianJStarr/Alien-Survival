@@ -2,9 +2,6 @@
 using TMPro;
 public class MainMenuServerSlide : MonoBehaviour
 {
-    //What: The individual slide in the server list.
-    //Where: Main Menu Scene / Server Menu
-    
     public TextMeshProUGUI slideName, slidePing, slideType, slideMode, slidePlayers;
     public int serverPlayers, serverMaxPlayers;
     public ushort serverPort;
@@ -26,21 +23,11 @@ public class MainMenuServerSlide : MonoBehaviour
     //Button: Join this Room
     public void JoinThisRoom() 
     {
-        ClickSound();
+        MusicManager.PlayUISound(0);
         if(adListener == null) 
         {
             adListener = FindObjectOfType<MainMenuAdsListener>();
         }
         adListener.ShowAd(storedServer.serverIP, storedServer.serverPort);
-    }
-    
-    //Play UI Click Sound
-    private void ClickSound() 
-    {
-        MusicManager sounds = FindObjectOfType<MusicManager>();
-        if (sounds != null)
-        {
-            sounds.ButtonClick();
-        }
     }
 }

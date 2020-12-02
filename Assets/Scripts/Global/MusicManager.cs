@@ -4,15 +4,19 @@ using UnityEngine.SceneManagement;
 
 public class MusicManager : MonoBehaviour
 {
-    public AudioSource musicAudio;
-    public AudioSource ambientAudio;
-    public AudioSource uiAudio;
+    #region Singleton
+    public static MusicManager Singleton;
+    private void Awake() { Singleton = this; }
+    #endregion
     public Settings settings;
-    public AudioClip gameClip;
-    public AudioClip menuClip;
-    public AudioClip ambientClip;
-    private float musicInc;
-    private float ambientInc;
+    public AudioSource musicAudio, ambientAudio, uiAudio;
+    public AudioClip gameClip, menuClip, ambientClip;
+
+    public AudioClip[] uiSounds;
+
+
+    private float musicInc, ambientInc;
+#if !UNITY_SERVER
 
     private void OnEnable()
     {
@@ -28,12 +32,7 @@ public class MusicManager : MonoBehaviour
 
     void Start()
     {
-#if UNITY_SERVER
-        musicAudio.Stop();
-        ambientAudio.Stop();
-        uiAudio.Stop();
-        return;
-#endif
+
 
         DontDestroyOnLoad(this.gameObject);
         Change();
@@ -56,13 +55,6 @@ public class MusicManager : MonoBehaviour
     //On Scene Loaded
     void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
     {
-#if UNITY_SERVER
-        return;
-#endif
-#if UNITY_EDITOR
-        return;
-#endif
-
         int level = scene.buildIndex;
         if(level == 2) 
         {
@@ -83,13 +75,25 @@ public class MusicManager : MonoBehaviour
             musicAudio.Play();
             ambientAudio.clip = null;
         }
-
     }
 
     //Button Click, Player UI Sound
-    public void ButtonClick() 
+    public static void PlayUISound(int soundId) 
     {
-        uiAudio.Play();
+        if(Singleton != null) 
+        {
+            Singleton.PlayUISoundTask(soundId);
+        }
+    }
+
+    //Play UI Sound Task
+    public void PlayUISoundTask(int soundId) 
+    {
+        if(uiSounds[soundId] != null) 
+        {
+            uiAudio.clip = uiSounds[soundId];
+            uiAudio.Play();
+        }
     }
 
     //Fade Sound Volume9
@@ -168,5 +172,16 @@ public class MusicManager : MonoBehaviour
             StartCoroutine(FadeSound(audioClip, audioClip2));
         }
     }
+
+#else
+    private void Start()
+    {        
+        musicAudio.Stop();
+        ambientAudio.Stop();
+        uiAudio.Stop();
+        Destroy(this);
+        return;
+    }
+#endif
 }
 

@@ -735,11 +735,27 @@ public class PlayerInfoSystem : MonoBehaviour
                         waterChanged = true;
                     }
                     //Deplete or Increase Health
-                    if (info.water <= 0 && info.food <= 0)
+
+                    if(info.water <= 0) 
                     {
-                        if (info.health > 5)
+                        if (info.health > 3)
                         {
-                            active[clientId].health -= 5;
+                            active[clientId].health -= 3;
+                            healthChanged = true;
+                        }
+                        else
+                        {
+                            active[clientId].health = 0;
+                            active[clientId].isDead = true;
+                            healthChanged = true;
+                            gameServer.Server_PlayerDeath(clientId, info.items, info.armor, info.username);
+                        }
+                    }
+                    if (info.food <= 0)
+                    {
+                        if (info.health > 2)
+                        {
+                            active[clientId].health -= 2;
                             healthChanged = true;
                         }
                         else

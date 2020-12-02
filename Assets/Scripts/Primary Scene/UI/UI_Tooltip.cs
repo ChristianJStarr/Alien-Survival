@@ -24,6 +24,15 @@ public class UI_Tooltip : MonoBehaviour
     private Item storedItem;
     private ItemData storedItemData;
 
+    //Hide the Tooltip
+    public void Hide(int slot) 
+    {
+        if(storedItem.currSlot == slot) 
+        {
+            gameObject.SetActive(false);
+        }
+    }
+
     //Set ItemData to this tooltip.
     public void SetData(ItemData data, Item item)
     {
@@ -44,6 +53,7 @@ public class UI_Tooltip : MonoBehaviour
             splitSlider.maxValue = 1;
         }
         BuildTypes(data.itemUse);
+        gameObject.SetActive(true);
     }
 
     //Build Type Attribute Slides

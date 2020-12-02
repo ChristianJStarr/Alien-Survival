@@ -8,7 +8,7 @@ public class UI_DeathScreen : MonoBehaviour
 
     public void ExitToMainMenu() 
     {
-        PlayerActionManager.singleton.RequestDisconnect();
+        PlayerUIManager.Singleton.RequestDisconnect();
     }
 
     public void EnableScreen(TimeSpan timeSurvived) 
