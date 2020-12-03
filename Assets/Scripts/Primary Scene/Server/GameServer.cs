@@ -445,17 +445,77 @@ public class GameServer : NetworkedBehaviour
     }
 
     //Send World Snapshot to Clients
-    public void ServerSendSnapshot(ulong clientId, Stream snapshot, bool full = false)
+    public void ServerSendSnapshot(ulong clientId, Snapshot snapshot, bool full = false)
     {
-        Debug.Log("Sending Snapshot.");
-        DebugSnapshotSize = snapshot.Length / 1000;
-        if (full) 
+        using (PooledBitStream writeStream = PooledBitStream.Get())
         {
-            InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, snapshot, "Snapshot_Full");
-        }
-        else 
-        {
-            InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, snapshot, "Snapshot_Mini");
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(snapshot.snapshotId);
+                writer.WriteSinglePacked(snapshot.networkTime);
+
+                //Players
+                if (snapshot.players != null)
+                {
+                    writer.WriteInt32Packed(snapshot.players.Length);
+                    for (int e = 0; e < snapshot.players.Length; e++)
+                    {
+                        writer.WriteUInt64Packed(snapshot.players[e].networkId);
+                        writer.WriteVector3Packed(snapshot.players[e].location);
+                        writer.WriteVector2Packed(snapshot.players[e].rotation);
+                        writer.WriteInt16Packed((short)snapshot.players[e].holdId);
+                    }
+                }
+                else
+                {
+                    writer.WriteInt32Packed(0);
+                }
+
+                //AI
+                if (snapshot.ai != null)
+                {
+                    writer.WriteInt32Packed(snapshot.ai.Length);
+                    for (int e = 0; e < snapshot.ai.Length; e++)
+                    {
+                        writer.WriteUInt64Packed(snapshot.ai[e].networkId);
+                        writer.WriteVector3Packed(snapshot.ai[e].location);
+                        writer.WriteVector2Packed(snapshot.ai[e].rotation);
+                        writer.WriteInt16Packed((short)snapshot.ai[e].holdId);
+                    }
+                }
+                else
+                {
+                    writer.WriteInt32Packed(0);
+                }
+
+                //World Objects
+                if (snapshot.worldObjects != null)
+                {
+                    writer.WriteInt32Packed(snapshot.worldObjects.Length);
+                    for (int e = 0; e < snapshot.worldObjects.Length; e++)
+                    {
+                        writer.WriteInt32Packed(snapshot.worldObjects[e].spawnId);
+                        writer.WriteInt32Packed(snapshot.worldObjects[e].objectId);
+                    }
+                }
+                else
+                {
+                    writer.WriteInt32Packed(0);
+                }
+
+
+
+                DebugSnapshotSize = writeStream.Length;
+
+                if (full)
+                {
+                    InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, writeStream, "Snapshot_Full");
+                }
+                else
+                {
+                    InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, writeStream, "Snapshot_Mini");
+                }
+            }
         }
     }
     
@@ -463,7 +523,6 @@ public class GameServer : NetworkedBehaviour
     [ClientRPC]
     private void Client_RecieveWorldSnapshot(ulong clientId, Stream stream)
     {
-        Debug.Log("Received Snapshot. " + stream.Length + "bytes");
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
             Snapshot snapshot = new Snapshot()
@@ -475,10 +534,10 @@ public class GameServer : NetworkedBehaviour
             int playerLength = reader.ReadInt32Packed();
             if (playerLength > 0)
             {
-                snapshot.players = new Snapshot_Player[playerLength];
+                Snapshot_Player[] s_players = new Snapshot_Player[playerLength];
                 for (int i = 0; i < playerLength; i++)
                 {
-                    snapshot.players[i] = new Snapshot_Player()
+                    s_players[i] = new Snapshot_Player()
                     {
                         networkId = reader.ReadUInt64Packed(),
                         location = reader.ReadVector3Packed(),
@@ -486,16 +545,17 @@ public class GameServer : NetworkedBehaviour
                         holdId = reader.ReadInt16Packed()
                     };
                 }
+                snapshot.players = s_players;
             }
 
             //AI
             int aiLength = reader.ReadInt32Packed();
             if (aiLength > 0)
             {
-                snapshot.ai = new Snapshot_AI[aiLength];
+                Snapshot_AI[] s_ai = new Snapshot_AI[aiLength];
                 for (int i = 0; i < aiLength; i++)
                 {
-                    snapshot.ai[i] = new Snapshot_AI()
+                    s_ai[i] = new Snapshot_AI()
                     {
                         networkId = reader.ReadUInt64Packed(),
                         location = reader.ReadVector3Packed(),
@@ -503,21 +563,23 @@ public class GameServer : NetworkedBehaviour
                         holdId = reader.ReadInt16Packed()
                     };
                 }
+                snapshot.ai = s_ai;
             }
 
             //World Object
             int worldObjectLength = reader.ReadInt32Packed();
             if(worldObjectLength > 0) 
             {
-                snapshot.worldObjects = new Snapshot_WorldObject[worldObjectLength];
+                Snapshot_WorldObject[] s_worldObjects = new Snapshot_WorldObject[worldObjectLength];
                 for (int i = 0; i < worldObjectLength; i++)
                 {
-                    snapshot.worldObjects[i] = new Snapshot_WorldObject()
+                    s_worldObjects[i] = new Snapshot_WorldObject()
                     {
                         spawnId = reader.ReadInt32Packed(),
                         objectId = reader.ReadInt32Packed()
                     };
                 }
+                snapshot.worldObjects = s_worldObjects;
             }
 
             //Process This Snapshot

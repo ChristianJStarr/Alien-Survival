@@ -214,7 +214,7 @@ public class SettingsMenu : MonoBehaviour
 
         //Distance
         settings.terrainDistance = terrainDis.value;
-        settings.objectDistance = objectDis.value;
+        settings.objectDistance = (int) objectDis.value;
 
         //Debug
         if (showFps.ActiveToggles().FirstOrDefault().name == "show")

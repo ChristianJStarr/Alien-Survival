@@ -159,26 +159,50 @@ public class WorldSnapshotManager : NetworkedBehaviour
         int aiLength = snapshot.ai.Length; //Length of AI
         int playerLength = snapshot.players.Length; // Length of Players
         int fullLength = aiLength + playerLength; //Full Length of both Arrays
-        int write = 0; // Write Counter
-
-        //Allocate Position & Rotation Arrays
-        Vector3[] positionsA = new Vector3[fullLength];
-        Vector3[] positionsB = new Vector3[fullLength];
-        Vector2[] rotationsA = new Vector2[fullLength];
-        Vector2[] rotationsB = new Vector2[fullLength];
         
-        //Write Player Locations & Rotations
-        for (int i = 0; i < playerLength; i++)
+        //Apply Snapshot to AI & Players
+        if(fullLength > 0) 
         {
-            ulong networkId = snapshot.players[i].networkId;
-            if (networkId != selfNetworkId)
+            int write = 0; // Write Counter
+
+            //Allocate Position & Rotation Arrays
+            Vector3[] positionsA = new Vector3[fullLength];
+            Vector3[] positionsB = new Vector3[fullLength];
+            Vector2[] rotationsA = new Vector2[fullLength];
+            Vector2[] rotationsB = new Vector2[fullLength];
+
+            //Write Player Locations & Rotations
+            for (int i = 0; i < playerLength; i++)
             {
-                positionsA[write] = snapshot.players[i].location;
-                rotationsA[write] = snapshot.players[i].rotation;
-                if (oldSnapshot.players.ContainsKey(networkId))
+                ulong networkId = snapshot.players[i].networkId;
+                if (networkId != selfNetworkId)
                 {
-                    positionsB[write] = oldSnapshot.players[networkId].location;
-                    rotationsB[write] = oldSnapshot.players[networkId].rotation;
+                    positionsA[write] = snapshot.players[i].location;
+                    rotationsA[write] = snapshot.players[i].rotation;
+                    if (oldSnapshot.players.ContainsKey(networkId))
+                    {
+                        positionsB[write] = oldSnapshot.players[networkId].location;
+                        rotationsB[write] = oldSnapshot.players[networkId].rotation;
+                    }
+                    else
+                    {
+                        positionsB[write] = positionsA[write];
+                        rotationsB[write] = rotationsA[write];
+                    }
+                    write++;
+                }
+            }
+
+            //Write AI Locations & Rotations
+            for (int i = 0; i < aiLength; i++)
+            {
+                ulong networkId = snapshot.ai[i].networkId;
+                positionsA[write] = snapshot.ai[i].location;
+                rotationsA[write] = snapshot.ai[i].rotation;
+                if (oldSnapshot.ai.ContainsKey(networkId))
+                {
+                    positionsB[write] = oldSnapshot.ai[networkId].location;
+                    rotationsB[write] = oldSnapshot.ai[networkId].rotation;
                 }
                 else
                 {
@@ -187,117 +211,98 @@ public class WorldSnapshotManager : NetworkedBehaviour
                 }
                 write++;
             }
-        }
-        
-        //Write AI Locations & Rotations
-        for (int i = 0; i < aiLength; i++)
-        {
-            ulong networkId = snapshot.ai[i].networkId;
-            positionsA[write] = snapshot.ai[i].location;
-            rotationsA[write] = snapshot.ai[i].rotation;
-            if (oldSnapshot.ai.ContainsKey(networkId))
+
+
+            //Prepare Native Arrays & Execute IForJob
+            aPositionsNative = new NativeArray<Vector3>(positionsA, Allocator.TempJob);
+            bPositionsNative = new NativeArray<Vector3>(positionsB, Allocator.TempJob);
+            aRotationsNative = new NativeArray<Vector2>(rotationsA, Allocator.TempJob);
+            bRotationsNative = new NativeArray<Vector2>(rotationsB, Allocator.TempJob);
+            predictJob = new Predict()
             {
-                positionsB[write] = oldSnapshot.ai[networkId].location;
-                rotationsB[write] = oldSnapshot.ai[networkId].rotation;
-            }
-            else
+                positionA = aPositionsNative,
+                positionB = bPositionsNative,
+                rotationA = aRotationsNative,
+                rotationB = bRotationsNative
+            };
+            predictHandle = predictJob.Schedule(fullLength, predictHandle); //Schedule predict job
+            predictHandle.Complete(); //Wait for job to end
+
+            write = 0; //Reset write counter
+
+            //Apply Prediction to Player Control Objects
+            for (int i = 0; i < snapshot.players.Length; i++)
             {
-                positionsB[write] = positionsA[write];
-                rotationsB[write] = rotationsA[write];
-            }
-            write++;
-        }
-
-
-        //Prepare Native Arrays & Execute IForJob
-        aPositionsNative = new NativeArray<Vector3>(positionsA, Allocator.TempJob);
-        bPositionsNative = new NativeArray<Vector3>(positionsB, Allocator.TempJob);
-        aRotationsNative = new NativeArray<Vector2>(rotationsA, Allocator.TempJob);
-        bRotationsNative = new NativeArray<Vector2>(rotationsB, Allocator.TempJob);
-        predictJob = new Predict()
-        {
-            positionA = aPositionsNative,
-            positionB = bPositionsNative,
-            rotationA = aRotationsNative,
-            rotationB = bRotationsNative
-        };
-        predictHandle = predictJob.Schedule(fullLength, predictHandle); //Schedule predict job
-        predictHandle.Complete(); //Wait for job to end
-
-        write = 0; //Reset write counter
-
-        //Apply Prediction to Player Control Objects
-        for (int i = 0; i < snapshot.players.Length; i++)
-        {
-            ulong networkId = snapshot.players[i].networkId;
-            if (players.ContainsKey(networkId))
-            {
-                PlayerControlObject controlObject = players[networkId];
-                if (networkId != selfNetworkId)
+                ulong networkId = snapshot.players[i].networkId;
+                if (players.ContainsKey(networkId))
                 {
-                    controlObject.transform.position = snapshot.players[i].location;
-                    controlObject.moveTarget = aPositionsNative[write];
-                    controlObject.lookTarget = new Vector2(aRotationsNative[write].x, aRotationsNative[write].y);
-                    write++;
-                }
-                else //Is local player object
-                {
-                    //Movement Correction
-                    if (Vector3.Distance(controlObject.transform.position, snapshot.players[i].location) > moveCorrectionDistance)
+                    PlayerControlObject controlObject = players[networkId];
+                    if (networkId != selfNetworkId)
                     {
-                        controlObject.ApplyCorrection(snapshot.players[i].location);
+                        controlObject.transform.position = snapshot.players[i].location;
+                        controlObject.moveTarget = aPositionsNative[write];
+                        controlObject.lookTarget = new Vector2(aRotationsNative[write].x, aRotationsNative[write].y);
+                        write++;
+                    }
+                    else //Is local player object
+                    {
+                        //Movement Correction
+                        if (Vector3.Distance(controlObject.transform.position, snapshot.players[i].location) > moveCorrectionDistance)
+                        {
+                            controlObject.ApplyCorrection(snapshot.players[i].location);
+                        }
+                    }
+                    //Holdable Object
+                    if (controlObject.holdableId != snapshot.players[i].holdId)
+                    {
+                        controlObject.holdableId = snapshot.players[i].holdId;
+                        HoldableManager.Singleton.HeldObjectChanged(controlObject);
+                    }
+                    if (controlObject.holdableObject != null && controlObject.holdableObject.state != snapshot.players[i].holdState)
+                    {
+                        //Holdable State Changed
+                        controlObject.holdableObject.state = snapshot.players[i].holdState;
+                        controlObject.holdableObject.Use();
                     }
                 }
-                //Holdable Object
-                if (controlObject.holdableId != snapshot.players[i].holdId)
+                else if (networkId != selfNetworkId)
                 {
-                    controlObject.holdableId = snapshot.players[i].holdId;
-                    HoldableManager.Singleton.HeldObjectChanged(controlObject);
-                }
-                if (controlObject.holdableObject != null && controlObject.holdableObject.state != snapshot.players[i].holdState)
-                {
-                    //Holdable State Changed
-                    controlObject.holdableObject.state = snapshot.players[i].holdState;
-                    controlObject.holdableObject.Use();
+                    write++;
                 }
             }
-            else if(networkId != selfNetworkId) 
+
+            //Apply Prediction to AI Control Objects
+            for (int i = 0; i < snapshot.ai.Length; i++)
             {
+                ulong networkId = snapshot.ai[i].networkId;
+                if (ai.ContainsKey(networkId))
+                {
+                    AIControlObject controlObject = ai[networkId];
+                    controlObject.transform.position = snapshot.ai[i].location;
+                    controlObject.moveTarget = aPositionsNative[write];
+                    controlObject.lookTarget = new Vector2(aRotationsNative[write].x, aRotationsNative[write].y);
+                    //Holdable Object
+                    if (controlObject.holdableId != snapshot.ai[i].holdId)
+                    {
+                        controlObject.holdableId = snapshot.ai[i].holdId;
+                        HoldableManager.Singleton.HeldObjectChanged(controlObject);
+                    }
+                    if (controlObject.holdableObject != null && controlObject.holdableObject.state != snapshot.ai[i].holdState)
+                    {
+                        //Holdable State Changed
+                        controlObject.holdableObject.state = snapshot.ai[i].holdState;
+                        controlObject.holdableObject.Use();
+                    }
+                }
                 write++;
             }
-        }
 
-        //Apply Prediction to AI Control Objects
-        for (int i = 0; i < snapshot.ai.Length; i++)
-        {
-            ulong networkId = snapshot.ai[i].networkId;
-            if (ai.ContainsKey(networkId))
-            {
-                AIControlObject controlObject = ai[networkId];
-                controlObject.transform.position = snapshot.ai[i].location;
-                controlObject.moveTarget = aPositionsNative[write];
-                controlObject.lookTarget = new Vector2(aRotationsNative[write].x, aRotationsNative[write].y);
-                //Holdable Object
-                if (controlObject.holdableId != snapshot.ai[i].holdId)
-                {
-                    controlObject.holdableId = snapshot.ai[i].holdId;
-                    HoldableManager.Singleton.HeldObjectChanged(controlObject);
-                }
-                if (controlObject.holdableObject != null && controlObject.holdableObject.state != snapshot.ai[i].holdState)
-                {
-                    //Holdable State Changed
-                    controlObject.holdableObject.state = snapshot.ai[i].holdState;
-                    controlObject.holdableObject.Use();
-                }
-            }
-            write++;
+            //Dispose of NativeArrays
+            aPositionsNative.Dispose();
+            bPositionsNative.Dispose();
+            aRotationsNative.Dispose();
+            bRotationsNative.Dispose();
         }
-
-        //Dispose of NativeArrays
-        aPositionsNative.Dispose();
-        bPositionsNative.Dispose();
-        aRotationsNative.Dispose();
-        bRotationsNative.Dispose();
 
         //Update World Objects
         if (players.ContainsKey(selfNetworkId) && snapshot.worldObjects.Length > 0)
@@ -446,11 +451,12 @@ public class WorldSnapshotManager : NetworkedBehaviour
 
 public struct ObjectLerpJob : IJobParallelForTransform
 {
-    public float deltaTime;
-    public NativeArray<Vector3> moveTargets;
-    public NativeArray<float> lookYTargets;
+    [ReadOnly] public float deltaTime;
+    [ReadOnly] public NativeArray<Vector3> moveTargets;
+    [ReadOnly] public NativeArray<float> lookYTargets;
+    [ReadOnly] public float lerpSpeed;
     public NativeArray<Vector2> animation;
-    public float lerpSpeed;
+
     public void Execute(int i, TransformAccess transform)
     {
         if(moveTargets[i] != Vector3.zero && transform.position != moveTargets[i]) 
@@ -472,9 +478,9 @@ public struct ObjectLerpJob : IJobParallelForTransform
 
 public struct CameraLerpJob : IJobParallelForTransform
 {
-    public float deltaTime;
-    public NativeArray<float> lookXTargets;
-    public float lerpSpeed;
+    [ReadOnly] public float deltaTime;
+    [ReadOnly] public NativeArray<float> lookXTargets;
+    [ReadOnly] public float lerpSpeed;
     public void Execute(int i, TransformAccess transform)
     {
         if (lookXTargets[i] != 0 && transform.localRotation.eulerAngles.x != lookXTargets[i])
@@ -487,9 +493,9 @@ public struct CameraLerpJob : IJobParallelForTransform
 public struct Predict : IJobFor 
 {
     public NativeArray<Vector3> positionA;
-    public NativeArray<Vector3> positionB;
+    [ReadOnly] public NativeArray<Vector3> positionB;
     public NativeArray<Vector2> rotationA;
-    public NativeArray<Vector2> rotationB;
+    [ReadOnly] public NativeArray<Vector2> rotationB;
     public void Execute(int i) 
     {
         if (rotationA[i] != rotationB[i])

@@ -71,32 +71,33 @@ public class WorldObjectDataManager : MonoBehaviour
     }
     private GameObject GetPrefabFromSpawnpointDataTask(int object_type, int spawn_level)
     {
-        List<WorldObjectData> tempA = new List<WorldObjectData>(); // WorldObjects with Matching Type
-        for (int i = 0; i < worldObjectData.Length; i++)
-        {
-            if (worldObjectData[i].objectType == object_type)
-            {
-                tempA.Add(worldObjectData[i]);
-            }
-        }
+        List<int> available = new List<int>();
+        
         if (spawn_level != 0)
         {
-            for (int i = 0; i < tempA.Count; i++)
+            for (int i = 0; i < worldObjectData.Length; i++)
             {
-                if (tempA[i].objectLevel != spawn_level)
+                if (worldObjectData[i].objectType == object_type && worldObjectData[i].objectLevel == spawn_level)
                 {
-                    tempA.RemoveAt(i);
+                    available.Add(i);
                 }
             }
         }
-        if (tempA.Count > 0)
+        else 
         {
-            return tempA[Random.Range(0, tempA.Count - 1)].objectPrefab;
+            for (int i = 0; i < worldObjectData.Length; i++)
+            {
+                if (worldObjectData[i].objectType == object_type) 
+                {
+                    available.Add(i);
+                }
+            }
         }
-        else
+        if(available.Count > 0) 
         {
-            return null;
+            return worldObjectData[available[Random.Range(0, available.Count - 1)]].objectPrefab;
         }
+        else { return null; }
     }
 
     //Get Prefab From Spawnpoint Data
@@ -110,6 +111,13 @@ public class WorldObjectDataManager : MonoBehaviour
     }
     private GameObject GetPrefabFromObjectIdTask(int objectId) 
     {
-        return GetWorldObjectDataByIdTask(objectId).objectPrefab;
+        for (int i = 0; i < worldObjectData.Length; i++)
+        {
+            if (worldObjectData[i].objectId == objectId)
+            {
+                return worldObjectData[i].objectPrefab;
+            }
+        }
+        return null;
     }
 }

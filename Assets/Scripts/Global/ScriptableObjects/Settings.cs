@@ -19,7 +19,7 @@ public class Settings : ScriptableObject
 
     //Distance
     public float terrainDistance = 500;
-    public float objectDistance = 250;
+    public int objectDistance = 250;
 
     //Controls
     public int gameControlsOpacity = 200;

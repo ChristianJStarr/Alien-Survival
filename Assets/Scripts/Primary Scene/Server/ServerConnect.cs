@@ -409,6 +409,7 @@ public class ServerConnect : MonoBehaviour
 
 public class ServerProperties 
 {
+    //Primary Properties
     public string serverName = "Default Server Name";
     public string serverDescription = "Default Description";
     public string serverMode = "Default Gamemode";
@@ -416,8 +417,27 @@ public class ServerProperties
     public string publicIP = "0.0.0.0";
     public ushort serverPort = 7708;
     public int serverMaxPlayer = 30;
-    public int maxEnemies = 0;
-    public int maxFriendly = 0;
     public int autoSaveInterval = 5;
+
+    //Player Info System
     public int[] defaultPlayerBlueprints = new int[] { 1, 2 };
+
+    //World AI System
+    public int ai_MaxEnemies = 0;
+    public int ai_MaxFriendly = 0;
+    public int ai_EnemyAttackRadius = 80;
+    public int ai_EnemyWanderRadius = 800;
+    public int ai_RespawnTime = 600; //10 Minutes
+    public int ai_StateUpdateTime = 1; // 1 Second
+    public int ai_WalkSpeed = 1;
+    public int ai_RunSpeed = 5;
+
+    //World Object System
+    public int wo_maxTree = 2000;
+    public int wo_maxRock = 0;
+    public int wo_maxLoot = 0;
+    public int wo_respawnTrees = 60;
+    public int wo_respawnRocks = 60;
+    public int wo_respawnLoot = 60;
+
 }

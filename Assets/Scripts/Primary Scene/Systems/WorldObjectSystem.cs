@@ -99,6 +99,18 @@ public class WorldObjectSystem : MonoBehaviour
         return snap;
     }
     
+    //Load Configuration from Server Properties
+    private void LoadServerProperties() 
+    {
+        ServerProperties sp = ServerConnect.singleton.GetServerProperties();
+        c_TreeMaxAmount = sp.wo_maxTree;
+        c_RockMaxAmount = sp.wo_maxRock;
+        c_LootMaxAmount = sp.wo_maxLoot;
+        c_TreeRespawnTime = sp.wo_respawnTrees; 
+        c_RockRespawnTime = sp.wo_respawnRocks;
+        c_LootRespawnTime = sp.wo_respawnLoot;
+    }
+
 
 
     //-----------------------------------------------------------------//

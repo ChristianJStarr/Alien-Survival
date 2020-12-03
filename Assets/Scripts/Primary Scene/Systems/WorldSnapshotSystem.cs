@@ -1,7 +1,5 @@
 ﻿using MLAPI;
-using MLAPI.Serialization.Pooled;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
@@ -98,18 +96,17 @@ public class WorldSnapshotSystem : MonoBehaviour
     //Send Snapshot To Every Client
     private void SendSnapshotToEveryone(bool full) 
     {
-        Debug.Log("Creating Snapshot");
-        Snapshot snapshot = CreateWorldSnapshot(full);
+        Snapshot snapshot = CreateWorldSnapshot();
         GameServer.singleton.DebugSnapshotId = snapshot.snapshotId;
         //Create Native Arrays for Job
         int playerCount = snapshot.players.Length;
         if (playerCount < 1) return; //No players? No snapshot.
         int aiCount = snapshot.ai.Length;
         int worldObjectCount = snapshot.worldObjects.Length;
-        int positionLength = playerCount + aiCount + worldObjectCount;
+        int positionsLength = playerCount + aiCount + worldObjectCount;
 
         //Allocate Arrays
-        Vector3[] positions = new Vector3[positionLength];
+        Vector3[] positions = new Vector3[positionsLength];
         Vector3[] players = new Vector3[playerCount];
         ulong[] clientIds = new ulong[playerCount];
 
@@ -136,30 +133,30 @@ public class WorldSnapshotSystem : MonoBehaviour
         //Allocate into Natives
         trimPositionsNative = new NativeArray<Vector3>(positions, Allocator.TempJob);
         trimPlayersNative = new NativeArray<Vector3>(players, Allocator.TempJob);
-        trimIncludeNative = new NativeArray<bool>(playerCount * positionLength, Allocator.TempJob);
-        Debug.Log("Getting Trim Data");
+        trimIncludeNative = new NativeArray<bool>(playerCount * positionsLength, Allocator.TempJob);
+
         //Create Job
         trimSnapshotJob = new TrimSnapshotByDistance()
         {
             position = trimPositionsNative,
             player = trimPlayersNative,
             result = trimIncludeNative,
+            positionLength = positionsLength,
             distance = snapshotRange
         };
         //Schedule Job
-        trimHandle = trimSnapshotJob.Schedule(playerCount, trimHandle);
+        trimHandle = trimSnapshotJob.Schedule(playerCount * positionsLength, trimHandle);
         //Wait for Job Complete
         trimHandle.Complete();
-        Debug.Log("Applying Trim");
         //Send Individual Snapshots to ClientIds[]
         for (int i = 0; i < playerCount; i++)
         {
             List<Snapshot_Player> tempA = new List<Snapshot_Player>();
             List<Snapshot_AI> tempB = new List<Snapshot_AI>();
             List<Snapshot_WorldObject> tempC = new List<Snapshot_WorldObject>();
-            for (int e = 0; e < positionLength; e++)
+            for (int e = 0; e < positionsLength; e++)
             {
-                if (trimIncludeNative[(i * 2) + e])
+                if (trimIncludeNative[(i * positionsLength) + e])
                 {
                     if (e < playerCount)
                     {
@@ -167,11 +164,25 @@ public class WorldSnapshotSystem : MonoBehaviour
                     }
                     else if (e < aiCount)
                     {
-                        tempB.Add(snapshot.ai[e]);
+                        if (full) 
+                        {
+                            tempB.Add(snapshot.ai[e - playerCount]);
+                        }
+                        else if(AIHasChanged(snapshot.ai[e - playerCount]))
+                        {
+                            tempB.Add(snapshot.ai[e - playerCount]);
+                        }
                     }
                     else if (e < worldObjectCount)
                     {
-                        tempC.Add(snapshot.worldObjects[e]);
+                        if (full) 
+                        {
+                            tempC.Add(snapshot.worldObjects[e - playerCount - aiCount]);
+                        }
+                        else if(WorldObjectHasChanged(snapshot.worldObjects[e - playerCount - aiCount])) 
+                        {
+                            tempC.Add(snapshot.worldObjects[e - playerCount - aiCount]);
+                        }
                     }
                 }
             }
@@ -189,173 +200,49 @@ public class WorldSnapshotSystem : MonoBehaviour
             {
                 newSnapshot.worldObjects = tempC.ToArray();
             }
-            //Send newSnapshot to clientIds[i]
-            Debug.Log("Sending Trimmed Snapshot.");
-            gameServer.ServerSendSnapshot(clientIds[i], ConvertSnapshotToStream(newSnapshot));
+            gameServer.ServerSendSnapshot(clientIds[i], newSnapshot);
         }
-        Debug.Log("Disposing");
         trimPositionsNative.Dispose();
         trimPlayersNative.Dispose();
         trimIncludeNative.Dispose();
     }
 
     //Read World State & Create Snapshot
-    private Snapshot CreateWorldSnapshot(bool full) 
+    private Snapshot CreateWorldSnapshot() 
     {
-        if (full)
+        Snapshot fullSnapshot = new Snapshot();
+        //Convert Players To Snapshot
+        PlayerControlObject[] players = commandSystem.players.Values.ToArray();
+        fullSnapshot.players = new Snapshot_Player[players.Length];
+        for (int i = 0; i < players.Length; i++)
         {
-            Snapshot fullSnapshot = new Snapshot();
-            //Convert Players To Snapshot
-            PlayerControlObject[] players = commandSystem.players.Values.ToArray();
-            fullSnapshot.players = new Snapshot_Player[players.Length];
-            for (int i = 0; i < players.Length; i++)
-            {
-                fullSnapshot.players[i] = players[i].ConvertToSnapshot();
-            }
-            //Convert AI To Snapshot
-            AIControlObject[] ai = worldAISystem.ai.ToArray();
-            fullSnapshot.ai = new Snapshot_AI[ai.Length];
-            for (int i = 0; i < ai.Length; i++)
-            {
-                fullSnapshot.ai[i] = ai[i].ConvertToSnapshot();
-            }
-            //Convert WorldObjects To Snapshot
-            fullSnapshot.worldObjects = worldObjectSystem.GetWorldObjectsSnapshot();
-
-            //Set Time & ID
-            fullSnapshot.networkTime = networkingManager.NetworkTime;
-            fullSnapshot.snapshotId = _snapshotId;
-
-            _snapshotId++;
-            if (_snapshotId > 100) _snapshotId = 1;
-            lastSnapshot = Snapshot.ConvertQuick(fullSnapshot);
-            //Send Snapshot
-            return fullSnapshot;
+            fullSnapshot.players[i] = players[i].ConvertToSnapshot();
         }
-        else
+        //Convert AI To Snapshot
+        AIControlObject[] ai = worldAISystem.ai.ToArray();
+        fullSnapshot.ai = new Snapshot_AI[ai.Length];
+        for (int i = 0; i < ai.Length; i++)
         {
-            //Create Snapshot Object
-            Snapshot snapshot = new Snapshot();
-            
-
-            //Convert Players To Snapshot
-            List<Snapshot_Player> players = new List<Snapshot_Player>();
-            PlayerControlObject[] playerControlObjects = commandSystem.players.Values.ToArray();
-            for (int i = 0; i < playerControlObjects.Length; i++)
-            {
-                Snapshot_Player snapshot_Player = playerControlObjects[i].ConvertToSnapshot();
-                if (PlayerHasChanged(snapshot_Player))
-                {
-                    players.Add(snapshot_Player);
-                }
-            }
-            snapshot.players = players.ToArray();
-
-
-            //Convert AI To Snapshot
-            List<Snapshot_AI> ai = new List<Snapshot_AI>();
-            AIControlObject[] aiControlObjects = worldAISystem.ai.ToArray();
-            for (int i = 0; i < aiControlObjects.Length; i++)
-            {
-                Snapshot_AI snapshot_AI = aiControlObjects[i].ConvertToSnapshot();
-                if (AIHasChanged(snapshot_AI))
-                {
-                    ai.Add(snapshot_AI);
-                }
-            }
-            snapshot.ai = ai.ToArray();
-
-
-            //Convert WorldObjects To Snapshot
-            List<Snapshot_WorldObject> worldObjects = new List<Snapshot_WorldObject>();
-            Snapshot_WorldObject[] worldControlObjects = worldObjectSystem.GetWorldObjectsSnapshot();
-            for (int i = 0; i < worldControlObjects.Length; i++)
-            {
-                if (WorldObjectHasChanged(worldControlObjects[i]))
-                {
-                    worldObjects.Add(worldControlObjects[i]);
-                }
-            }
-            snapshot.worldObjects = worldObjects.ToArray();
-
-
-            //Set Time & ID
-            snapshot.networkTime = networkingManager.NetworkTime;
-            snapshot.snapshotId = _snapshotId;
-
-            _snapshotId++;
-            lastSnapshot = Snapshot.ConvertQuick(snapshot);
-            //Send Snapshot
-            return snapshot;
+            fullSnapshot.ai[i] = ai[i].ConvertToSnapshot();
         }
-    }
+        //Convert WorldObjects To Snapshot
+        fullSnapshot.worldObjects = worldObjectSystem.GetWorldObjectsSnapshot();
 
-    //Convert Snapshot to Bit Stream
-    private Stream ConvertSnapshotToStream(Snapshot snapshot) 
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                writer.WriteInt32Packed(snapshot.snapshotId);
-                writer.WriteSinglePacked(snapshot.networkTime);
+        //Set Time & ID
+        fullSnapshot.networkTime = networkingManager.NetworkTime;
+        fullSnapshot.snapshotId = _snapshotId;
 
-                //Players
-                if (snapshot.players != null)
-                {
-                    writer.WriteInt32Packed(snapshot.players.Length);
-                    for (int e = 0; e < snapshot.players.Length; e++)
-                    {
-                        writer.WriteUInt64Packed(snapshot.players[e].networkId);
-                        writer.WriteVector3Packed(snapshot.players[e].location);
-                        writer.WriteVector2Packed(snapshot.players[e].rotation);
-                        writer.WriteInt16Packed((short)snapshot.players[e].holdId);
-                    }
-                }
-                else
-                {
-                    writer.WriteInt32Packed(0);
-                }
-
-                //AI
-                if (snapshot.ai != null)
-                {
-                    writer.WriteInt32Packed(snapshot.ai.Length);
-                    for (int e = 0; e < snapshot.ai.Length; e++)
-                    {
-                        writer.WriteUInt64Packed(snapshot.ai[e].networkId);
-                        writer.WriteVector3Packed(snapshot.ai[e].location);
-                        writer.WriteVector2Packed(snapshot.ai[e].rotation);
-                        writer.WriteInt16Packed((short)snapshot.ai[e].holdId);
-                    }
-                }
-                else
-                {
-                    writer.WriteInt32Packed(0);
-                }
-
-                //World Objects
-                if (snapshot.worldObjects != null)
-                {
-                    writer.WriteInt32Packed(snapshot.worldObjects.Length);
-                    for (int e = 0; e < snapshot.worldObjects.Length; e++)
-                    {
-                        writer.WriteInt32Packed(snapshot.worldObjects[e].spawnId);
-                        writer.WriteInt32Packed(snapshot.worldObjects[e].objectId);
-                    }
-                }
-                else
-                {
-                    writer.WriteInt32Packed(0);
-                }
-                return writeStream;
-            }
-        }
+        _snapshotId++;
+        if (_snapshotId > 100) _snapshotId = 1;
+        lastSnapshot = Snapshot.ConvertQuick(fullSnapshot);
+        //Send Snapshot
+        return fullSnapshot;
     }
 
     //Has Player Changed
     private bool PlayerHasChanged(Snapshot_Player player) 
     {
+        return true;
         if (lastSnapshot != null && lastSnapshot.players != null && lastSnapshot.players.ContainsKey(player.networkId)) 
         {
             if(lastSnapshot.players[player.networkId] != player) 
@@ -480,20 +367,24 @@ public class Snapshot_WorldObject
 //Jobs
 public struct TrimSnapshotByDistance : IJobFor
 {
+    [ReadOnly]
     public NativeArray<Vector3> position;
+    [ReadOnly]
     public NativeArray<Vector3> player;
-    public NativeArray<bool> result;
+    [ReadOnly]
     public int positionLength;
+    [ReadOnly]
     public int distance;
+
+    public NativeArray<bool> result; // Index I
 
     public void Execute(int i) 
     {
-        for (int e = 0; e < positionLength; e++)
+        int playerIndex = i / positionLength;
+        int positionIndex = i - (playerIndex * positionLength);
+        if (Vector3.Distance(position[positionIndex], player[playerIndex]) < distance)
         {
-            if (Vector3.Distance(position[e], player[i]) < distance)
-            {
-                result[(i * 2) + e] = true;
-            }
+            result[i] = true;
         }
     }
 }

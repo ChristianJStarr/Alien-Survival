@@ -68,9 +68,9 @@ public class PooledManager : MonoBehaviour
             instance = pool[instanceId].Dequeue();
             pool[instanceId].Enqueue(instance);
         }
-        instance.transform.SetParent(parent, false);
-        if (usePrefabPosition) 
+        if (usePrefabPosition && parent != null) 
         {
+            instance.transform.SetParent(parent, false);
             instance.transform.position = prefab.transform.position;
             instance.transform.rotation = prefab.transform.rotation;
         }

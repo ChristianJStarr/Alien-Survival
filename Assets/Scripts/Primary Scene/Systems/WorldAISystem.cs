@@ -32,6 +32,8 @@ public class WorldAISystem : MonoBehaviour
 
 
     //Configs
+    public int c_MaxFriendly = 0;
+    public int c_MaxEnemies = 0;
     public int c_EnemyAttackRadius = 80;
     public int c_EnemyWanderRadius = 800;
     public int c_RespawnTime = 600; //10 Minutes
@@ -50,11 +52,7 @@ public class WorldAISystem : MonoBehaviour
         systemEnabled = true;
 
         //Gather Properties
-        serverProperties = ServerConnect.singleton.GetServerProperties();
-        if (serverProperties == null)
-        {
-            systemEnabled = false;
-        }
+        LoadServerProperties();
 
         //Gather Spawnpoints
         if (!FindSpawnPoints()) 
@@ -93,8 +91,17 @@ public class WorldAISystem : MonoBehaviour
         }
     }
 
-
-
+    //Load Server Properties
+    private void LoadServerProperties() 
+    {
+        ServerProperties sp = ServerConnect.singleton.GetServerProperties();
+        c_EnemyAttackRadius = sp.ai_EnemyAttackRadius;
+        c_EnemyWanderRadius = sp.ai_EnemyWanderRadius;
+        c_RespawnTime = sp.ai_RespawnTime;
+        c_StateUpdateTime = sp.ai_StateUpdateTime;
+        c_WalkSpeed = sp.ai_WalkSpeed;
+        c_RunSpeed = sp.ai_RunSpeed;
+    }
 
 
 
@@ -123,6 +130,13 @@ public class WorldAISystem : MonoBehaviour
 
 
 
+
+
+
+
+
+
+    //-------------------AI Backend--------------------
 
     //Find Spawn Points
     private bool FindSpawnPoints() 
@@ -244,14 +258,8 @@ public class WorldAISystem : MonoBehaviour
         }
     }
 
-
-
-
-
-
-
     //Register AI Object
-    
+  
     public static void Register(AIControlObject controlObject) 
     {
         if(Singleton != null) 
@@ -292,9 +300,6 @@ public class WorldAISystem : MonoBehaviour
         }
     }
 
-
-    
-
     //Update AI State LOOP
     private void UpdateAIState() 
     {
@@ -320,8 +325,8 @@ public class WorldAISystem : MonoBehaviour
         targets = new NativeArray<int>(aiCount, Allocator.TempJob);
 
         enemyStateChange = new EnemyStateChange();
-        enemyStateChange.attack_radius = c_EnemyAttackRadius;
-        enemyStateChange.wander_radius = c_EnemyWanderRadius;
+        enemyStateChange.attack_radius = c_EnemyAttackRadius * c_EnemyAttackRadius;
+        enemyStateChange.wander_radius = c_EnemyWanderRadius * c_EnemyWanderRadius;
         enemyStateChange.players = playerLocations;
         enemyStateChange.ai = aiLocations;
         enemyStateChange.state = states;
@@ -357,8 +362,8 @@ public class WorldAISystem : MonoBehaviour
     //Keep Spawn Levels LOOP
     private void KeepSpawnLevels()
     {
-        int enemy = serverProperties.maxEnemies;
-        int friendly = serverProperties.maxFriendly;
+        int enemy = c_MaxEnemies;
+        int friendly = c_MaxFriendly;
         for (int i = 0; i < ai.Count; i++)
         {
             if (ai[i] != null)
@@ -418,16 +423,15 @@ public class WorldAISystem : MonoBehaviour
             Destroy(friendly);
         }
     }
-
 }
 
 
 public struct EnemyStateChange : IJobFor
 {
-    public int attack_radius;
-    public int wander_radius;
-    public NativeArray<Vector3> players;
-    public NativeArray<Vector3> ai;
+    [ReadOnly] public int attack_radius;
+    [ReadOnly] public int wander_radius;
+    [ReadOnly] public NativeArray<Vector3> players;
+    [ReadOnly] public NativeArray<Vector3> ai;
     public NativeArray<int> state;
     public NativeArray<int> targetIndex;
     public void Execute(int i) 
@@ -437,8 +441,8 @@ public struct EnemyStateChange : IJobFor
         float currentClosest = attack_radius;
         for (int x = 0; x < players.Length; x++)
         {
-            float distance = Vector3.Distance(ai[i], players[x]);
-            if (distance < attack_radius && distance < currentClosest)
+            float distance = (ai[i] - players[x]).sqrMagnitude;
+            if (distance < attack_radius * attack_radius && distance < currentClosest * currentClosest)
             {
                 currentClosest = distance;
                 attackIndex = x + 1;
