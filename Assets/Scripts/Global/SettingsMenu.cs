@@ -10,7 +10,7 @@ public class SettingsMenu : MonoBehaviour
 {
 
     public Settings settings; // Game Settings data.
-    public Slider ui, menu, ambient, effects, xSense, ySense, opacity, terrainDis, objectDis; //All settings sliders
+    public Slider ui, menu, ambient, effects, xSense, ySense, opacity; //All settings sliders
     public ToggleGroup quality, showFps, showPing, showTime, showBattery; //All settings toggle groups.
     public GameObject qualityContainer, manualContainer;
     public Button qualityModeButton_Manual, qualityModeButton_Auto;
@@ -53,21 +53,15 @@ public class SettingsMenu : MonoBehaviour
         ySense.value = settings.ySensitivity;
         opacity.value = settings.gameControlsOpacity;
 
-        //Get Distance
-        terrainDis.value = settings.terrainDistance;
-        objectDis.value = settings.objectDistance;
-
         //SetDebug
         SetToggleBool(showFps, settings.showFps);
         SetToggleBool(showPing, settings.showPing);
         SetToggleBool(showTime, settings.showTime);
         SetToggleBool(showBattery, settings.showBattery);
-        scrollRect.verticalNormalizedPosition = 1;
-
-        
+        scrollRect.verticalNormalizedPosition = 1; 
     }
 
-
+    //Set Quality Mode
     private void SetMode(bool mode) 
     {
         manualContainer.SetActive(!mode);
@@ -87,23 +81,19 @@ public class SettingsMenu : MonoBehaviour
         }
     }
 
+    //Toggle Quality Mode
     public void QualityModeAuto() 
     {
-
-        Debug.Log(scrollRect.verticalNormalizedPosition);
         SetMode(true);
         settings.autoQuality = true;
-
-        Debug.Log(scrollRect.verticalNormalizedPosition);
         scrollRect.verticalNormalizedPosition = 1;
     }
     
+    //Toggle Quality Mode
     public void QualityModeManual() 
     {
-        Debug.Log(scrollRect.verticalNormalizedPosition);
         SetMode(false);
         settings.autoQuality = false;
-        Debug.Log(scrollRect.verticalNormalizedPosition);
         scrollRect.verticalNormalizedPosition = 1;
     }
 
@@ -137,17 +127,7 @@ public class SettingsMenu : MonoBehaviour
         }
     }
 
-    //Called from Terrain Distance Slider in settings. Keeps Object Max Distance >= Terrain Distance
-    public void TerrainDistance() 
-    {
-        objectDis.maxValue = terrainDis.value;
-        if(objectDis.value > terrainDis.value) 
-        {
-            objectDis.value = terrainDis.value;
-        }
-    }
-
-
+    //Back BTN
     public void BackButton() 
     {
         if(SceneManager.GetActiveScene().name == "Primary") 
@@ -175,7 +155,6 @@ public class SettingsMenu : MonoBehaviour
 
         scrollRect.verticalNormalizedPosition = 1;
     }
-
     
     //Apply Settings Values
     public void ApplySettings() 
@@ -212,9 +191,8 @@ public class SettingsMenu : MonoBehaviour
         settings.ySensitivity = ySense.value;
         settings.gameControlsOpacity = (int)opacity.value;
 
-        //Distance
-        settings.terrainDistance = terrainDis.value;
-        settings.objectDistance = (int) objectDis.value;
+        //Object Distance
+        settings.objectDistance = GetObjectDistance();
 
         //Debug
         if (showFps.ActiveToggles().FirstOrDefault().name == "show")
@@ -253,7 +231,10 @@ public class SettingsMenu : MonoBehaviour
         BackButton();
     }
 
-    //Get correct pipeline asset based off current settings.
+    
+    //-----Get Values From Quality Level
+    
+    //Get Render Asset
     public RenderPipelineAsset GetAsset() 
     {
         if (settings.quality == 4)
@@ -273,4 +254,26 @@ public class SettingsMenu : MonoBehaviour
             return low_Pipeline;
         }
     }
+
+    //Get Object Distance
+    public int GetObjectDistance() 
+    {
+        if (settings.quality == 4)
+        {
+            return 1000;
+        }
+        else if (settings.quality == 3)
+        {
+            return 700;
+        }
+        else if (settings.quality == 2)
+        {
+            return 500;
+        }
+        else
+        {
+            return 300;
+        }
+    }
+
 }

@@ -15,25 +15,23 @@ public class FpsCounter : MonoBehaviour
     {
         Change(); //Update at Startup
     }
-    
-    
-     void OnEnable()
+    void OnEnable()
     {
         SettingsMenu.ChangedSettings += Change;//Subscribe to Settings Change Event.
     }
-    
     void OnDisable()
     {
         SettingsMenu.ChangedSettings -= Change;//unSubscribe to Settings Change Event.
     }
 
+
     //Change Settings.
     private void Change() 
     {
-        Debug.Log("Changed Settings :)");
         showFps = settings.showFps;
         toggleObject.SetActive(showFps);
     }
+    
     //Render FPS
     private void Update()
     {

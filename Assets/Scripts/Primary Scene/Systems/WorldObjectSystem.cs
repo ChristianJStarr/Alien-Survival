@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -17,12 +16,12 @@ public class WorldObjectSystem : MonoBehaviour
     private Dictionary<int, WorldObject> worldObjects = new Dictionary<int, WorldObject>();
 
     //-----Configuration-----
-    public int c_TreeMaxAmount = 1500;
-    public int c_RockMaxAmount = 0;
-    public int c_LootMaxAmount = 0;
-    public int c_TreeRespawnTime = 60; //Seconds
-    public int c_RockRespawnTime = 60; //Seconds
-    public int c_LootRespawnTime = 60; //Seconds
+    private int c_TreeMaxAmount = 0;
+    private int c_RockMaxAmount = 0;
+    private int c_LootMaxAmount = 0;
+    private int c_TreeRespawnTime = 0;
+    private int c_RockRespawnTime = 0;
+    private int c_LootRespawnTime = 0; 
 
     //-----Spawnpoint Objects------
     private List<int> occupiedSpawnpoints = new List<int>();
@@ -44,7 +43,9 @@ public class WorldObjectSystem : MonoBehaviour
     //Start System
     public bool StartSystem()
     {
-        //Load world Objects
+        //Load Properties
+        LoadServerProperties();
+        
         networkingManager = NetworkingManager.Singleton;
         //Load Spawnpoints
         systemEnabled = LoadSpawnpoints();
@@ -277,7 +278,4 @@ static class MyExtensions
             list[n] = value;
         }
     }
-
-
-    
 }

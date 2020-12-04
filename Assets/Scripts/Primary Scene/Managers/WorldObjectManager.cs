@@ -1,4 +1,5 @@
 ﻿
+using MLAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,6 +79,7 @@ public class WorldObjectManager : MonoBehaviour
 
     private void Start() 
     {
+        if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsServer) return;
         //Get Configuration
         c_ObjectLoadDistance = settings.objectDistance;
 

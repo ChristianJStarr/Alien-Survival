@@ -1,41 +1,20 @@
-﻿using MLAPI;
-using System;
+﻿using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
-/// <summary>
-/// Web Server System. 
-/// </summary>
+
+
+
 public class WebServer : MonoBehaviour
 {
-    /// <summary>
-    /// Web Server Host URL
-    /// </summary>
+    // Web Server Host URL
     private string Host = "https://www.game.aliensurvival.com";
-    /// <summary>
-    /// Login/Signup File Name
-    /// </summary>
+    //Files
     private string loginFile = "login.php";
-    /// <summary>
-    /// Player Stats File Name
-    /// </summary>
     private string statsFile = "stats.php";
-    /// <summary>
-    /// Server List File Name
-    /// </summary>
     private string serversFile = "servers.php";
-
-    private NetworkingManager networkManager;
-    public int logLevel = 0;
+    //Stats
     public PlayerStats playerStats;
-    private TimeZoneInfo serverTimeZone;
-
-    public MainMenuAlienStore alienStore;
-
-    private void Start()
-    {
-        networkManager = NetworkingManager.Singleton;
-    }
 
 
     public void LoginRequest(string username, string password, Action<string> onRequestFinished)
@@ -145,11 +124,6 @@ public class WebServer : MonoBehaviour
             playerStats.playerHours = float.Parse(hours);
             playerStats.notifyData = notifyData;
             playerStats.storeData = storeData;
-            
-            if(alienStore != null) 
-            {
-                alienStore.UpdateStats();
-            }
         }
         else
         {

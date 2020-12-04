@@ -9,6 +9,11 @@ public class ServerUI_Controller : MonoBehaviour
 
     private bool isRunning = false;
 
+
+    private float snapshotMax;
+
+
+
     // Update is called once per frame
     void Update()
     {
@@ -54,7 +59,11 @@ public class ServerUI_Controller : MonoBehaviour
     {
         int snapshot_Id = GameServer.singleton.DebugSnapshotId;
         float snapshot_Size = GameServer.singleton.DebugSnapshotSize;
-        snapshotText.text = "Snapshot Id: " + snapshot_Id + " Size: " + snapshot_Size + "kb";
+        if(snapshot_Size > snapshotMax) 
+        {
+            snapshotMax = snapshot_Size;    
+        }
+        snapshotText.text = "Snapshot Id: " + snapshot_Id + " Size: " + snapshot_Size / 1000 + "kb  Max:" + snapshotMax / 1000 + "kb";
     }
 
     public void UpdateCommandStats() 

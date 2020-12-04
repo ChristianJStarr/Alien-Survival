@@ -169,7 +169,6 @@ public class UI_Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             isWaitingToLock = false;
         }
-        Debug.Log(joy_Center + " Firing");
     }
 
     //On Pointer Down Event

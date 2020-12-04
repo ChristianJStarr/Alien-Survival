@@ -85,8 +85,6 @@ public class ChatManager : MonoBehaviour
     //Function for the Chat Toggle Button
     public void ChangeVisible() 
     {
-        Debug.Log(state.ToString());
-        Debug.Log("Changing Visible");
         if(state == State.OpenWhen) 
         {
             state = State.Hidden;
@@ -124,7 +122,6 @@ public class ChatManager : MonoBehaviour
             boxContainer.SetActive(true);
             buttonBkg.SetActive(false);
         }
-        Debug.Log("Finished Updating Box State");
     }
 
 

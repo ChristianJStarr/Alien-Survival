@@ -11614,7 +11614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   webServer: {fileID: 1011803583}
-  autoConnect: 1
+  autoConnect: 0
   autoConnectIp: 10.0.0.211
   autoConnectPort: 5055
 --- !u!1 &1033284987

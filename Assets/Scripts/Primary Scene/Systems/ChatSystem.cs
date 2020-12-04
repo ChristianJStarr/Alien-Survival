@@ -48,3 +48,5 @@ public class ChatSystem : MonoBehaviour
         return "<color=#" + hex + ">" + message + "</color>";
     }
 }
+
+
