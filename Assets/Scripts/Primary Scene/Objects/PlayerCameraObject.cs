@@ -1,9 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerCameraObject : MonoBehaviour
 {
     public Transform mainCameraSpawnAnchor;
     public Transform viewCameraSpawnAnchor;
+    public DeathCam deathCam;
+    public bool camerasSpawned = false;
 }

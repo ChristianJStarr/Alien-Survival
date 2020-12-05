@@ -725,22 +725,22 @@ public class PlayerInfoSystem : MonoBehaviour
                     //Deplete Food
                     if (info.food > 0)
                     {
-                        active[clientId].food -= 1;
+                        active[clientId].food -= 20;//1
                         foodChanged = true;
                     }
                     //Deplete Water
                     if (info.water > 0)
                     {
-                        active[clientId].water -= 2;
+                        active[clientId].water -= 20;//2
                         waterChanged = true;
                     }
                     //Deplete or Increase Health
 
                     if(info.water <= 0) 
                     {
-                        if (info.health > 3)
+                        if (info.health > 30)//3
                         {
-                            active[clientId].health -= 3;
+                            active[clientId].health -= 30;//3
                             healthChanged = true;
                         }
                         else
@@ -753,9 +753,9 @@ public class PlayerInfoSystem : MonoBehaviour
                     }
                     if (info.food <= 0)
                     {
-                        if (info.health > 2)
+                        if (info.health > 20)
                         {
-                            active[clientId].health -= 2;
+                            active[clientId].health -= 20;//2
                             healthChanged = true;
                         }
                         else

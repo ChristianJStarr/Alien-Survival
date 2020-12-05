@@ -101,6 +101,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1165399421}
+  - component: {fileID: 8194830630051774463}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -115,13 +116,29 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1165399418}
-  m_LocalRotation: {x: 0.020920426, y: -0.007109975, z: -0.00014878904, w: 0.99975586}
-  m_LocalPosition: {x: 0.44999975, y: 1.0400004, z: -4.290001}
+  m_LocalRotation: {x: 0.02091703, y: -0.0027856887, z: -0.00023832187, w: 0.9997773}
+  m_LocalPosition: {x: 0.42, y: 0.81, z: -2.07}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 66108929}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 2.397, y: -0.816, z: -0.034}
+  m_LocalEulerAnglesHint: {x: 2.397, y: -0.32, z: -0.034}
+--- !u!114 &8194830630051774463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165399418}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0b503a7115231942b174c47a8e0d790, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 8756753904860843604}
+  deathCamPrefab: {fileID: 2804945353816220539, guid: dcefa98f6b816e2448a55b19785b776b,
+    type: 3}
+  lerpSpeed: 1
 --- !u!1 &1694906430
 GameObject:
   m_ObjectHideFlags: 0
@@ -1809,6 +1826,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainCameraSpawnAnchor: {fileID: 1165399421}
   viewCameraSpawnAnchor: {fileID: 6775108}
+  deathCam: {fileID: 8194830630051774463}
+  camerasSpawned: 0
 --- !u!1 &3900040222473262920
 GameObject:
   m_ObjectHideFlags: 0

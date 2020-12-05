@@ -79,6 +79,16 @@ public class WorldSnapshotManager : NetworkedBehaviour
     }
 
 
+    public PlayerControlObject GetLocalPlayerObject() 
+    {
+        PlayerControlObject instance = null;
+        if (players.ContainsKey(selfNetworkId)) 
+        {
+            instance = players[selfNetworkId];
+        }
+        return instance;
+    }
+
     public static void RegisterObject(PlayerControlObject controlObject)
     {
         if (Singleton != null)
