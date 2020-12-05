@@ -12,8 +12,10 @@ public class WorldObjectSystem : MonoBehaviour
     //NetworkingManager
     private NetworkingManager networkingManager;
 
-    //World Object Lists
+    //World Object Lists    Spawn_Id  / WorldObject
     private Dictionary<int, WorldObject> worldObjects = new Dictionary<int, WorldObject>();
+    //World Object Pool     Object_Id / GameObject
+    private Dictionary<int, Queue<WorldObject>> objectPool = new Dictionary<int, Queue<WorldObject>>();
 
     //-----Configuration-----
     private int c_TreeMaxAmount = 0;
@@ -25,7 +27,7 @@ public class WorldObjectSystem : MonoBehaviour
 
     //-----Spawnpoint Objects------
     private List<int> occupiedSpawnpoints = new List<int>();
-    [HideInInspector] public SpawnpointObject[] spawnpoints;
+    private SpawnpointObject[] spawnpoints;
     private Vector3[] spawnpointLocations;
     private int spawnpointsLength = 0;
 
@@ -64,7 +66,7 @@ public class WorldObjectSystem : MonoBehaviour
     //Load Saved Objects
     private bool LoadSpawnpoints()
     {
-        spawnpoints = FindObjectsOfType<SpawnpointObject>();
+        spawnpoints = WorldObjectSpawnpointManager.GetSpawnpoints();
         spawnpointsLength = spawnpoints.Length;
         spawnpointLocations = new Vector3[spawnpointsLength];
         for (int i = 0; i < spawnpointsLength; i++)
@@ -118,6 +120,7 @@ public class WorldObjectSystem : MonoBehaviour
     //                    World Object Spawning                        //
     //-----------------------------------------------------------------//
 
+    //Loop for Checking Spawnpoints
     private IEnumerator SpawnObjectLoop() 
     {
         WaitForSeconds wait = new WaitForSeconds(120);
@@ -135,54 +138,121 @@ public class WorldObjectSystem : MonoBehaviour
         for (int i = 0; i < spawnpoints.Length; i++)
         {
             SpawnpointObject spawn = spawnpoints[i];
-            if ((spawn.lastSpawntime == 0 || networkTime - spawn.lastSpawntime > GetRespawnTime(spawn.spawn_type)) && !occupiedSpawnpoints.Contains(spawn.spawn_id))
+            if ((spawn.lastSpawntime == 0 || networkTime - spawn.lastSpawntime > GetRespawnTime(spawn.spawn_type)) && !occupiedSpawnpoints.Contains(spawn.spawn_id) && GetCurrentAmount(spawn.spawn_type) < GetMaxAmount(spawn.spawn_type))
             {
-                if (GetCurrentAmount(spawn.spawn_type) < GetMaxAmount(spawn.spawn_type))
+                WorldObject worldObject = SpawnObject(spawn.spawn_type, spawn.spawn_level, spawn.spawn_id, spawn.transform.position);
+                if (worldObject != null)
                 {
-                    float randomY = 5;
-                    GameObject worldObject = PooledManager.InstantiatePooledObject(WorldObjectDataManager.GetPrefabFromSpawnpointData(spawn.spawn_type, spawn.spawn_level), spawn.transform.position, Quaternion.Euler(0,randomY,0));
-                    if (worldObject != null)
-                    {
-                        WorldObject world = worldObject.GetComponent<WorldObject>();
-                        if (world != null) 
-                        {
-                            WorldObjectData objectData = WorldObjectDataManager.GetWorldObjectDataById(world.objectDataId);
-                            if(objectData != null)
-                            {
-                                occupiedSpawnpoints.Add(spawn.spawn_id);
-                                AddCurrentAmount(spawn.spawn_type);
-                                spawnpoints[i].worldObject = worldObject;
-                                world.objectAmount = objectData.gatherAmount;
-                                world.spawn_Id = spawn.spawn_id;
-                                spawnpoints[i].spawn_objectId = world.objectDataId;
-                                worldObjects.Add(world.spawn_Id, world);
-                            }
-                            else { worldObject.SetActive(false); }
-                        }
-                        else { worldObject.SetActive(false); }
-                    }
-                    else { worldObject.SetActive(false); }
+                    spawnpoints[i].spawn_objectId = worldObject.objectDataId;
                 }
             }
         }
     }
 
-    //Remove World Object
-    private void RemoveWorldObject(int spawnpoint_Id) 
+    //Spawn Object
+    private WorldObject SpawnObject(int spawn_type, int spawn_level, int spawn_id, Vector3 position)
     {
-        if (worldObjects.ContainsKey(spawnpoint_Id)) 
+        WorldObjectData data = WorldObjectDataManager.GetRandomWorldData(spawn_type, spawn_level);
+        WorldObject instance = null;
+
+        if (objectPool.ContainsKey(data.objectId) && objectPool[data.objectId].Count > 0) 
         {
-            if (occupiedSpawnpoints.Contains(spawnpoint_Id)) 
+            instance = objectPool[data.objectId].Dequeue();
+            instance.gameObject.SetActive(true);
+            instance.transform.position = position;
+            instance.transform.rotation = Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0);
+        }
+        else 
+        {
+            instance = Instantiate(data.objectPrefab, position, Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)).GetComponent<WorldObject>();
+        }
+
+        instance.objectAmount = data.gatherAmount;
+        instance.spawn_Id = spawn_id;
+        worldObjects.Add(spawn_id, instance);
+        occupiedSpawnpoints.Add(spawn_id);
+        AddCurrentAmount(spawn_type);
+        return instance;
+    }
+
+    //Destroy Object
+    private int DepleteObject(int spawnpoint_Id, int deplete_amount)
+    {
+        WorldObject worldObject = spawnpoints[spawnpoint_Id].worldObject;
+        if (worldObject == null) return 0;
+        if(deplete_amount > 0) 
+        {
+            if(worldObject.objectAmount > deplete_amount) 
             {
-                occupiedSpawnpoints.Remove(spawnpoint_Id);
+                worldObject.objectAmount -= deplete_amount;
+                return deplete_amount;
             }
-            spawnpoints[spawnpoint_Id].lastSpawntime = networkingManager.NetworkTime;
-            worldObjects[spawnpoint_Id].gameObject.SetActive(false);
-            worldObjects.Remove(spawnpoint_Id);
+            else if(worldObject.objectAmount == deplete_amount) 
+            {
+                worldObject.gameObject.SetActive(false);
+                int objectId = worldObject.objectDataId;
+                SubtractCurrentAmount(spawnpoints[spawnpoint_Id].spawn_type);
+                if (occupiedSpawnpoints.Contains(spawnpoint_Id))
+                {
+                    occupiedSpawnpoints.Remove(spawnpoint_Id);
+                }
+                if (objectPool.ContainsKey(objectId))
+                {
+                    objectPool[objectId].Enqueue(worldObject);
+                }
+                else
+                {
+                    objectPool.Add(objectId, new Queue<WorldObject>());
+                    objectPool[objectId].Enqueue(worldObject);
+                }
+                if (worldObjects.ContainsKey(spawnpoint_Id))
+                {
+                    spawnpoints[spawnpoint_Id].lastSpawntime = networkingManager.NetworkTime;
+                    worldObjects.Remove(spawnpoint_Id);
+                }
+                return deplete_amount;
+            }
+            else 
+            {
+                worldObject.gameObject.SetActive(false);
+                int objectId = worldObject.objectDataId;
+                SubtractCurrentAmount(spawnpoints[spawnpoint_Id].spawn_type);
+                if (occupiedSpawnpoints.Contains(spawnpoint_Id))
+                {
+                    occupiedSpawnpoints.Remove(spawnpoint_Id);
+                }
+                if (objectPool.ContainsKey(objectId))
+                {
+                    objectPool[objectId].Enqueue(worldObject);
+                }
+                else
+                {
+                    objectPool.Add(objectId, new Queue<WorldObject>());
+                    objectPool[objectId].Enqueue(worldObject);
+                }
+                if (worldObjects.ContainsKey(spawnpoint_Id))
+                {
+                    spawnpoints[spawnpoint_Id].lastSpawntime = networkingManager.NetworkTime;
+                    worldObjects.Remove(spawnpoint_Id);
+                }
+                return worldObject.objectAmount;
+            }
+        }
+        else 
+        {
+            return 0;
         }
     }
 
-    //Get Respawn Time from Spawn Type
+
+
+
+    //-----------------------------------------------------------------//
+    //                    World Object Info                            //
+    //-----------------------------------------------------------------//
+
+
+    //Get Respawn Time from Spawn Type 
     private int GetRespawnTime(int spawnType)
     {
         if (spawnType == 1)
@@ -247,6 +317,25 @@ public class WorldObjectSystem : MonoBehaviour
         else if (spawnType == 3)
         {
             currentLoot++;
+        }
+    }
+    //Subtract from Current Amount
+    private void SubtractCurrentAmount(int spawnType)
+    {
+        if (spawnType == 1)
+        {
+            currentTrees--;
+            if (currentTrees < 0) { currentTrees = 0; }
+        }
+        else if (spawnType == 2)
+        {
+            currentRocks--;
+            if (currentRocks < 0) { currentRocks = 0; }
+        }
+        else if (spawnType == 3)
+        {
+            currentLoot--;
+            if (currentLoot < 0) { currentLoot = 0; }
         }
     }
 }

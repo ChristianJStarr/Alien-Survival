@@ -332,7 +332,10 @@ public class Snapshot
         {
             for (int i = 0; i < snapshot.worldObjects.Length; i++)
             {
-                quickAccess.worldObjects.Add(snapshot.worldObjects[i].spawnId, snapshot.worldObjects[i]);
+                if (!quickAccess.worldObjects.ContainsKey(snapshot.worldObjects[i].spawnId)) 
+                {
+                    quickAccess.worldObjects.Add(snapshot.worldObjects[i].spawnId, snapshot.worldObjects[i]);
+                }
             }
         }
         return quickAccess;

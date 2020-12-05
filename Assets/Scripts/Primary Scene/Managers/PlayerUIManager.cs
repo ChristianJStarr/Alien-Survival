@@ -17,10 +17,9 @@ public class PlayerUIManager : MonoBehaviour
 
     private string authKey;
     private GameServer gameServer;
-    public Topbar topbar;
 
 
-
+    public UI_Topbar topbar;
     public UI_Inventory inventory;
     public UI_DeathScreen deathScreen; //----Death Screen
     public UI_Joystick joystick; //----Joy Stick

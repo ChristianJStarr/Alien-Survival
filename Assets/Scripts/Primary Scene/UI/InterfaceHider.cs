@@ -18,7 +18,7 @@ public class InterfaceHider : MonoBehaviour
 
     public ChatManager chat;
 
-    public Topbar topBar;
+    public UI_Topbar topBar;
 
     public UI_Inventory inventory;
 

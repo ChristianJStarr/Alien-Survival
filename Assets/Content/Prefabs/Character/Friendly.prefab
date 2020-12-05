@@ -808,7 +808,7 @@ Transform:
   m_GameObject: {fileID: 2556272531670792622}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 785.03796, y: 0, z: 498.58365}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children:
   - {fileID: 6089625000787637130}
   - {fileID: 5467899000312158579}
@@ -829,8 +829,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87c52f601310fcd46a4e6b57e1f4691e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  health: 100
   agent: {fileID: 4446560709058887197}
   animator: {fileID: 9138445943285152110}
+  lastAnimationVector: {x: 0, y: 0}
   collisionFlags: 0
   crouching: 0
   jumping: 0
@@ -844,6 +846,7 @@ MonoBehaviour:
   holdableObject: {fileID: 0}
   holdableId: 0
   handParent: {fileID: 6367981760298622427}
+  cameraObject: {fileID: 0}
 --- !u!114 &2302049460184378528
 MonoBehaviour:
   m_ObjectHideFlags: 0

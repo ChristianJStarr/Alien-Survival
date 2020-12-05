@@ -1515,7 +1515,7 @@ Transform:
   m_GameObject: {fileID: 3807543680349778164}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.45, y: 0.45, z: 0.45}
   m_Children:
   - {fileID: 6775352397216517904}
   - {fileID: 8365790119431660505}
@@ -1541,11 +1541,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterController: {fileID: 9159223200993277526}
   cameraObject: {fileID: 66108929}
+  cameraPoint: {fileID: 0}
   animator: {fileID: 7783986884845924253}
+  lastAnimationVector: {x: 0, y: 0}
+  use: 0
   crouching: 0
   jumping: 0
   moveTarget: {x: 0, y: 0, z: 0}
   lookTarget: {x: 0, y: 0}
+  correctionMove: {x: 0, y: 0, z: 0}
   collisionFlags: 0
   holdableId: 0
   holdableObject: {fileID: 0}
@@ -1556,6 +1560,7 @@ MonoBehaviour:
     itemStack: 0
     currSlot: 0
     durability: 0
+  useDelayTime: 0
 --- !u!114 &-6095836722985112236
 MonoBehaviour:
   m_ObjectHideFlags: 0

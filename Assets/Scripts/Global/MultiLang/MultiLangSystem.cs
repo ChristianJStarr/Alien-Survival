@@ -11,6 +11,7 @@ public class MultiLangSystem
     public delegate void OnLanguageChangeDelegate();
     public static event OnLanguageChangeDelegate ChangedLanguage;
 
+    //Change the Current System Lange
     public static void ChangeCurrentLanguage(int language) 
     {
         if (systemLanguage != language) 
@@ -20,83 +21,64 @@ public class MultiLangSystem
         }
     }
 
-
+    //Get Language Data from String Key
     public static LangDataSingle GetLangDataFromKey(string key) 
     {
-        if(langDictionary != null && langDictionary.Count == 0) 
+        LangDataSingle instance = null;
+        if (langDictionary != null)
         {
-            GetLanguageDatas();
-        }
-        if (langDictionary.Count > 0)
-        {
-            return FindLanguageData(key);
-        }
-        else 
-        {
-            return null;
-        }
-    }
-
-    private static LangDataSingle FindLanguageData(string key) 
-    {
-        if (langDictionary != null && langDictionary.ContainsKey(key)) 
-        {
-            LangData data = langDictionary[key];
-            if (data != null)
+            if (langDictionary.Count == 0)
             {
-                foreach (LangDataSingle single in data.lang)
+                PopulateLanguageDictionary();
+            }
+            if (langDictionary.ContainsKey(key))
+            {
+                LangData data = langDictionary[key];
+                for (int i = 0; i < data.lang.Length; i++)
                 {
-                    if (single.language == GetSystemLanguage())
+                    if (data.lang[i].language == GetSystemLanguage())
                     {
-                        return single;
+                        return data.lang[i];
                     }
                 }
-                return null;
-            }
-            else
-            {
-                return null;
             }
         }
-        else 
-        {
-            return null;
-        }
+        return instance;
     }
 
-    private static void GetLanguageDatas()
+    //Populate the Language Dictionary
+    private static void PopulateLanguageDictionary()
     {
-        LangData data = new LangData();
-        TextAsset langDataText = Resources.Load("ls-lang") as TextAsset;
-        LangData[] tempDatas = JsonHelper.FromJson<LangData>(langDataText.text);
         if (langDictionary.Count > 0)
         {
             langDictionary.Clear();
         }
-        foreach (LangData temp in tempDatas)
+        string path = Application.dataPath + "/ls-lang.txt";
+        if (File.Exists(path))
         {
-            langDictionary.Add(temp.key, temp);
+            LangData[] temp = JsonHelper.FromJson<LangData>(File.ReadAllText(path));
+            for (int i = 0; i < temp.Length; i++)
+            {
+                langDictionary.Add(temp[i].key, temp[i]);
+            }
         }
     }
 
+    //Get The System Language
     private static int GetSystemLanguage() 
     {
-        if(systemLanguage != 0) 
-        {
-            return systemLanguage;
-        }
-        else 
+        if(systemLanguage == 0)
         {
             SystemLanguage current = Application.systemLanguage;
-            if (current == SystemLanguage.English) { return 10; }
-            else if (current == SystemLanguage.Chinese) { return 6; }
-            else if (current == SystemLanguage.German) { return 15; }
-            else if (current == SystemLanguage.Russian) { return 30; }
-            else if (current == SystemLanguage.French) { return 14; }
-            else if (current == SystemLanguage.Japanese) { return 22; }
-            else if (current == SystemLanguage.Korean) { return 23; }
-            return 10;
+            if (current == SystemLanguage.English) { systemLanguage = 10; }
+            else if (current == SystemLanguage.Chinese) { systemLanguage = 6; }
+            else if (current == SystemLanguage.German) { systemLanguage = 15; }
+            else if (current == SystemLanguage.Russian) { systemLanguage = 30; }
+            else if (current == SystemLanguage.French) { systemLanguage = 14; }
+            else if (current == SystemLanguage.Japanese) { systemLanguage = 22; }
+            else if (current == SystemLanguage.Korean) { systemLanguage = 23; }
         }
+        return systemLanguage;
     }
 }
 

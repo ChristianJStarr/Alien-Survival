@@ -1,8 +1,5 @@
-﻿
-using MLAPI;
-using System;
+﻿using MLAPI;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -15,7 +12,7 @@ public class WorldObjectManager : MonoBehaviour
     #endregion
 
     //Settings
-    public Settings settings; 
+    public Settings settings;
 
     //Spawnpoints
     private SpawnpointObject[] spawnpoints;
@@ -35,7 +32,6 @@ public class WorldObjectManager : MonoBehaviour
     private int c_ObjectLoadDistance = 0;
 
 
-
     //Settings Menu Changed Event
     void OnEnable() 
     {
@@ -51,32 +47,6 @@ public class WorldObjectManager : MonoBehaviour
     }
 
 
-
-    #region Spawnpoint Finder
-#if UNITY_EDITOR
-    private bool updateSpawnpoints = false;
-    private void OnValidate()
-    {
-        if (updateSpawnpoints)
-        {
-            int objectId = 1;
-            SpawnpointObject[] temp = FindObjectsOfType<SpawnpointObject>();
-            List<SpawnpointObject> tempList = temp.ToList();
-            tempList.Shuffle();
-            temp = tempList.ToArray();
-            for (int i = 0; i < temp.Length; i++)
-            {
-                temp[i].spawn_id = i + 1;
-                temp[i].spawn_objectId = objectId;
-                objectId++;
-                if(objectId >= 6) { objectId = 1; }
-            }
-        }
-    }
-#endif
-    #endregion
-
-
     private void Start() 
     {
         if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsServer) return;
@@ -84,12 +54,9 @@ public class WorldObjectManager : MonoBehaviour
         c_ObjectLoadDistance = settings.objectDistance;
 
         //Find Spawnpoints
-        spawnpoints = FindObjectsOfType<SpawnpointObject>();
+        spawnpoints = WorldObjectSpawnpointManager.GetSpawnpoints();
         spawnpoints_count = spawnpoints.Length;
-
-        //Reorder ID to Index        
-        Array.Sort(spawnpoints, delegate (SpawnpointObject x, SpawnpointObject y) { return x.spawn_id.CompareTo(y.spawn_id);});
-
+        Debug.Log(spawnpoints_count);
         //Get Positions
         spawnpoint_positions = new Vector3[spawnpoints_count];
         for (int i = 0; i < spawnpoints_count; i++)
@@ -98,10 +65,10 @@ public class WorldObjectManager : MonoBehaviour
         }
     }
 
-
     //Client Side Update World Objects
     public void UpdateWorldObjects(Snapshot_WorldObject[] snapshot, Vector3 player_position) 
     {
+        if (spawnpoints.Length == 0) return;
         //Calculate Nearby Spawnpoints
         positionsNative = new NativeArray<Vector3>(spawnpoint_positions, Allocator.TempJob);
         farAwayNative = new NativeArray<bool>(spawnpoints_count, Allocator.TempJob);
@@ -126,7 +93,7 @@ public class WorldObjectManager : MonoBehaviour
                     spawnpoints[i].spawn_objectId = 0;
                     if (spawnpoints[i].worldObject != null)
                     {
-                        DestroyObject(spawnpoints[i].spawn_objectId, spawnpoints[i].worldObject);
+                        DestroyObject(spawnpoints[i].spawn_objectId, spawnpoints[i].worldObject.gameObject);
                         spawnpoints[i].worldObject = null;
                     }
                 }
@@ -136,7 +103,6 @@ public class WorldObjectManager : MonoBehaviour
         //Read Snapshot Data
         for (int x = 0; x < snapshot.Length; x++)
         {
-            //Apply Data to SpawnID
             SpawnpointLogic(snapshot[x].spawnId, snapshot[x].objectId);
         }
 
@@ -153,13 +119,13 @@ public class WorldObjectManager : MonoBehaviour
         {
             if (spawnpoints[spawn_id].worldObject != null)
             {
-                DestroyObject(spawnpoints[spawn_id].spawn_objectId, spawnpoints[spawn_id].worldObject);
+                DestroyObject(spawnpoints[spawn_id].spawn_objectId, spawnpoints[spawn_id].worldObject.gameObject);
                 spawnpoints[spawn_id].worldObject = null;
             }
             spawnpoints[spawn_id].spawn_objectId = objectId;
             if (objectId != 0) 
             {
-                spawnpoints[spawn_id].worldObject = SpawnObject(objectId, spawnpoint_positions[spawn_id]);
+                spawnpoints[spawn_id].worldObject = SpawnObject(objectId, spawnpoint_positions[spawn_id]).GetComponent<WorldObject>();
             }
         }
     }

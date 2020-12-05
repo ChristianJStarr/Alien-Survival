@@ -788,31 +788,6 @@ public class GameServer : NetworkedBehaviour
         return networkPing;
     }
 
-    //--Request to Cheat
-    //CLIENT
-    public void RequestToCheat_Item(int itemId, int amount) 
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                writer.WriteInt32Packed(itemId);
-                writer.WriteInt32Packed(amount);
-                InvokeServerRpcPerformance(RequestToCheat_ItemRpc, writeStream);
-            }
-        }
-    }
-    //SERVER
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToCheat_ItemRpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            playerInfoSystem.Inventory_AddNew(clientId, reader.ReadInt32Packed(), reader.ReadInt32Packed(), returnValue => { });
-        }
-    }
-
-    
 
     //-----------------------------------------------------------------//
     //         Chat System                                             //

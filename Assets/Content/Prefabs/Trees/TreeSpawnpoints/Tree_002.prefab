@@ -49,3 +49,4 @@ MonoBehaviour:
   spawn_type: 1
   spawn_level: 0
   lastSpawntime: 0
+  isNearPlayer: 0

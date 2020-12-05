@@ -16,7 +16,7 @@ public class PlayerInfoManager : MonoBehaviour
     #endregion
     public UI_Inventory inventory;
     public LoadAwake loadAwake;
-    public Topbar topbar;
+    public UI_Topbar topbar;
     private GameServer gameServer;
     private PlayerInfo storedPlayerInfo;
     private Backpack playerBackpack;

@@ -44,11 +44,11 @@ public class WorldObjectDataManager : MonoBehaviour
     {
         if(Singleton != null) 
         {
-            return Singleton.GetWorldObjectDataByIdTask(id);
+            return Singleton.GetWorldObjectDataById_Task(id);
         }
         return null;
     }
-    private WorldObjectData GetWorldObjectDataByIdTask(int id) 
+    private WorldObjectData GetWorldObjectDataById_Task(int id) 
     {
         for (int i = 0; i < worldObjectData.Length; i++)
         {
@@ -60,19 +60,19 @@ public class WorldObjectDataManager : MonoBehaviour
         return null;
     }
 
+
     //Get Prefab From Spawnpoint Data
-    public static GameObject GetPrefabFromSpawnpointData(int object_type, int spawn_level) 
+    public static WorldObjectData GetRandomWorldData(int object_type, int spawn_level) 
     {
         if(Singleton != null) 
         {
-            return Singleton.GetPrefabFromSpawnpointDataTask(object_type, spawn_level);
+            return Singleton.GetRandomWorldData_Task(object_type, spawn_level);
         }
         return null;
     }
-    private GameObject GetPrefabFromSpawnpointDataTask(int object_type, int spawn_level)
+    private WorldObjectData GetRandomWorldData_Task(int object_type, int spawn_level)
     {
         List<int> available = new List<int>();
-        
         if (spawn_level != 0)
         {
             for (int i = 0; i < worldObjectData.Length; i++)
@@ -95,21 +95,22 @@ public class WorldObjectDataManager : MonoBehaviour
         }
         if(available.Count > 0) 
         {
-            return worldObjectData[available[Random.Range(0, available.Count - 1)]].objectPrefab;
+            return worldObjectData[available[Random.Range(0, available.Count - 1)]];
         }
         else { return null; }
     }
+
 
     //Get Prefab From Spawnpoint Data
     public static GameObject GetPrefabFromObjectId(int objectId)
     {
         if (Singleton != null)
         {
-            return Singleton.GetPrefabFromObjectIdTask(objectId);
+            return Singleton.GetPrefabFromObjectId_Task(objectId);
         }
         return null;
     }
-    private GameObject GetPrefabFromObjectIdTask(int objectId) 
+    private GameObject GetPrefabFromObjectId_Task(int objectId) 
     {
         for (int i = 0; i < worldObjectData.Length; i++)
         {
