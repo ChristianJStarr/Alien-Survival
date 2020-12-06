@@ -34,7 +34,7 @@ public class LoadAwake : MonoBehaviour
     {
         if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient) 
         {
-            EnterSleepState();
+            //EnterSleepState();
         }
         else 
         {

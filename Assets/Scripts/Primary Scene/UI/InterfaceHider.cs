@@ -26,6 +26,8 @@ public class InterfaceHider : MonoBehaviour
 
     public GameObject notifyTray;
 
+    public UI_Reticle reticle;
+
 
     //Hide All, Used for Death/Sleep screen etc.
     public void HideAllInterfaces() 
@@ -35,6 +37,7 @@ public class InterfaceHider : MonoBehaviour
         inventory.Hide();
         controls.Hide();
         notifyTray.SetActive(false);
+        reticle.Hide();
     }
 
 
@@ -45,6 +48,7 @@ public class InterfaceHider : MonoBehaviour
         inventory.Show();
         controls.Show();
         notifyTray.SetActive(true);
+        reticle.Show();
     }
 
 

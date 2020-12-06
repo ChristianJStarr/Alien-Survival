@@ -23,14 +23,16 @@ public class WorldObjectSystem : MonoBehaviour
     private int c_LootMaxAmount = 0;
     private int c_TreeRespawnTime = 0;
     private int c_RockRespawnTime = 0;
-    private int c_LootRespawnTime = 0; 
+    private int c_LootRespawnTime = 0;
+    private int c_SingleSyncPerShot = 1;
 
     //-----Spawnpoint Objects------
+    private List<int> changedSpawnpoints = new List<int>();
     private List<int> occupiedSpawnpoints = new List<int>();
     private SpawnpointObject[] spawnpoints;
     private Vector3[] spawnpointLocations;
     private int spawnpointsLength = 0;
-
+    private int singleSyncInterval = 0;
 
     //-----Counters-----
     private int currentTrees = 0;
@@ -86,20 +88,53 @@ public class WorldObjectSystem : MonoBehaviour
         //Save all world objects
     }
 
-    //Get Array of All World Objects
+    //Get Array of Changed World Objects
     public Snapshot_WorldObject[] GetWorldObjectsSnapshot() 
     {
-        Snapshot_WorldObject[] snap = new Snapshot_WorldObject[spawnpointsLength];
-        for (int i = 0; i < spawnpointsLength; i++)
+        for (int i = 0; i < c_SingleSyncPerShot; i++)
         {
-            snap[i] = new Snapshot_WorldObject()
+            AddSingleSyncSnapshot();
+        }
+        List<Snapshot_WorldObject> temp = new List<Snapshot_WorldObject>();
+        for (int i = changedSpawnpoints.Count - 1; i >= 0; i--)
+        {
+            temp.Add(new Snapshot_WorldObject()
             {
                 objectId = spawnpoints[i].spawn_objectId,
-                spawnId = spawnpoints[i].spawn_id,
-                location = spawnpointLocations[i]
+                spawnId = spawnpoints[i].spawn_id
+            });
+            changedSpawnpoints.RemoveAt(i);
+        }
+        return temp.ToArray();
+    }
+
+    //Get Array of All World Objects
+    public Snapshot_WorldObject[] GetAllWorldObjectsSnapshot() 
+    {
+        Snapshot_WorldObject[] instance = new Snapshot_WorldObject[spawnpointsLength];
+        for (int i = 0; i < spawnpointsLength; i++)
+        {
+            instance[i] = new Snapshot_WorldObject()
+            {
+                objectId = spawnpoints[i].spawn_objectId,
+                spawnId = spawnpoints[i].spawn_id
             };
         }
-        return snap;
+        return instance;
+    }
+
+    //Get Array of Some World Objects (Slow Sync)
+    public void AddSingleSyncSnapshot() 
+    {
+        if(singleSyncInterval >= spawnpointsLength) 
+        {
+            singleSyncInterval = 0;
+        }
+        if (!changedSpawnpoints.Contains(singleSyncInterval)) 
+        {
+            changedSpawnpoints.Add(singleSyncInterval);
+        }
+        singleSyncInterval++;
     }
     
     //Load Configuration from Server Properties

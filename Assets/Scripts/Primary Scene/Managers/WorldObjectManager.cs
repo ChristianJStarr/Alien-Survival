@@ -14,6 +14,10 @@ public class WorldObjectManager : MonoBehaviour
     //Settings
     public Settings settings;
 
+    //Transforms
+    public Transform tree_parent;
+    private Transform local_Player;
+    
     //Spawnpoints
     private SpawnpointObject[] spawnpoints;
     private Vector3[] spawnpoint_positions = new Vector3[0];
@@ -30,6 +34,11 @@ public class WorldObjectManager : MonoBehaviour
     
     //Configuration
     private int c_ObjectLoadDistance = 0;
+
+
+
+
+
 
 
     //Settings Menu Changed Event
@@ -66,9 +75,24 @@ public class WorldObjectManager : MonoBehaviour
     }
 
     //Client Side Update World Objects
-    public void UpdateWorldObjects(Snapshot_WorldObject[] snapshot, Vector3 player_position) 
+    public void UpdateWorldObjects(Snapshot_WorldObject[] snapshot) 
     {
-        if (spawnpoints.Length == 0) return;
+        if (spawnpoints_count == 0) return;
+        for (int x = 0; x < snapshot.Length; x++)
+        {
+            int spawn_id = snapshot[x].spawnId - 1;
+            if (spawnpoints[spawn_id] != null)
+            {
+                spawnpoints[spawn_id].spawn_objectId = snapshot[x].objectId;
+            }
+        }
+        SpawnpointLogic();
+    }
+
+    //Spawnpoint Logic
+    private void SpawnpointLogic()
+    {
+        if (local_Player == null) local_Player = WorldSnapshotManager.Singleton.GetLocalPlayerObject().transform;
         //Calculate Nearby Spawnpoints
         positionsNative = new NativeArray<Vector3>(spawnpoint_positions, Allocator.TempJob);
         farAwayNative = new NativeArray<bool>(spawnpoints_count, Allocator.TempJob);
@@ -77,57 +101,34 @@ public class WorldObjectManager : MonoBehaviour
             positions = positionsNative,
             farAway = farAwayNative,
             distanceSqr = c_ObjectLoadDistance * c_ObjectLoadDistance,
-            current = player_position
+            current = local_Player.position
         };
         calculateNearbyHandle = calculateNearbyJob.Schedule(spawnpoints_count, calculateNearbyHandle);
         calculateNearbyHandle.Complete();
-        
         //Destroy Far Away Objects
         for (int i = 0; i < spawnpoints_count; i++)
         {
-            spawnpoints[i].isNearPlayer = !farAwayNative[i];
-            if (farAwayNative[i])//Object is far away
+            if (farAwayNative[i])
             {
-                if(spawnpoints[i].spawn_objectId != 0) 
+                //Object is far away
+                if (spawnpoints[i].spawn_objectId != 0 && spawnpoints[i].worldGameObject != null) //Has world object
                 {
-                    spawnpoints[i].spawn_objectId = 0;
-                    if (spawnpoints[i].worldObject != null)
-                    {
-                        DestroyObject(spawnpoints[i].spawn_objectId, spawnpoints[i].worldObject.gameObject);
-                        spawnpoints[i].worldObject = null;
-                    }
+                    DestroyObject(spawnpoints[i].spawn_objectId, spawnpoints[i].worldGameObject); //Pool
+                    spawnpoints[i].worldGameObject = null;
+                }
+            }
+            else  
+            {
+                //Object is Nearby
+                if (spawnpoints[i].spawn_objectId != 0 && spawnpoints[i].worldGameObject == null) //Has world object
+                {
+                    spawnpoints[i].worldGameObject = SpawnObject(spawnpoints[i].spawn_objectId, spawnpoints[i].transform.position); //Pool
                 }
             }
         }
-
-        //Read Snapshot Data
-        for (int x = 0; x < snapshot.Length; x++)
-        {
-            SpawnpointLogic(snapshot[x].spawnId, snapshot[x].objectId);
-        }
-
         //Dispose of Job NativeArrays
         positionsNative.Dispose();
         farAwayNative.Dispose();
-    }
-
-    //Spawnpoint Logic
-    private void SpawnpointLogic(int spawn_id, int objectId)
-    {
-        spawn_id -= 1;
-        if (spawnpoints[spawn_id] != null && spawnpoints[spawn_id].isNearPlayer && spawnpoints[spawn_id].spawn_objectId != objectId)
-        {
-            if (spawnpoints[spawn_id].worldObject != null)
-            {
-                DestroyObject(spawnpoints[spawn_id].spawn_objectId, spawnpoints[spawn_id].worldObject.gameObject);
-                spawnpoints[spawn_id].worldObject = null;
-            }
-            spawnpoints[spawn_id].spawn_objectId = objectId;
-            if (objectId != 0) 
-            {
-                spawnpoints[spawn_id].worldObject = SpawnObject(objectId, spawnpoint_positions[spawn_id]).GetComponent<WorldObject>();
-            }
-        }
     }
 
     //Spawn Object
@@ -143,7 +144,7 @@ public class WorldObjectManager : MonoBehaviour
         }
         else 
         {
-            instance = Instantiate(WorldObjectDataManager.GetPrefabFromObjectId(objectId), position, Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0));   
+            instance = Instantiate(WorldObjectDataManager.GetPrefabFromObjectId(objectId), position, Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0), tree_parent);   
         }
         return instance;
     }

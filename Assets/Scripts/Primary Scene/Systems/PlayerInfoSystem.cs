@@ -130,6 +130,21 @@ public class PlayerInfoSystem : MonoBehaviour
         return "";
     }
 
+    //Player Is New
+    public bool GetPlayerNew(ulong clientId)
+    {
+        if (active.ContainsKey(clientId))
+        {
+            if (active[clientId].isNew) 
+            {
+                active[clientId].isNew = false;
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     //Player Items
     public Item[] GetPlayerItems(ulong clientId)
     {
@@ -382,14 +397,11 @@ public class PlayerInfoSystem : MonoBehaviour
     }
 
     //Player NetworkID
-    public void SetPlayerNetworkId(ulong clientId, int id, string authKey, ulong networkId)
+    public void SetPlayerNetworkId(ulong clientId, ulong networkId)
     {
-        if (active.ContainsKey(clientId))
+        if (Confirm(clientId))
         {
-            if (Confirm(clientId, authKey))
-            {
-                active[clientId].networkId = networkId;
-            }
+            active[clientId].networkId = networkId;
         }
     }
 
@@ -845,6 +857,7 @@ public class PlayerInfo
 
     //Bool Checks
     [SerializeField] public bool isDead = false;
+    [SerializeField] public bool isNew = false;
 
     //Acumulative Points
     [SerializeField] public int coinsAdd = 0;

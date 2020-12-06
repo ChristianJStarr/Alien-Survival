@@ -9,75 +9,77 @@ public class DeathCam : MonoBehaviour
 
     #endregion
 
-    public Transform player;
-    public GameObject deathCamPrefab;
-    private GameObject deathCam;
+    public Transform player; //Player Object Transform
+    public GameObject deathCamPrefab; //Prefab for Deathcam
+    public Animator animator;
 
-    private Vector3 move_target;
-    private Quaternion look_target;
-    private bool canLerp = false;
-    public int lerpSpeed = 5;
-
-
+    private GameObject deathCam; //Death Camera Object
+    private Vector3 move_target; //Move Target for Cam
+    private Quaternion look_target; //Rotate Target for Cam
+    private bool isActive = false; //Death Camera Active
+    public int lerpSpeed = 5; //Speed of Camera Moving
+    private int layerMask; //Player Headroom Ignore Mask
+    
 
     private void Start() 
     {
+        layerMask = ~LayerMask.GetMask("Player");
         deathCam = Instantiate(deathCamPrefab, transform.position, transform.rotation);
         deathCam.SetActive(false);
     }
 
-    private void Update() 
+    //Handle Camera Lerping
+    private void FixedUpdate() 
     {
-        if (canLerp) 
+        if (isActive) 
         {
-            bool bothFinished = false;
-            if(move_target != deathCam.transform.position) 
+            if (deathCam == null) return;
+            Vector3 offset = new Vector3(0, GetCeilingHeight(), 0);
+            move_target = player.transform.position + offset;
+            look_target = Quaternion.LookRotation(-(move_target - player.transform.position.normalized));
+            if (move_target != deathCam.transform.position)
             {
                 deathCam.transform.position = Vector3.Lerp(deathCam.transform.position, move_target, lerpSpeed * Time.deltaTime);
             }
-            else { bothFinished = true; }
             
-            
-            if(look_target != deathCam.transform.rotation) 
+            if (look_target != deathCam.transform.rotation)
             {
-                deathCam.transform.rotation = Quaternion.Lerp(deathCam.transform.rotation, look_target, lerpSpeed * Time.deltaTime);
+                deathCam.transform.rotation = Quaternion.Lerp(deathCam.transform.rotation, look_target, lerpSpeed * 2 * Time.deltaTime);
             }
-            else if (bothFinished) { canLerp = false; }
         }
     }
 
-
+    //Activate the Death Camera
     public void Activate(bool value)
     {
+        animator.enabled = !value;
         if (value) 
         {
-            Vector3 offset = new Vector3(0, 0, 0);
-            offset.y = GetCeilingHeight();
             deathCam.transform.position = transform.position;
             deathCam.transform.rotation = transform.rotation;
-            move_target = player.transform.position + offset;
-            look_target = Quaternion.LookRotation(-((player.transform.position + offset) - player.transform.position).normalized);
-            canLerp = true;
         }
+        else 
+        {
+            animator.SetTrigger("Wake");
+        }
+        isActive = value;
+        if (deathCam == null) return;
         deathCam.SetActive(value);
     }
 
+    //Get Headroom of Player to Prevent Camera Clipping
     private float GetCeilingHeight() 
     {
-        float offset = 10;
+        float offset = 4;
         RaycastHit hit;
-        Vector3 startPosition = player.transform.position + new Vector3(0, 1, 0);
-        Debug.DrawLine(startPosition, player.transform.position + new Vector3(0,11,0));
-        if (Physics.Raycast(startPosition, player.transform.up, out hit, 10)) 
+        Vector3 startPosition = player.transform.position;
+        if (Physics.Raycast(startPosition, Vector3.up, out hit, 10, layerMask)) 
         {
-            Debug.Log("HIT    !!!        " + hit.distance);
-            if(hit.distance > 1) 
+            if(hit.distance > 0.1) 
             {
                 offset = hit.distance;
             }
-            else { offset = 5; }
         }
         return offset;
     }
-
 }

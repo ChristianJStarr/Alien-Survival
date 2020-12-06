@@ -5,13 +5,13 @@ using UnityEngine;
 public class SpawnpointObject : MonoBehaviour
 {
     [SerializeField] public WorldObject worldObject;
+    [SerializeField] public GameObject worldGameObject;
     [SerializeField] public int spawn_objectId;
     [SerializeField] public int spawn_id;
     [SerializeField] public int spawn_type = 0;
     [SerializeField] public int spawn_level = 0;
     [SerializeField] public float lastSpawntime;
     [SerializeField] public bool isNearPlayer = false;
-
 
 
     //void OnDrawGizmos()

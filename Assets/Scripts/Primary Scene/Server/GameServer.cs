@@ -44,7 +44,7 @@ public class GameServer : NetworkedBehaviour
     public PlayerUIManager playerUIManager;
     public ChatManager chatManager;
     public WorldSnapshotManager snapshotManager;
-
+    public PlayerConnectManager playerConnectManager;
     private NetworkingManager networkingManager;
 
     //Properties
@@ -183,62 +183,52 @@ public class GameServer : NetworkedBehaviour
         return playerInfoSystem.GetPlayerLocation(clientId);
     }
 
-    
+
 
     //-----------------------------------------------------------------//
     // (S)  SERVER          SIDE CALLBACKS                             //
     //-----------------------------------------------------------------//
-    
+
     //CALLBACK: Player Connected
     public void PlayerConnected(ulong clientId)
     {
+        if (clientId == 0) return;
         string playerName = playerInfoSystem.GetPlayerName(clientId);
+        NetworkedObject playerObject = networkingManager.ConnectedClients[clientId].PlayerObject;
+        ulong networkId = playerObject.NetworkId;
+
+
+        playerCommandSystem.RegisterPlayer(clientId, playerObject);
+        playerInfoSystem.SetPlayerNetworkId(clientId, networkId);
+        worldSnapshotSystem.Player_Connected(clientId, playerObject.NetworkId);
         chatSystem.PlayerConnected_AllMessage(playerName);
         chatSystem.PlayerWelcome_Specific(playerName, storedProperties.serverName, clientId);
-        playerCommandSystem.RegisterPlayer(clientId, NetworkingManager.Singleton.ConnectedClients[clientId].PlayerObject);
+
+        if (playerInfoSystem.GetPlayerDead(clientId))
+        {
+            Server_RespawnPlayer(clientId);
+        }
+        if (playerInfoSystem.GetPlayerNew(clientId))
+        {
+            Server_PlayerConnectSet(clientId, true);
+        }
+        else 
+        {
+            Server_PlayerConnectSet(clientId, false);
+        }
+
+        ForceRequestInfoById(clientId);
     }
     
     //CALLBACK: Player Disconnected
     public void PlayerDisconnected(ulong clientId) 
     {
-        chatSystem.PlayerDisconnected_AllMessage(playerInfoSystem.GetPlayerName(clientId));
+        string playerName = playerInfoSystem.GetPlayerName(clientId);
+        worldSnapshotSystem.Player_Disconnected(clientId);
+        chatSystem.PlayerDisconnected_AllMessage(name);
         playerCommandSystem.RemovePlayer(clientId);
     }
 
-
-    //-----------------------------------------------------------------//
-    // (C)  CLIENT          SIDE CALLBACKS                             //
-    //-----------------------------------------------------------------//
-
-    //Player has Connected callback.
-    public void PlayerConnected_Player(ulong networkId)
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                writer.WriteInt32Packed(PlayerPrefs.GetInt("userId"));
-                writer.WriteStringPacked(PlayerPrefs.GetString("authKey"));
-                writer.WriteUInt64Packed(networkId);
-                InvokeServerRpcPerformance(PlayerHasConnected_Rpc, writeStream);
-            }
-        }
-    }
-
-    //Player has Connectd handover.
-    [ServerRPC(RequireOwnership = false)]
-    private void PlayerHasConnected_Rpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            playerInfoSystem.SetPlayerNetworkId(clientId, reader.ReadInt32Packed(), reader.ReadStringPacked().ToString(), reader.ReadUInt64Packed());
-            if (playerInfoSystem.GetPlayerDead(clientId))
-            {
-                Server_RespawnPlayer(clientId);
-            }
-            ForceRequestInfoById(clientId);
-        }
-    }
 
 
     
@@ -311,7 +301,6 @@ public class GameServer : NetworkedBehaviour
         Vector3 spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
         playerCommandSystem.Teleport_ToVector(clientId, spawnpoint);
         playerInfoSystem.ResetPlayerInfo(clientId, spawnpoint);
-        Server_UIHideDeathScreen(clientId);
     }
 
     //Get ClientId from NetworkId
@@ -319,6 +308,18 @@ public class GameServer : NetworkedBehaviour
     {
         return GetNetworkedObject(networkId).OwnerClientId;
     }
+
+    //Connect Callback for Client
+    private void Server_PlayerConnectSet(ulong clientId, bool playCutscene = false) 
+    {
+        InvokeClientRpcOnClient(Server_PlayerConnectSetRpc, clientId, playCutscene);
+    }
+    [ClientRPC]
+    private void Server_PlayerConnectSetRpc(bool playCutscene) 
+    {
+        playerConnectManager.ConnectCallback(playCutscene);
+    }
+
 
     //-----------------------------------------------------------------//
     // (S)  SERVER         Tasks : User Interface                      //

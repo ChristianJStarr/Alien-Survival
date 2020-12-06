@@ -317,7 +317,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
         //Update World Objects
         if (players.ContainsKey(selfNetworkId) && snapshot.worldObjects.Length > 0)
         {
-            worldObjectManager.UpdateWorldObjects(snapshot.worldObjects, players[selfNetworkId].transform.position);
+            worldObjectManager.UpdateWorldObjects(snapshot.worldObjects);
         }
 
         //Convert & Save this Snapshot

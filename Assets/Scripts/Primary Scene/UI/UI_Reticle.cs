@@ -124,7 +124,17 @@ public class UI_Reticle : MonoBehaviour
         }
         return "";
     }
+    
 
+
+    public void Show() 
+    {
+        gameObject.SetActive(true);
+    }
+    public void Hide() 
+    {
+        gameObject.SetActive(false);
+    }
 }
 
 

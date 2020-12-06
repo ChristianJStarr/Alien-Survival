@@ -75,7 +75,19 @@ public class PlayerCommandSystem : MonoBehaviour
             players[clientId].ApplyCorrection(new Vector2(0, target_rotation.eulerAngles.y));
         }
     }
-
+    
+    //Get Positions Array
+    public Vector3[] GetPlayerPositionsArray() 
+    {
+        PlayerControlObject[] temp = players.Values.ToArray();
+        int length = temp.Length;
+        Vector3[] instance = new Vector3[length];
+        for (int i = 0; i < length; i++)
+        {
+            instance[i] = temp[i].transform.position;
+        }
+        return instance;
+    }
 
     //Execute the Command (60 sends per second per player) 50 players = 3000 per second
     public void ExecuteCommand(PlayerCommand command)

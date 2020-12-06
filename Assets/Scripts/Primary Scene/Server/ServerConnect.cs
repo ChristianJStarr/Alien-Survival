@@ -71,8 +71,11 @@ public class ServerConnect : MonoBehaviour
     }
 
     //-----------------------------------------------------------------//
-    //                       Client Side Connect                       //
+    //                           Client Side                           //
     //-----------------------------------------------------------------//
+
+    
+    //------Connecting
 
     //Client: Connect to Server
     public void ConnectToServer(string ip, ushort port)
@@ -85,7 +88,6 @@ public class ServerConnect : MonoBehaviour
         DebugMsg.Notify("Connecting to Server.", 1);
         StartCoroutine(ConnectionWait(ip, port));
     }
-
     //Connection Wait
     private IEnumerator ConnectionWait(string ip, ushort port)
     {
@@ -98,17 +100,14 @@ public class ServerConnect : MonoBehaviour
         networkManager.StartClient();
     }
 
+    
+    //-----Callbacks
+    
     //Callback: Connected
     private void PlayerConnected_Player(ulong id)
     {
         DebugMsg.Notify("Connected to Server.", 1);
-        if (gameServer == null)
-        {
-            gameServer = GameServer.singleton;
-        }
-        gameServer.PlayerConnected_Player(id);
     }
-
     //Callback: Disconnected
     private void PlayerDisconnected_Player(ulong id)
     {
@@ -129,6 +128,10 @@ public class ServerConnect : MonoBehaviour
 
     }
 
+
+    //-----Return to Main Menu
+
+    //Load Main Menu
     private IEnumerator LoadMainMenu()
     {
         yield return null;
@@ -147,7 +150,7 @@ public class ServerConnect : MonoBehaviour
             yield return null;
         }
     }
-
+    //Loading Async
     private void LoadMainMenuStage(AsyncOperation op) 
     {
         webServer.StatRequest(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), onRequestFinished =>
@@ -167,9 +170,11 @@ public class ServerConnect : MonoBehaviour
    
 
     //-----------------------------------------------------------------//
-    //                       Server Side Connect                       //
+    //                           Server Side                           //
     //-----------------------------------------------------------------//
 
+
+    //------Start/Stop
 
     //Server: Start Server
     public void StartServer()
@@ -187,13 +192,11 @@ public class ServerConnect : MonoBehaviour
             networkManager.StartServer();
         }
     }
-
     //Get Server Properties
     public ServerProperties GetServerProperties() 
     {
         return storedProperties;
     }
-    
     //Server: Stop Server
     public void StopServer()
     {
@@ -201,7 +204,33 @@ public class ServerConnect : MonoBehaviour
         UpdateServerList(false);
         gameServer.StopGameServer();
     }
-    
+    //Callback: Server Started
+    private void ServerStarted()
+    {
+        UpdateServerList(true);
+        NetworkSceneManager.SwitchScene("Primary");
+    }
+
+
+    //-----Callbacks
+
+    //Callback: Player Conencted
+    private void PlayerConnected_Server(ulong clientId)
+    {
+        gameServer.PlayerConnected(clientId);
+        UpdatePlayerCount();
+    }
+    //Callback: Player Disconnected
+    private void PlayerDisconnected_Server(ulong clientId)
+    {
+        PlayerInfo savedInfo = gameServer.Server_MovePlayerToInactive(clientId);
+        if (savedInfo != null)
+        {
+            SavePlayerStats(savedInfo);
+        }
+        UpdatePlayerCount();
+        gameServer.PlayerDisconnected(clientId);
+    }
     //Approval Check
     private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkingManager.ConnectionApprovedDelegate callback)
     {
@@ -247,14 +276,10 @@ public class ServerConnect : MonoBehaviour
         callback(true, SpawnManager.GetPrefabHashFromGenerator("Alien"), approve, spawnPoint, Quaternion.identity);
     }
     
-    //Callback: Server Started
-    private void ServerStarted() 
-    {
-        UpdateServerList(true);
-        NetworkSceneManager.SwitchScene("Primary");
-    }
     
-    //Update the Server List
+    //-----Server List
+
+    //Update Server List
     private void UpdateServerList(bool value)
     {
         Server server = new Server
@@ -284,7 +309,7 @@ public class ServerConnect : MonoBehaviour
         }
         StartCoroutine(ServerListLoop());
     }
-
+    //Server List Loop
     private IEnumerator ServerListLoop() 
     {
         yield return new WaitForSeconds(480);
@@ -300,25 +325,29 @@ public class ServerConnect : MonoBehaviour
         }
         StartCoroutine(ServerListLoop());
     }
-
-    //Callback: Player Conencted
-    private void PlayerConnected_Server(ulong clientId)
+    //Update the Player Count on the Server List
+    private void UpdatePlayerCount()
     {
-        gameServer.PlayerConnected(clientId);
-        UpdatePlayerCount();
-    }
-
-    //Callback: Player Disconnected
-    private void PlayerDisconnected_Server(ulong clientId)
-    {
-        PlayerInfo savedInfo = gameServer.Server_MovePlayerToInactive(clientId);
-        if (savedInfo != null)
+        int count = networkManager.ConnectedClients.Count;
+        if (webServer != null)
         {
-            SavePlayerStats(savedInfo);
+            webServer.ServerListPlayerCount(storedProperties.serverName, count, returnValue =>
+            {
+                if (returnValue)
+                {
+                    //Player Count updated successfully
+                    DebugMsg.Notify("Updating Server List, Player Count.", 4);
+                }
+                else
+                {
+                    DebugMsg.Notify("Updating Server List Failed", 4);
+                }
+            });
         }
-        UpdatePlayerCount();
-        gameServer.PlayerDisconnected(clientId);
     }
+
+
+    //-----Settings Data
 
     //Save Player Statistics
     private void SavePlayerStats(PlayerInfo savedInfo) 
@@ -339,29 +368,7 @@ public class ServerConnect : MonoBehaviour
                 }
             });
         }
-    }
-
-    //Update the Player Count on the Server List
-    private void UpdatePlayerCount()
-    {
-        int count = networkManager.ConnectedClients.Count;
-        if (webServer != null)
-        {
-            webServer.ServerListPlayerCount(storedProperties.serverName, count, returnValue =>
-            {
-                if (returnValue)
-                {
-                    //Player Count updated successfully
-                    DebugMsg.Notify("Updating Server List, Player Count.", 4);
-                }
-                else 
-                {
-                    DebugMsg.Notify("Updating Server List Failed", 4);
-                }
-            });
-        }
-    }
-    
+    }    
     //Get the Stored Server Settings
     private bool GetServerSettings()
     {
@@ -389,7 +396,6 @@ public class ServerConnect : MonoBehaviour
             return true;
         }
     }
-    
     //Check the Settings file 
     private bool CheckSettingsFile(ServerProperties sp) 
     {
@@ -403,8 +409,6 @@ public class ServerConnect : MonoBehaviour
         if (sp.serverMaxPlayer == 0) { empty = true; }
         return empty;
     }
-    
-  
 }
 
 public class ServerProperties 

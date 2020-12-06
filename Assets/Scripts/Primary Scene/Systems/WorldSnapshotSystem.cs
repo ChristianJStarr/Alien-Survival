@@ -31,10 +31,12 @@ public class WorldSnapshotSystem : MonoBehaviour
     private int _snapshotId = 1; //Current SnapshotID
     private int currentFrame = 0;
     private QuickAccess_Snapshot lastSnapshot;
-    private Dictionary<ulong, ulong> clientIdDictionary = new Dictionary<ulong, ulong>();
+    private Dictionary<ulong, ulong> clientIdDictionary = new Dictionary<ulong, ulong>();//NetworkId : ClientId
+    private List<ulong> newClients = new List<ulong>();
 
 
 
+    //-----System Standard
 
     //Start System
     public bool StartSystem() 
@@ -60,20 +62,31 @@ public class WorldSnapshotSystem : MonoBehaviour
         return !systemEnabled;
     }
 
+
+    //-----Callbacks
+    public void Player_Connected(ulong clientId, ulong playerObject_networkId) 
+    {
+        if (!clientIdDictionary.ContainsKey(clientId)) 
+        {
+            clientIdDictionary.Add(playerObject_networkId, clientId);
+            if (!newClients.Contains(clientId))
+            {
+                newClients.Add(clientId);
+            }
+        }
+    }
+
+    public void Player_Disconnected(ulong clientId) 
+    {
+        if(clientIdDictionary.Count > 100) { clientIdDictionary.Clear(); }
+    }
+
+
     private void Update() 
     {
         if (systemEnabled) 
         {
-            currentFrame++;
-            if (currentFrame == sendFullEvery * 20)
-            {
-                currentFrame = 0;
-                SendSnapshotToEveryone(true);
-            }
-            else 
-            {
-                SendSnapshotToEveryone(false);
-            }
+            SendSnapshotToEveryone();
         }
     }
 
@@ -94,22 +107,20 @@ public class WorldSnapshotSystem : MonoBehaviour
     }
 
     //Send Snapshot To Every Client
-    private void SendSnapshotToEveryone(bool full) 
+    private void SendSnapshotToEveryone() 
     {
+        //Create the Baseline Snapshot then we Specialize
         Snapshot snapshot = CreateWorldSnapshot();
         GameServer.singleton.DebugSnapshotId = snapshot.snapshotId;
         //Create Native Arrays for Job
         int playerCount = snapshot.players.Length;
         if (playerCount < 1) return; //No players? No snapshot.
         int aiCount = snapshot.ai.Length;
-        int worldObjectCount = snapshot.worldObjects.Length;
-        int positionsLength = playerCount + aiCount + worldObjectCount;
-
+        int positionsLength = playerCount + aiCount;
         //Allocate Arrays
         Vector3[] positions = new Vector3[positionsLength];
         Vector3[] players = new Vector3[playerCount];
         ulong[] clientIds = new ulong[playerCount];
-
         int count = 0;
         //Write Positions of Snapshot
         for (int e = 0; e < playerCount; e++)
@@ -124,17 +135,10 @@ public class WorldSnapshotSystem : MonoBehaviour
             positions[count] = snapshot.ai[e].location;
             count++;
         }
-        for (int e = 0; e < snapshot.worldObjects.Length; e++)
-        {
-            positions[count] = snapshot.worldObjects[e].location;
-            count++;
-        }
-        
         //Allocate into Natives
         trimPositionsNative = new NativeArray<Vector3>(positions, Allocator.TempJob);
         trimPlayersNative = new NativeArray<Vector3>(players, Allocator.TempJob);
         trimIncludeNative = new NativeArray<bool>(playerCount * positionsLength, Allocator.TempJob);
-
         //Create Job
         trimSnapshotJob = new TrimSnapshotByDistance()
         {
@@ -151,6 +155,16 @@ public class WorldSnapshotSystem : MonoBehaviour
         //Send Individual Snapshots to ClientIds[]
         for (int i = 0; i < playerCount; i++)
         {
+            //Is this a new Client
+            bool fullSnapshot = newClients.Contains(clientIds[i]);
+            Snapshot newSnapshot = snapshot;
+            if (fullSnapshot)
+            {
+                //Get All World Object Data for Initial Sync
+                newSnapshot.worldObjects = worldObjectSystem.GetAllWorldObjectsSnapshot();
+                newClients.Remove(clientIds[i]);
+            }
+            //Apply Distance Calculation & Check for Changes
             List<Snapshot_Player> tempA = new List<Snapshot_Player>();
             List<Snapshot_AI> tempB = new List<Snapshot_AI>();
             List<Snapshot_WorldObject> tempC = new List<Snapshot_WorldObject>();
@@ -164,43 +178,24 @@ public class WorldSnapshotSystem : MonoBehaviour
                     }
                     else if (e < aiCount)
                     {
-                        if (full) 
+                        if (fullSnapshot)
                         {
                             tempB.Add(snapshot.ai[e - playerCount]);
                         }
-                        else if(AIHasChanged(snapshot.ai[e - playerCount]))
+                        else if (lastSnapshot != null && lastSnapshot.ai != null && lastSnapshot.ai.ContainsKey(snapshot.ai[e - playerCount].networkId) && lastSnapshot.ai[snapshot.ai[e - playerCount].networkId] != snapshot.ai[e - playerCount])
                         {
                             tempB.Add(snapshot.ai[e - playerCount]);
-                        }
-                    }
-                    else if (e < worldObjectCount)
-                    {
-                        if (full) 
-                        {
-                            tempC.Add(snapshot.worldObjects[e - playerCount - aiCount]);
-                        }
-                        else if(WorldObjectHasChanged(snapshot.worldObjects[e - playerCount - aiCount])) 
-                        {
-                            tempC.Add(snapshot.worldObjects[e - playerCount - aiCount]);
                         }
                     }
                 }
             }
-            Snapshot newSnapshot = new Snapshot()
-            {
-                networkTime = snapshot.networkTime,
-                snapshotId = snapshot.snapshotId,
-                players = tempA.ToArray()
-            };
+            newSnapshot.players = tempA.ToArray();
             if (tempB.Count > 0)
             {
                 newSnapshot.ai = tempB.ToArray();
             }
-            if (tempC.Count > 0)
-            {
-                newSnapshot.worldObjects = tempC.ToArray();
-            }
-            gameServer.ServerSendSnapshot(clientIds[i], newSnapshot);
+            //Send Specialized Snapshot to Client[i]
+            gameServer.ServerSendSnapshot(clientIds[i], newSnapshot, fullSnapshot);
         }
         trimPositionsNative.Dispose();
         trimPlayersNative.Dispose();
@@ -227,61 +222,16 @@ public class WorldSnapshotSystem : MonoBehaviour
         }
         //Convert WorldObjects To Snapshot
         fullSnapshot.worldObjects = worldObjectSystem.GetWorldObjectsSnapshot();
-
         //Set Time & ID
         fullSnapshot.networkTime = networkingManager.NetworkTime;
         fullSnapshot.snapshotId = _snapshotId;
-
+        //Add to Id inc
         _snapshotId++;
         if (_snapshotId > 100) _snapshotId = 1;
         lastSnapshot = Snapshot.ConvertQuick(fullSnapshot);
         //Send Snapshot
         return fullSnapshot;
     }
-
-    //Has Player Changed
-    private bool PlayerHasChanged(Snapshot_Player player) 
-    {
-        return true;
-        if (lastSnapshot != null && lastSnapshot.players != null && lastSnapshot.players.ContainsKey(player.networkId)) 
-        {
-            if(lastSnapshot.players[player.networkId] != player) 
-            {
-                return true;
-            }
-            return false;
-        }
-        return true;
-    }
-
-    //Has AI Changed
-    private bool AIHasChanged(Snapshot_AI ai)
-    {
-        if (lastSnapshot != null && lastSnapshot.ai != null && lastSnapshot.ai.ContainsKey(ai.networkId))
-        {
-            if (lastSnapshot.ai[ai.networkId] != ai)
-            {
-                return true;
-            }
-            return false;
-        }
-        return true;
-    }
-
-    //Has World Object Changed
-    private bool WorldObjectHasChanged(Snapshot_WorldObject worldObject) 
-    {
-        if (lastSnapshot != null && lastSnapshot.worldObjects != null && lastSnapshot.worldObjects.ContainsKey(worldObject.spawnId))
-        {
-            if (lastSnapshot.worldObjects[worldObject.spawnId] != worldObject)
-            {
-                return true;
-            }
-            return false;
-        }
-        return true;
-    }
-
 }
 
 public class QuickAccess_Snapshot
@@ -290,7 +240,6 @@ public class QuickAccess_Snapshot
     public float networkTime;
     public Dictionary<ulong, Snapshot_Player> players = new Dictionary<ulong, Snapshot_Player>();
     public Dictionary<ulong, Snapshot_AI> ai = new Dictionary<ulong, Snapshot_AI>();
-    public Dictionary<int, Snapshot_WorldObject> worldObjects = new Dictionary<int, Snapshot_WorldObject>();
 }
 
 public class Snapshot 
@@ -308,8 +257,7 @@ public class Snapshot
             snapshotId = snapshot.snapshotId,
             networkTime = snapshot.networkTime,
             players = new Dictionary<ulong, Snapshot_Player>(),
-            ai = new Dictionary<ulong, Snapshot_AI>(),
-            worldObjects = new Dictionary<int, Snapshot_WorldObject>()
+            ai = new Dictionary<ulong, Snapshot_AI>()
         };
         if (snapshot.players != null)
         {
@@ -325,16 +273,6 @@ public class Snapshot
                 if (!quickAccess.ai.ContainsKey(snapshot.ai[i].networkId))
                 {
                     quickAccess.ai.Add(snapshot.ai[i].networkId, snapshot.ai[i]);
-                }
-            }
-        }
-        if (snapshot.worldObjects != null)
-        {
-            for (int i = 0; i < snapshot.worldObjects.Length; i++)
-            {
-                if (!quickAccess.worldObjects.ContainsKey(snapshot.worldObjects[i].spawnId)) 
-                {
-                    quickAccess.worldObjects.Add(snapshot.worldObjects[i].spawnId, snapshot.worldObjects[i]);
                 }
             }
         }
@@ -364,7 +302,6 @@ public class Snapshot_WorldObject
 {
     public int objectId;
     public int spawnId;
-    public Vector3 location;
 }
 
 //Jobs
