@@ -37,6 +37,7 @@ public class GameServer : NetworkedBehaviour
     public ChatSystem chatSystem;
     public PlayerCommandSystem playerCommandSystem;
     public WorldSnapshotSystem worldSnapshotSystem;
+    public EscapePodSystem escapePodSystem;
 
     // -- MANAGERS
     [Header("Managers")]
@@ -129,6 +130,7 @@ public class GameServer : NetworkedBehaviour
             DebugMsg.Notify("Started World Object System.", 1);
         }
 
+        //Start Player Command System
         if(playerCommandSystem == null || !playerCommandSystem.StartSystem()) 
         {
             DebugMsg.End(1, "Failed to Start Player Command System", 1);
@@ -139,6 +141,7 @@ public class GameServer : NetworkedBehaviour
             DebugMsg.Notify("Started Player Command System.", 1);
         }
 
+        //Start World Snapshot System
         if(worldSnapshotSystem == null || !worldSnapshotSystem.StartSystem()) 
         {
             DebugMsg.End(1, "Failed to Start World Snapshot System", 1);
@@ -148,6 +151,18 @@ public class GameServer : NetworkedBehaviour
         {
             DebugMsg.Notify("Started World Snapshot System.", 1);
         }
+
+        //Start Escape Pod Syste,
+        if (escapePodSystem == null || !escapePodSystem.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start World Snapshot System", 1);
+            return;
+        }
+        else
+        {
+            DebugMsg.Notify("Started World Snapshot System.", 1);
+        }
+
 
         //Start Loops
         StartCoroutine(AutoSaveLoop());
@@ -211,10 +226,13 @@ public class GameServer : NetworkedBehaviour
         if (playerInfoSystem.GetPlayerNew(clientId))
         {
             Server_PlayerConnectSet(clientId, true);
+            escapePodSystem.SpawnPlayerInsideEscapePod(clientId);
         }
         else 
         {
-            Server_PlayerConnectSet(clientId, false);
+            //Server_PlayerConnectSet(clientId);
+            Server_PlayerConnectSet(clientId, true);
+            escapePodSystem.SpawnPlayerInsideEscapePod(clientId);
         }
 
         ForceRequestInfoById(clientId);

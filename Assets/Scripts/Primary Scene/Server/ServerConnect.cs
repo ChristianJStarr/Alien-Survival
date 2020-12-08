@@ -266,6 +266,7 @@ public class ServerConnect : MonoBehaviour
                 expAdd = 0,
                 hoursAdd = 0,
                 time = DateTime.Now,
+                isNew = true,
                 blueprints = storedProperties.defaultPlayerBlueprints
             };
             if (gameServer.CreatePlayer(newPlayer)) 

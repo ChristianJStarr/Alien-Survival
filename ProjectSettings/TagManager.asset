@@ -18,6 +18,7 @@ TagManager:
   - Player_Collider_Head
   - Player_Collider_Body
   - Player_Collider_Legs
+  - PodSpawnpoint
   layers:
   - Default
   - TransparentFX

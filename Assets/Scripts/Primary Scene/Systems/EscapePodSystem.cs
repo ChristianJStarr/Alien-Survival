@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using MLAPI;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -45,7 +46,7 @@ public class EscapePodSystem : MonoBehaviour
     public void SpawnPlayerInsideEscapePod(ulong clientId)
     {
         Debug.Log("Attemping to Spawn Player in Escape Pod.");
-        EscapePodObject escapePod = SpawnPod();
+        EscapePodObject escapePod = SpawnPod(clientId);
         playerCommandSystem.Teleport_ToVector(clientId, escapePod.spawn_Position.position, escapePod.spawn_Position.rotation);
     }
 
@@ -56,7 +57,10 @@ public class EscapePodSystem : MonoBehaviour
         while (systemEnabled) 
         {
             if (!systemEnabled) break;
-            CheckInactivePods();
+            if (spawnedPods.Count > 0) 
+            {
+                CheckInactivePods();
+            }
             yield return wait;
         }
     }
@@ -67,85 +71,112 @@ public class EscapePodSystem : MonoBehaviour
         Debug.Log("Checking Inactive Pods");
         Vector3[] players = playerCommandSystem.GetPlayerPositionsArray();
         int podCount = spawnedPods.Count;
-        float[] distance = new float[podCount];
-        for (int i = 0; i < podCount; i++)
+        if(players.Length > 0) 
         {
-            float minDistance = 2000;
-            for (int e = 0; e < players.Length; e++)
+            float[] distance = new float[podCount];
+            for (int i = 0; i < podCount; i++)
             {
-                float cur = Vector3.Distance(players[e], spawnpoints[i]);
-                if(minDistance > cur) { minDistance = cur; }
+                float minDistance = 2000;
+                for (int e = 0; e < players.Length; e++)
+                {
+                    float cur = Vector3.Distance(players[e], spawnedPods[i].transform.position);
+                    if (minDistance > cur) { minDistance = cur; }
+                }
+            }
+            for (int i = podCount - 1; i >= 0; i--)
+            {
+                if (distance[i] > 200)
+                {
+                    Destroy(spawnedPods[i]);
+                    Debug.Log("Destoryed Inactive Pod. Distance from Nearest Player: " + distance[i]);
+                }
             }
         }
-        for (int i = podCount - 1; i >= 0; i--)
+        else 
         {
-            if(distance[i] > 200) 
+            for (int i = podCount - 1; i >= 0; i--)
             {
                 Destroy(spawnedPods[i]);
-                Debug.Log("Destoryed Inactive Pod. Distance from Nearest Player: " + distance[i]);
+                Debug.Log("Destoryed Inactive Pod.");
             }
         }
     }
 
     //Spawn an Escape Pod
-    private EscapePodObject SpawnPod()
+    private EscapePodObject SpawnPod(ulong clientId)
     {
-        GameObject pod = Instantiate(escapePodPrefab, GetSpawnpoint(), Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0), transform);
+        GameObject pod = Instantiate(escapePodPrefab, GetSpawnpoint(clientId), Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0), transform);
+        NetworkedObject networkObject = pod.GetComponent<NetworkedObject>();
+        networkObject.Spawn();
         spawnedPods.Add(pod);
         return pod.GetComponent<EscapePodObject>();
     }
 
     //Get Available Spawnpoint
-    private Vector3 GetSpawnpoint() 
+    private Vector3 GetSpawnpoint(ulong clientId) 
     {
         Debug.Log("Getting Spawnpoint for Pod");
-        //Hyper Inefficient Spawnpoint Finder
-        Vector3[] players = playerCommandSystem.GetPlayerPositionsArray();
+        Vector3[] players = playerCommandSystem.GetPlayerPositionsArray(clientId);
         float[] distance = new float[players.Length];
-        //Get Distance from Players
-        for (int i = 0; i < spawnpoints.Length; i++)
+        int spawnpoints_Length = spawnpoints.Length;
+        int players_Length = players.Length;
+        if(spawnpoints_Length != 0) 
         {
-            float minDistance = 2000;
-            for (int e = 0; e < players.Length; e++)
+            if (players.Length == 0)
             {
-                float cur = Vector3.Distance(players[e], spawnpoints[i]);
-                if(minDistance > cur) { minDistance = cur; }
+                return spawnpoints[UnityEngine.Random.Range(0, spawnpoints_Length - 1)];
             }
-            distance[i] = minDistance;
-        }
-        for (int i = 0; i < spawnpoints.Length; i++)
-        {
-            if (!occupiedSpawnpoints.Contains(spawnpoints[i])) 
-            { 
-                if(distance[i] > 500) 
-                {
-                    occupiedSpawnpoints.Add(spawnpoints[i]);
-                    return spawnpoints[i];
-                }
-            }
-        }
-        for (int i = 0; i < spawnpoints.Length; i++)
-        {
-            if (!occupiedSpawnpoints.Contains(spawnpoints[i]))
+            else
             {
-                if (distance[i] > 400)
+                for (int i = 0; i < spawnpoints_Length; i++)
                 {
-                    occupiedSpawnpoints.Add(spawnpoints[i]);
-                    return spawnpoints[i];
+                    float minDistance = 2000;
+                    for (int e = 0; e < players_Length; e++)
+                    {
+                        float cur = Vector3.Distance(players[e], spawnpoints[i]);
+                        if (minDistance > cur) { minDistance = cur; }
+                    }
+                    distance[i] = minDistance;
                 }
+                for (int i = 0; i < spawnpoints_Length; i++)
+                {
+                    if (!occupiedSpawnpoints.Contains(spawnpoints[i]))
+                    {
+                        if (distance[i] > 500)
+                        {
+                            occupiedSpawnpoints.Add(spawnpoints[i]);
+                            return spawnpoints[i];
+                        }
+                    }
+                }
+                for (int i = 0; i < spawnpoints_Length; i++)
+                {
+                    if (!occupiedSpawnpoints.Contains(spawnpoints[i]))
+                    {
+                        if (distance[i] > 400)
+                        {
+                            occupiedSpawnpoints.Add(spawnpoints[i]);
+                            return spawnpoints[i];
+                        }
+                    }
+                }
+                for (int i = 0; i < spawnpoints_Length; i++)
+                {
+                    if (!occupiedSpawnpoints.Contains(spawnpoints[i]))
+                    {
+                        if (distance[i] > 300)
+                        {
+                            occupiedSpawnpoints.Add(spawnpoints[i]);
+                            return spawnpoints[i];
+                        }
+                    }
+                }
+                return Vector3.zero;
             }
         }
-        for (int i = 0; i < spawnpoints.Length; i++)
+        else 
         {
-            if (!occupiedSpawnpoints.Contains(spawnpoints[i]))
-            {
-                if (distance[i] > 300)
-                {
-                    occupiedSpawnpoints.Add(spawnpoints[i]);
-                    return spawnpoints[i];
-                }
-            }
+            return Vector3.zero;
         }
-        return Vector3.zero;
     }
 }

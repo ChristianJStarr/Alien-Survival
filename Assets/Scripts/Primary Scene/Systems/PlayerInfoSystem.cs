@@ -721,9 +721,17 @@ public class PlayerInfoSystem : MonoBehaviour
     //Resource Depletion Loop
     private IEnumerator ResourceDepletionLoop() 
     {
+        int interval = 15; 
+        int water_deplete = 2; 
+        int food_deplete = 1; 
+        int water_damage = 3;
+        int food_damge = 2;
+        int heal_food = 2;
+        int heal_water = 4;
+        int heal_health = 2;
         while (systemEnabled) 
         {
-            yield return new WaitForSeconds(15);
+            yield return new WaitForSeconds(interval);
             for (int i = 0; i < activeIds.Count; i++)
             {
                 ulong clientId = activeIds[i];
@@ -733,26 +741,21 @@ public class PlayerInfoSystem : MonoBehaviour
                     bool foodChanged = false;
                     bool waterChanged = false;
                     bool healthChanged = false;
-
-                    //Deplete Food
                     if (info.food > 0)
                     {
-                        active[clientId].food -= 20;//1
+                        active[clientId].food -= food_deplete;
                         foodChanged = true;
                     }
-                    //Deplete Water
                     if (info.water > 0)
                     {
-                        active[clientId].water -= 20;//2
+                        active[clientId].water -= water_deplete;
                         waterChanged = true;
                     }
-                    //Deplete or Increase Health
-
                     if(info.water <= 0) 
                     {
-                        if (info.health > 30)//3
+                        if (info.health > water_damage)
                         {
-                            active[clientId].health -= 30;//3
+                            active[clientId].health -= water_damage;
                             healthChanged = true;
                         }
                         else
@@ -765,9 +768,9 @@ public class PlayerInfoSystem : MonoBehaviour
                     }
                     if (info.food <= 0)
                     {
-                        if (info.health > 20)
+                        if (info.health > food_damge)
                         {
-                            active[clientId].health -= 20;//2
+                            active[clientId].health -= food_damge;
                             healthChanged = true;
                         }
                         else
@@ -778,20 +781,20 @@ public class PlayerInfoSystem : MonoBehaviour
                             gameServer.Server_PlayerDeath(clientId, info.items, info.armor, info.username);
                         }
                     }
-                    else if (info.food > 1 && info.water > 3 && info.health < 100)
+                    else if (info.food > heal_food - 1 && info.water > heal_water - 1 && info.health < 100)
                     {
-                        active[clientId].food -= 2;
-                        active[clientId].water -= 4;
+                        active[clientId].food -= heal_food;
+                        active[clientId].water -= heal_water;
                         foodChanged = true;
                         waterChanged = true;
-                        if (info.health > 98)
+                        if (info.health > 100 - heal_health)
                         {
                             active[clientId].health = 100;
                             healthChanged = true;
                         }
                         else
                         {
-                            active[clientId].health += 2;
+                            active[clientId].health += heal_health;
                             healthChanged = true;
                         }
                     }

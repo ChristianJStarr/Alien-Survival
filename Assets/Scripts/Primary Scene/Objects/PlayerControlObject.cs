@@ -17,6 +17,11 @@ public class PlayerControlObject : NetworkedBehaviour
     public bool jumping = false;
 
     //----------MOVING / ROTATING------------
+    public float gravity = 0;
+    public float moveSpeed = 5;
+    public float jumpHeight = .7F;
+    public bool isGrounded = true;
+    public Vector3 velocity = Vector3.zero;
     public Vector3 moveTarget = Vector3.zero;
     public Vector2 lookTarget = Vector3.zero;
 
@@ -77,6 +82,13 @@ public class PlayerControlObject : NetworkedBehaviour
         }
     }
 
+    //Teleport
+    public void Teleport(Vector3 position, Quaternion rotation)
+    {
+        ApplyCorrection(position);
+        Rotate(new Vector2(rotation.eulerAngles.x, rotation.eulerAngles.y));
+    }
+
     //Rotate this Object from Axis
     public void Rotate(Vector2 lookAxis)
     {
@@ -96,28 +108,42 @@ public class PlayerControlObject : NetworkedBehaviour
     public void Move(Vector2 moveAxis, bool jump, bool crouch)
     {
         if (needsMoveCorrection) return;
-        Vector3 desiredMove = transform.forward * moveAxis.y + transform.right * moveAxis.x;
-        RaycastHit hitInfo;
-        Physics.SphereCast(transform.position, characterController.radius, Vector3.down, out hitInfo, characterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
-        desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized * 5;
-        if (characterController.isGrounded)
+        isGrounded = characterController.isGrounded;
+        if (isGrounded)
         {
-            desiredMove.y = -2;
-            if (jump && !crouch && !jumping)
+            if (jumping)
             {
-                desiredMove.y = 5;
-                jumping = true;
+                jumping = false;
             }
             if (crouch)
             {
-                crouching = !crouching;
+                if (crouching) 
+                {
+                    crouching = false;
+                }
+                else if (!jump) 
+                {
+                    crouching = true;
+                }
+            }
+            if(velocity.y < 0) 
+            {
+                velocity.y = 0;
             }
         }
-        else
+        Vector3 movement = new Vector3(moveAxis.x, 0, moveAxis.y);
+        characterController.Move(movement * moveSpeed * Time.deltaTime);
+        if(movement != Vector3.zero) 
         {
-            desiredMove += Physics.gravity * 2 * Time.fixedDeltaTime;
+            transform.forward = movement;
         }
-        collisionFlags = characterController.Move(desiredMove * Time.fixedDeltaTime);
+        if(jump && isGrounded && !jumping) 
+        {
+            jumping = true;
+            velocity.y = Mathf.Sqrt(jumpHeight * -3.0f * gravity);
+        }
+        velocity.y += gravity * Time.deltaTime;
+        characterController.Move(velocity * Time.deltaTime);
     }
 
     //Animate from Axis
@@ -171,4 +197,5 @@ public class PlayerControlObject : NetworkedBehaviour
         }
         else { needsMoveCorrection = false; }
     }
+
 }

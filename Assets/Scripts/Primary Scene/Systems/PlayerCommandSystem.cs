@@ -71,8 +71,7 @@ public class PlayerCommandSystem : MonoBehaviour
     {
         if (players.ContainsKey(clientId))
         {
-            players[clientId].ApplyCorrection(target_position);
-            players[clientId].ApplyCorrection(new Vector2(0, target_rotation.eulerAngles.y));
+            players[clientId].Teleport(target_position, target_rotation);
         }
     }
     
@@ -85,6 +84,36 @@ public class PlayerCommandSystem : MonoBehaviour
         for (int i = 0; i < length; i++)
         {
             instance[i] = temp[i].transform.position;
+        }
+        return instance;
+    }
+    
+    
+    public Vector3[] GetPlayerPositionsArray(ulong exclude)
+    {
+        Vector3[] instance = null;
+        if (players.ContainsKey(exclude)) 
+        {
+            PlayerControlObject[] temp = players.Values.ToArray();
+            int length = temp.Length;
+            instance = new Vector3[length - 1];
+            for (int i = 0; i < length; i++)
+            {
+                if(temp[i].OwnerClientId != exclude) 
+                {
+                    instance[i] = temp[i].transform.position;
+                }
+            }
+        }
+        else 
+        {
+            PlayerControlObject[] temp = players.Values.ToArray();
+            int length = temp.Length;
+            instance = new Vector3[length];
+            for (int i = 0; i < length; i++)
+            {
+                instance[i] = temp[i].transform.position;
+            }
         }
         return instance;
     }

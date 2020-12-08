@@ -10744,7 +10744,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelText: {fileID: 285581}
   slider: {fileID: 938075621}
-  exp: 0
 --- !u!1 &950236957
 GameObject:
   m_ObjectHideFlags: 0
@@ -11376,7 +11375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DontDestroy: 1
   RunInBackground: 1
-  LogLevel: 3
+  LogLevel: 1
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 1011803584}
@@ -11394,6 +11393,9 @@ MonoBehaviour:
     - Prefab: {fileID: 2556272531670792622, guid: 16890219965a83d48a1aae4097add1a6,
         type: 3}
       PlayerPrefab: 0
+    - Prefab: {fileID: 7446182725475853732, guid: 28c8e21b8f056ca4788997796ef7ffd7,
+        type: 3}
+      PlayerPrefab: 0
     PlayerPrefabHash:
       Value: 16337668262389913170
     CreatePlayerPrefab: 1
@@ -11406,7 +11408,7 @@ MonoBehaviour:
     ConnectionData: 
     SecondsHistory: 5
     EnableTimeResync: 1
-    TimeResyncInterval: 60
+    TimeResyncInterval: 120
     EnableNetworkedVar: 1
     EnsureNetworkedVarLengthSafety: 0
     EnableSceneManagement: 1
