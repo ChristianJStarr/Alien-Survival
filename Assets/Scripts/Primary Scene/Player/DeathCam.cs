@@ -39,12 +39,12 @@ public class DeathCam : MonoBehaviour
     {
         if (value) 
         {
-            deathCam.transform.position = transform.position;
-            deathCam.transform.rotation = transform.rotation;
             if (deathCam == null)
             {
                 deathCam = Instantiate(deathCamPrefab, transform.position, transform.rotation);
             }
+            deathCam.transform.position = transform.position;
+            deathCam.transform.rotation = transform.rotation;
             AlignCamera();
         }
         else if(deathCam != null)

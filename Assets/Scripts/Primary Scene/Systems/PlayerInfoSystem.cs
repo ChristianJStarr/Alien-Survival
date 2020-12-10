@@ -490,7 +490,7 @@ public class PlayerInfoSystem : MonoBehaviour
         if (Confirm(clientId)) 
         {
             item.currSlot = 44;
-            active[clientId].items = sit.AddItemToInventory(item, active[clientId].items, returnValue => { success(returnValue); });
+            sit.AddItemToInventory(item, active[clientId].items, returnValue => { success(returnValue); });
             ForceRequestInfoById(clientId, 5);
         }
     }
@@ -500,7 +500,7 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if (Confirm(clientId, authKey))
         {
-            Item[] inventory = GetPlayerItems(clientId);
+            Item[] inventory = active[clientId].items;
             Item newItem = sit.GetItemBySlot(inventory, newSlot);
             Item oldItem = sit.GetItemBySlot(inventory, oldSlot);
             if (newItem != null && oldItem != null)
@@ -511,43 +511,39 @@ public class PlayerInfoSystem : MonoBehaviour
                 {
                     if (newItem.durability + oldItem.itemStack <= newItemData.maxDurability && newItemData.durabilityRefilId == oldItem.itemID)
                     {
-                        Item[] temp = sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { });
-                        inventory = sit.ChangeItemDurability(temp, oldItem.itemStack, newItemData.maxDurability, newSlot);
-
-                        if (inventory != null)
+                        if(sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { })) 
                         {
-                            active[clientId].items = inventory;
-                            ForceRequestInfoById(clientId, 5);
+                            if (sit.ChangeItemDurability(inventory, oldItem.itemStack, newItemData.maxDurability, newSlot)) 
+                            {
+                                ForceRequestInfoById(clientId, 5);
+                            }
                         }
                     }
                     else if (newItemData.durabilityRefilId == oldItem.itemID)
                     {
-                        Item[] temp = sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { }, newItemData.maxDurability - newItem.durability);
-                        inventory = sit.ChangeItemDurability(temp, oldItem.itemStack, newItemData.maxDurability, newSlot);
-                        if (inventory != null)
+                        if(sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { }, newItemData.maxDurability - newItem.durability)) 
                         {
-                            active[clientId].items = inventory;
-                            ForceRequestInfoById(clientId, 5);
+                            if (sit.ChangeItemDurability(inventory, oldItem.itemStack, newItemData.maxDurability, newSlot)) 
+                            {
+                                ForceRequestInfoById(clientId, 5);
+                            }
                         }
                     }
                     else 
                     {
-                        active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
+                        sit.MoveItemInInventory(oldSlot, newSlot, inventory);
                         ForceRequestInfoById(clientId, 5);
                     }
                 }
                 else 
                 {
-                    active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
+                    sit.MoveItemInInventory(oldSlot, newSlot, inventory);
                     ForceRequestInfoById(clientId, 5);
                 }
-
-
-                
             }
             else if(oldItem != null) 
             {
-                active[clientId].items = sit.MoveItemInInventory(oldSlot, newSlot, inventory);
+                sit.MoveItemInInventory(oldSlot, newSlot, inventory);
                 ForceRequestInfoById(clientId, 5);
             }
         }
@@ -556,9 +552,8 @@ public class PlayerInfoSystem : MonoBehaviour
     //Remove Item
     public void Inventory_RemoveItem(ulong clientId, string authKey, int slot, Action<Item> droppedItem)
     {
-        if (Confirm(clientId, authKey))
+        if (Confirm(clientId, authKey) && sit.RemoveItemFromInventoryBySlot(slot, active[clientId].items, returnValue => { droppedItem(returnValue); }))
         {
-            active[clientId].items = sit.RemoveItemFromInventoryBySlot(slot, active[clientId].items, returnValue => { droppedItem(returnValue); });
             ForceRequestInfoById(clientId, 5);
         }
     }
@@ -568,7 +563,7 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if (Confirm(clientId, authKey))
         {
-            active[clientId].items = sit.CraftItem(active[clientId].items, itemId, amount);
+            sit.CraftItem(active[clientId].items, itemId, amount);
             ForceRequestInfoById(clientId, 5);
         }
     }
@@ -596,13 +591,8 @@ public class PlayerInfoSystem : MonoBehaviour
         bool wasTaken = false;
         if (Confirm(clientId)) 
         {
-            Item[] items = sit.ChangeItemDurability(active[clientId].items, amount, maxDurability, slot);
-            if (items != null)
-            {
-                wasTaken = true;
-                active[clientId].items = items;
-                ForceRequestInfoById(clientId, 5);
-            }
+            wasTaken = sit.ChangeItemDurability(active[clientId].items, amount, maxDurability, slot);
+            ForceRequestInfoById(clientId, 5);
         }
         return wasTaken;
     }
@@ -629,29 +619,15 @@ public class PlayerInfoSystem : MonoBehaviour
                     {
                         final = needed;
                     }
-                    Item[] inventory = sit.RemoveItemFromInventory(data.durabilityId, final, active[clientId].items);
-                    if (inventory != null)
+
+                    if (sit.RemoveItemFromInventory(data.durabilityId, final, active[clientId].items))
                     {
-                        inventory = sit.ChangeItemDurability(inventory, final, data.maxDurability, slot);
-                        if (inventory != null)
+                        if (sit.ChangeItemDurability(active[clientId].items, final, data.maxDurability, slot))
                         {
                             DebugMsg.Notify("Reloading for Player: " + clientId, 2);
-                            active[clientId].items = inventory;
                             ForceRequestInfoById(clientId, 5);
                         }
-                        else
-                        {
-                            DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
-                        }
                     }
-                    else
-                    {
-                        DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
-                    }
-                }
-                else
-                {
-                    DebugMsg.Notify("Reloading for Player Failed: " + clientId, 3);
                 }
             }
         }
@@ -662,7 +638,7 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if(Confirm(clientId, authKey)) 
         {
-            active[clientId].items = sit.SplitItemStackById(active[clientId].items, slot, amount);
+            sit.SplitItemStackById(active[clientId].items, slot, amount);
         }
     }
 

@@ -62,7 +62,7 @@ public class PlayerConnectManager : MonoBehaviour
     {
         int opacity = 0;
         if (active) opacity = 1;
-        LerpOpacity(opacity, 2, fadeback);
+        StartCoroutine(LerpOpacity(opacity, 2, fadeback));
     }
 
     //Lerp BlackSreen Opacity
@@ -82,9 +82,17 @@ public class PlayerConnectManager : MonoBehaviour
         blackScreen.color = color;
         if (fadeback) 
         {
-            videoScreen.SetActive(false);
-            InterfaceHider.Singleton.ShowAllInterfaces();
-            StartCoroutine(LerpOpacity(0, duration, false));
+            if (videoScreen.activeSelf) 
+            {
+                videoScreen.SetActive(false);
+                InterfaceHider.Singleton.ShowAllInterfaces();
+                StartCoroutine(LerpOpacity(0, duration, true));
+            }
+            else 
+            {
+                cutsceneObject.SetActive(false);
+                enabled = false;
+            }
         }
     }
 }

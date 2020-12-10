@@ -234,7 +234,7 @@ public class GameServer : NetworkedBehaviour
         {
             Server_PlayerConnectSet(clientId);
         }
-
+        playerInfoSystem.Inventory_AddNew(clientId, 20, 1, returnValue => { });
         ForceRequestInfoById(clientId);
     }
     

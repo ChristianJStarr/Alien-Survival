@@ -7,30 +7,50 @@ public class TimeSystem : MonoBehaviour
 {
     public Light directionalLight;
     private Camera mainCamera;
+    
+    [Header("Game Minute : Real Seconds")]
+    public int gameMinutesInSecond = 1; //60 seconds per hour
 
+    [Header("Early Morning  5am-6am")]
     public Color32 fogColor0 = new Color32(149, 133, 127, 255);
-    public Color32 fogColor1 = new Color32(189, 219, 218, 255);
-    public Color32 fogColor2 = new Color32(189, 219, 218, 255);
-    public Color32 fogColor3 = new Color32(144, 144, 144, 255);
-    public Color32 fogColor4 = new Color32(38, 25, 15, 255);
-    public Color32 fogColor5 = new Color32(38, 38, 38, 255);
-
     public Color32 skyColor0 = new Color32(171, 158, 154, 255);
-    public Color32 skyColor1 = new Color32(255, 255, 255, 255);
-    public Color32 skyColor2 = new Color32(255, 255, 255, 255);
-    public Color32 skyColor3 = new Color32(217, 217, 217, 255);
-    public Color32 skyColor4 = new Color32(123, 96, 76, 255);
-    public Color32 skyColor5 = new Color32(31, 31, 31, 255);
-
+    [Range(0, 2)]
     public float sunIntensity0 = 0.5F;
+    [Space]
+    [Header("Morning  7am-10am")]
+    public Color32 fogColor1 = new Color32(189, 219, 218, 255);
+    public Color32 skyColor1 = new Color32(255, 255, 255, 255);
+    [Range(0, 2)]
     public float sunIntensity1 = 0.7F;
+    [Space]
+    [Header("Afternoon  11am-3pm")]
+    public Color32 fogColor2 = new Color32(189, 219, 218, 255);
+    public Color32 skyColor2 = new Color32(255, 255, 255, 255);
+    [Range(0, 2)]
     public float sunIntensity2 = 1.25F;
+    [Space]
+    [Header("Mid-Evening  4pm-6pm")]
+    public Color32 fogColor3 = new Color32(144, 144, 144, 255);
+    public Color32 skyColor3 = new Color32(217, 217, 217, 255);
+    [Range(0, 2)]
     public float sunIntensity3 = 0.8F;
+    [Space]
+    [Header("Evening  7pm-8pm")]
+    public Color32 fogColor4 = new Color32(38, 25, 15, 255);
+    public Color32 skyColor4 = new Color32(123, 96, 76, 255);
+    [Range(0, 2)]
     public float sunIntensity4 = 0.5F;
+    [Space]
+    [Header("Night  9pm-4am")]
+    public Color32 fogColor5 = new Color32(38, 38, 38, 255);
+    public Color32 skyColor5 = new Color32(31, 31, 31, 255);
+    [Range(0,2)]
     public float sunIntensity5 = 0;
 
+
+    private bool lerpingSun, lerpingSky, lerpingFog;
     private int partOfDay = 0;
-    private float realMinutesInGameMinute = 240;
+    
 
 
 
@@ -51,6 +71,7 @@ public class TimeSystem : MonoBehaviour
             int hour = GetCurrentGameTimeHour();
             if (partOfDay != GetPartOfDay(hour)) 
             {
+                if (mainCamera == null) mainCamera = Camera.main;
                 partOfDay = GetPartOfDay(hour);
                 ChangeSky(partOfDay, false);
             }
@@ -63,6 +84,7 @@ public class TimeSystem : MonoBehaviour
         int hour = GetCurrentGameTimeHour();
         if (partOfDay != GetPartOfDay(hour))
         {
+            if (mainCamera == null) mainCamera = Camera.main;
             partOfDay = GetPartOfDay(hour);
             ChangeSky(partOfDay, true);
         }
@@ -93,22 +115,27 @@ public class TimeSystem : MonoBehaviour
         }
         else 
         {
+            float duration = (60 / gameMinutesInSecond); //4s duration
+
             float sunIntensity = GetSunIntensity(_partOfDay);
-            if (directionalLight.intensity != sunIntensity)
+            if (directionalLight.intensity != sunIntensity && !lerpingSun)
             {
-                StartCoroutine(LerpSunIntensity(sunIntensity, 10));
+                StartCoroutine(LerpSunIntensity(sunIntensity, duration));
+                lerpingSun = true;
             }
+
             Color skyColor = GetSkyColor(_partOfDay);
-            if (mainCamera != null && mainCamera.backgroundColor != skyColor)
+            if (mainCamera != null && mainCamera.backgroundColor != skyColor && !lerpingSky)
             {
-                StartCoroutine(LerpSkyColor(skyColor, 10));
+                lerpingSky = true;
+                StartCoroutine(LerpSkyColor(skyColor, duration));
             }
-            else if(mainCamera == null) mainCamera = Camera.main;
 
             Color fogColor = GetFogColor(_partOfDay);
-            if (RenderSettings.fogColor != fogColor)
+            if (RenderSettings.fogColor != fogColor && !lerpingFog)
             {
-                StartCoroutine(LerpFogColor(fogColor, 10));
+                lerpingFog = true;
+                StartCoroutine(LerpFogColor(fogColor, duration));
             }
         }
     }
@@ -124,34 +151,31 @@ public class TimeSystem : MonoBehaviour
         //     4 = Evening         //
         //     5 = Night           //
         //-------------------------//
-        if (hour >= 7 && hour <= 10)
+        if (hour >= 7 && hour <= 10) //7am - 10am  3h
         {
             return 1;
         }
-        else if (hour >= 11 && hour <= 15)
+        else if (hour >= 11 && hour <= 15) //11am - 3pm  4h
         {
             return 2;
         }
-        else if (hour >= 16 && hour <= 18)
+        else if (hour >= 16 && hour <= 18) //4pm - 6pm  2h
         {
             return 3;
         }
-        else if (hour >= 19 && hour <= 21)
+        else if (hour >= 19 && hour <= 20) //7pm - 8pm  1h
         {
             return 4;
         }
-        else if (hour >= 22 || hour <= 3)
+        else if (hour >= 21 || hour <= 4) //9pm - 4am 7hr
         {
             return 5;
         }
-        else if (hour >= 4 && hour <= 6)
-        {
-            return 6;
-        }
-        else
+        else if (hour >= 5 && hour <= 6) //5am - 6am 1hr
         {
             return 0;
         }
+        return 0;
     }
 
     //Get target Fog Color
@@ -246,13 +270,13 @@ public class TimeSystem : MonoBehaviour
     {
         float seconds = 0;
         if (NetworkingManager.Singleton == null) return 0;
-        seconds = NetworkingManager.Singleton.NetworkTime * realMinutesInGameMinute;
+        seconds = NetworkingManager.Singleton.NetworkTime * gameMinutesInSecond * 60;
         TimeSpan span = TimeSpan.FromSeconds(seconds);
         DebugMenu.UpdateTime(span);
         return span.Hours;
     }
 
-
+    //Lerp the Sky Color
     private IEnumerator LerpSkyColor(Color target, float duration)
     {
         float time = 0;
@@ -264,8 +288,9 @@ public class TimeSystem : MonoBehaviour
             yield return null;
         }
         mainCamera.backgroundColor = target;
+        lerpingSky = false;
     }
-
+    //Lerp the Fog Color
     private IEnumerator LerpFogColor(Color target, float duration)
     {
         float time = 0;
@@ -277,8 +302,9 @@ public class TimeSystem : MonoBehaviour
             yield return null;
         }
         RenderSettings.fogColor = target;
+        lerpingFog = false;
     }
-
+    //Lerp the Sun Intensity
     private IEnumerator LerpSunIntensity(float target, float duration) 
     {
         float time = 0;
@@ -290,6 +316,7 @@ public class TimeSystem : MonoBehaviour
             yield return null;
         }
         directionalLight.intensity = target;
+        lerpingSun = false;
     }
 
 }
