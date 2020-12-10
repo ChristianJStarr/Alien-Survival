@@ -672,28 +672,30 @@ public class PlayerInfoSystem : MonoBehaviour
     //-----------------------------------------------------------------//
 
     //Confirm Player ID and AuthKey. Rerturns BOOL (Check Config)
-    public bool Confirm(ulong clientId, string authKey = "")
+    public bool Confirm(ulong clientId)
     {
-        if (systemEnabled) 
+        if (!systemEnabled) return false;
+        if (active.ContainsKey(clientId)) return true;
+        return false;
+    }
+    public bool Confirm(ulong clientId, string authKey)
+    {
+        if (!systemEnabled) return false;
+        if (active.ContainsKey(clientId))
         {
-            if (!confirmNetworkKey)
+            if (confirmNetworkKey)
             {
-                if (active.ContainsKey(clientId))
+                if (active[clientId].authKey == authKey)
                 {
                     return true;
                 }
-                DebugMsg.Notify("Client '" + clientId + "' Does Not Exist!", 1);
-                return false;
-            }
-            if (active.ContainsKey(clientId))
-            {
-                if (authKey == "" || active[clientId].authKey == authKey)
+                else 
                 {
-                    return true;
+                    Debug.Log("Client: " + clientId + " has submitted an invalid authentication key. User will be kicked, if continued");
                 }
-                DebugMsg.Notify("Client '" + clientId + "' Failed Authentication!", 1);
                 return false;
             }
+            return true;
         }
         return false;
     }
@@ -721,11 +723,11 @@ public class PlayerInfoSystem : MonoBehaviour
     //Resource Depletion Loop
     private IEnumerator ResourceDepletionLoop() 
     {
-        int interval = 15; 
-        int water_deplete = 2; 
-        int food_deplete = 1; 
-        int water_damage = 3;
-        int food_damge = 2;
+        int interval = 15; //15
+        int water_deplete = 2;//2 
+        int food_deplete = 1; //1
+        int water_damage = 3;//3
+        int food_damge = 2;//2
         int heal_food = 2;
         int heal_water = 4;
         int heal_health = 2;
@@ -736,7 +738,7 @@ public class PlayerInfoSystem : MonoBehaviour
             {
                 ulong clientId = activeIds[i];
                 PlayerInfo info = active[clientId];
-                if (!info.isDead)
+                if (!info.isDead && !info.isNew)
                 {
                     bool foodChanged = false;
                     bool waterChanged = false;
@@ -842,7 +844,7 @@ public class PackedPlayerInfo
 public class PlayerInfo
 {
     //Authentication
-    [SerializeField]public string username = "X";
+    [SerializeField] public string username = "X";
     [SerializeField] public string authKey = "X";
     [SerializeField] public int id = 0;
     [SerializeField] public ulong clientId = 0;

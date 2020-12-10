@@ -104,7 +104,7 @@ public class ServerConnect : MonoBehaviour
     //-----Callbacks
     
     //Callback: Connected
-    private void PlayerConnected_Player(ulong id)
+    private void PlayerConnected_Player(ulong clientId)
     {
         DebugMsg.Notify("Connected to Server.", 1);
     }

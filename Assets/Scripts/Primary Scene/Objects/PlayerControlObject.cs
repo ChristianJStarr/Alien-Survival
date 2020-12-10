@@ -18,13 +18,11 @@ public class PlayerControlObject : NetworkedBehaviour
 
     //----------MOVING / ROTATING------------
     public float gravity = 0;
-    public float moveSpeed = 5;
+    private float moveSpeed = 200;
     public float jumpHeight = .7F;
     public bool isGrounded = true;
-    public Vector3 velocity = Vector3.zero;
     public Vector3 moveTarget = Vector3.zero;
     public Vector2 lookTarget = Vector3.zero;
-
     private bool needsMoveCorrection = false;
     public Vector3 correctionMove = Vector3.zero;
 
@@ -43,7 +41,10 @@ public class PlayerControlObject : NetworkedBehaviour
     public float useDelayTime = 0;
 
 
-
+    private void Start() 
+    {
+        gravity = Physics.gravity.y;
+    }
     //Convert this ControlObject to Snapshot_Player Format
     public Snapshot_Player ConvertToSnapshot()
     {
@@ -126,24 +127,18 @@ public class PlayerControlObject : NetworkedBehaviour
                     crouching = true;
                 }
             }
-            if(velocity.y < 0) 
-            {
-                velocity.y = 0;
-            }
         }
-        Vector3 movement = new Vector3(moveAxis.x, 0, moveAxis.y);
-        characterController.Move(movement * moveSpeed * Time.deltaTime);
-        if(movement != Vector3.zero) 
-        {
-            transform.forward = movement;
-        }
-        if(jump && isGrounded && !jumping) 
+        Vector3 forward = transform.forward * ((moveSpeed * moveAxis.y) * Time.deltaTime);
+        Vector3 right = transform.right * ((moveSpeed * moveAxis.x) * Time.deltaTime);
+        Vector3 movement = (forward + right);
+        //movement = movement.normalized;
+        if (jump && isGrounded && !jumping)
         {
             jumping = true;
-            velocity.y = Mathf.Sqrt(jumpHeight * -3.0f * gravity);
         }
-        velocity.y += gravity * Time.deltaTime;
-        characterController.Move(velocity * Time.deltaTime);
+        movement.y -= -gravity * 3 * Time.deltaTime;
+        if (IsClient) DebugMenu.UpdateMovement(transform.position, transform.rotation.eulerAngles, characterController.velocity, forward, right, movement * Time.deltaTime);
+        characterController.Move(movement * Time.deltaTime);
     }
 
     //Animate from Axis

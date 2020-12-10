@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,21 +8,7 @@ public class UI_DeathScreen : MonoBehaviour
 {
     public TextMeshProUGUI t_time;
     public Volume darkPostFx;
-    public int lerpSpeed = 5;
-    private bool canLerp = false;
-    private float targetWeight = 0;
 
-
-    private void Update() 
-    {
-        if (canLerp) 
-        {
-            if(darkPostFx.weight != targetWeight) 
-            {
-                darkPostFx.weight = Mathf.Lerp(darkPostFx.weight, targetWeight, lerpSpeed * Time.deltaTime);
-            }
-        }
-    }
 
     //Exit Main Menu Button
     public void ExitToMainMenu() 
@@ -32,7 +19,7 @@ public class UI_DeathScreen : MonoBehaviour
     //Enable Death Screen
     public void EnableScreen(TimeSpan timeSurvived) 
     {
-        DeathCam.Singleton.Activate(true);
+        DeathCam.Show();
         SetTimeText(timeSurvived);
         ToggleDarkPostFx(true);
         gameObject.SetActive(true);
@@ -41,7 +28,7 @@ public class UI_DeathScreen : MonoBehaviour
     //Disable Death Screen
     public void DisableScreen() 
     {
-        DeathCam.Singleton.Activate(false);
+        DeathCam.Hide();
         gameObject.SetActive(false);
         ToggleDarkPostFx(false);
     }
@@ -51,13 +38,10 @@ public class UI_DeathScreen : MonoBehaviour
     {
         if (value) 
         {
-            targetWeight = 1;
-            canLerp = true;
+            LerpPostFx(1, 10);
         }
         else 
         {
-            targetWeight = 0;
-            canLerp = false;
             darkPostFx.weight = 0;
         }
     }
@@ -82,4 +66,19 @@ public class UI_DeathScreen : MonoBehaviour
             t_time.text = "";
         }
     }
+
+    //PostFx Weight Lerp
+    private IEnumerator LerpPostFx(float target, float duration) 
+    {
+        float time = 0;
+        float startValue = darkPostFx.weight;
+        while (time < duration)
+        {
+            darkPostFx.weight = Mathf.Lerp(startValue, target, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+        darkPostFx.weight = target;
+    }
+
 }

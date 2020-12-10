@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class DeathCam : MonoBehaviour
 {
@@ -14,72 +15,85 @@ public class DeathCam : MonoBehaviour
     public Animator animator;
 
     private GameObject deathCam; //Death Camera Object
-    private Vector3 move_target; //Move Target for Cam
-    private Quaternion look_target; //Rotate Target for Cam
-    private bool isActive = false; //Death Camera Active
-    public int lerpSpeed = 5; //Speed of Camera Moving
     private int layerMask; //Player Headroom Ignore Mask
     
-
     private void Start() 
     {
         layerMask = ~LayerMask.GetMask("Player");
-        deathCam = Instantiate(deathCamPrefab, transform.position, transform.rotation);
-        deathCam.SetActive(false);
     }
 
-    //Handle Camera Lerping
-    private void FixedUpdate() 
+    //Show the Camera
+    public static void Show() 
     {
-        if (isActive) 
-        {
-            if (deathCam == null) return;
-            Vector3 offset = new Vector3(0, GetCeilingHeight(), 0);
-            move_target = player.transform.position + offset;
-            look_target = Quaternion.LookRotation(-(move_target - player.transform.position.normalized));
-            if (move_target != deathCam.transform.position)
-            {
-                deathCam.transform.position = Vector3.Lerp(deathCam.transform.position, move_target, lerpSpeed * Time.deltaTime);
-            }
-            
-            if (look_target != deathCam.transform.rotation)
-            {
-                deathCam.transform.rotation = Quaternion.Lerp(deathCam.transform.rotation, look_target, lerpSpeed * 2 * Time.deltaTime);
-            }
-        }
+        if (Singleton != null) Singleton.Activate_Camera(true);
+    }
+    
+    //Hide the Camera
+    public static void Hide() 
+    {
+        if (Singleton != null) Singleton.Activate_Camera(false);
     }
 
     //Activate the Death Camera
-    public void Activate(bool value)
+    private void Activate_Camera(bool value)
     {
-        animator.enabled = !value;
         if (value) 
         {
             deathCam.transform.position = transform.position;
             deathCam.transform.rotation = transform.rotation;
+            if (deathCam == null)
+            {
+                deathCam = Instantiate(deathCamPrefab, transform.position, transform.rotation);
+            }
+            AlignCamera();
         }
-        else 
+        else if(deathCam != null)
         {
-            animator.SetTrigger("Wake");
+            deathCam.SetActive(false);
         }
-        isActive = value;
-        if (deathCam == null) return;
-        deathCam.SetActive(value);
+        animator.enabled = !value;
+    }
+
+    //Align the Camera
+    private void AlignCamera() 
+    {
+        deathCam.SetActive(true);
+        Vector3 target_position = player.transform.position + new Vector3(0, GetCeilingHeight(), 0);
+        StartCoroutine(LerpCamera(target_position, Quaternion.LookRotation(-(target_position - player.transform.position)), 10));
+    }
+
+    //Lerp the Camera Position & Rotation
+    private IEnumerator LerpCamera(Vector3 position, Quaternion rotation, float duration) 
+    {
+        float time = 0;
+        Vector3 startPosition = deathCam.transform.position;
+        Quaternion startRotation = deathCam.transform.rotation;
+        while (time < duration)
+        {
+            deathCam.transform.position = Vector3.Lerp(startPosition, position, time / duration);
+            deathCam.transform.rotation = Quaternion.Lerp(startRotation, rotation, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+        deathCam.transform.position = position;
+        deathCam.transform.rotation = rotation;
     }
 
     //Get Headroom of Player to Prevent Camera Clipping
-    private float GetCeilingHeight() 
+    private float GetCeilingHeight()
     {
         float offset = 4;
         RaycastHit hit;
         Vector3 startPosition = player.transform.position;
-        if (Physics.Raycast(startPosition, Vector3.up, out hit, 10, layerMask)) 
+        if (Physics.Raycast(startPosition, Vector3.up, out hit, 10, layerMask))
         {
-            if(hit.distance > 0.1) 
+            if (hit.distance > 0.1)
             {
                 offset = hit.distance;
             }
         }
         return offset;
     }
+
+
 }

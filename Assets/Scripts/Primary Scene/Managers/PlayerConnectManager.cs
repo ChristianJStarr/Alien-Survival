@@ -9,13 +9,9 @@ public class PlayerConnectManager : MonoBehaviour
     public Image blackScreen;
     public VideoPlayer video;
 
-    private float lerpSpeed = 5;
     public bool playerIsReady = false;
-    private bool lerp = false;
-    private bool fadeBack = false;
     private bool showCutscene = false;
     private bool callbackReceived = false;
-    private bool targetTransparency = true;
 
 
     private void Start() 
@@ -28,61 +24,6 @@ public class PlayerConnectManager : MonoBehaviour
         if (callbackReceived) 
         {
             ConnectCallback(showCutscene);
-        }
-    }
-
-    //Change Black Screen
-    private void ChangeBlackScreen(bool active, bool _fadeBack = false) 
-    {
-        targetTransparency = active;
-        lerp = true;
-        fadeBack = _fadeBack;
-    }
-
-    //Color Lerping
-    private void Update() 
-    {
-        if (lerp)
-        {
-            if(targetTransparency) 
-            {
-                if (blackScreen.color.a < .99F)
-                {
-                    Color color = new Color32(17, 17, 17, 255);
-                    color.a = Mathf.Lerp(blackScreen.color.a, 1, lerpSpeed * Time.deltaTime);
-                    blackScreen.color = color;
-                }
-                else if (fadeBack) 
-                {
-                    videoScreen.SetActive(false);
-                    InterfaceHider.Singleton.ShowAllInterfaces();
-                    targetTransparency = false;
-                }
-                else 
-                {
-                    blackScreen.color = new Color32(17, 17, 17, 255);
-                    lerp = false;
-                }
-            }
-            else if(!targetTransparency) 
-            {
-                if(blackScreen.color.a > .01F) 
-                {
-                    Color color = new Color32(17, 17, 17, 255);
-                    color.a = Mathf.Lerp(blackScreen.color.a, 0, lerpSpeed * Time.deltaTime);
-                    blackScreen.color = color;
-                }
-                else if(fadeBack)
-                {
-                    cutsceneObject.SetActive(false);
-                    enabled = false;
-                }
-                else 
-                {
-                    blackScreen.color = new Color32(17, 17, 17, 0);
-                    lerp = false;
-                }
-            }
         }
     }
 
@@ -114,5 +55,36 @@ public class PlayerConnectManager : MonoBehaviour
         video_length -= 1;
         yield return new WaitForSeconds(video_length);
         ChangeBlackScreen(true, true);
+    }
+
+    //Change Black Screen
+    private void ChangeBlackScreen(bool active, bool fadeback = false)
+    {
+        int opacity = 0;
+        if (active) opacity = 1;
+        LerpOpacity(opacity, 2, fadeback);
+    }
+
+    //Lerp BlackSreen Opacity
+    private IEnumerator LerpOpacity(float opacity, float duration, bool fadeback) 
+    {
+        Color color = blackScreen.color;
+        float time = 0;
+        float startValue = color.a;
+        while (time < duration)
+        {
+            color.a = Mathf.Lerp(startValue, opacity, time / duration);
+            blackScreen.color = color;
+            time += Time.deltaTime;
+            yield return null;
+        }
+        color.a = opacity;
+        blackScreen.color = color;
+        if (fadeback) 
+        {
+            videoScreen.SetActive(false);
+            InterfaceHider.Singleton.ShowAllInterfaces();
+            StartCoroutine(LerpOpacity(0, duration, false));
+        }
     }
 }

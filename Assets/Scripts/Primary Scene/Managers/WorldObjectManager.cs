@@ -35,7 +35,8 @@ public class WorldObjectManager : MonoBehaviour
     //Configuration
     private int c_ObjectLoadDistance = 0;
 
-
+    //Object Count
+    private int object_count = 0;
 
 
 
@@ -78,6 +79,7 @@ public class WorldObjectManager : MonoBehaviour
     public void UpdateWorldObjects(Snapshot_WorldObject[] snapshot) 
     {
         if (spawnpoints_count == 0) return;
+        DebugMenu.UpdateObjects(spawnpoints_count, object_count);
         for (int x = 0; x < snapshot.Length; x++)
         {
             int spawn_id = snapshot[x].spawnId - 1;
@@ -134,6 +136,7 @@ public class WorldObjectManager : MonoBehaviour
     //Spawn Object
     private GameObject SpawnObject(int objectId, Vector3 position) 
     {
+        object_count++;
         GameObject instance = null;
         if (objectPool.ContainsKey(objectId) && objectPool[objectId].Count != 0) 
         {
@@ -152,6 +155,7 @@ public class WorldObjectManager : MonoBehaviour
     //Destroy Object
     private void DestroyObject(int objectId, GameObject obj) 
     {
+        object_count--;
         obj.SetActive(false);
         if (objectPool.ContainsKey(objectId)) 
         {

@@ -63,12 +63,19 @@ public class ServerUI_Controller : MonoBehaviour
         {
             snapshotMax = snapshot_Size;    
         }
-        snapshotText.text = "Snapshot Id: " + snapshot_Id + " Size: " + snapshot_Size / 1000 + "kb  Max:" + snapshotMax / 1000 + "kb";
+        string size = snapshot_Size + "b";
+        if(snapshot_Size > 1000) { size = snapshot_Size / 1000 + "kb"; }
+        string max = snapshotMax + "b";
+        if (snapshotMax > 1000) { max = snapshotMax / 1000 + "kb"; }
+        snapshotText.text = "Snapshot Id: " + snapshot_Id + " Size: " + size + " Max: " + max;
     }
 
     public void UpdateCommandStats() 
     {
         int commandsPer = GameServer.singleton.DebugCommandPerSecond;
-        commandText.text = "Commands: " + commandsPer + "/s";
+        int commandSize = GameServer.singleton.DebugCommandSize;
+        string size = commandSize + "b";
+        if(commandSize > 1000) { size = commandSize / 1000 + "kb"; }
+        commandText.text = "Commands: " + commandsPer + "/s Size: " + size;
     }
 }

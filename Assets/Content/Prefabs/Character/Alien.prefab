@@ -1798,6 +1798,10 @@ MonoBehaviour:
   use: 0
   crouching: 0
   jumping: 0
+  gravity: 0
+  moveSpeed: 20
+  jumpHeight: 0.7
+  isGrounded: 1
   moveTarget: {x: 0, y: 0, z: 0}
   lookTarget: {x: 0, y: 0}
   correctionMove: {x: 0, y: 0, z: 0}

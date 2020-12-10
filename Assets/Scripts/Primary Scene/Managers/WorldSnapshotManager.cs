@@ -123,6 +123,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
         else
         {
             players.Add(networkId, controlObject);
+            DebugMenu.UpdatePlayers(players.Count);
         }
         if (controlObject.OwnerClientId == NetworkingManager.Singleton.LocalClientId)
         {
@@ -142,6 +143,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
         else
         {
             ai.Add(networkId, controlObject);
+            DebugMenu.UpdateAI(ai.Count);
         }
     }
     //Remove Object from Snapshot Manager
@@ -151,10 +153,12 @@ public class WorldSnapshotManager : NetworkedBehaviour
         if (players.ContainsKey(networkId)) 
         {
             players.Remove(networkId);
+            DebugMenu.UpdatePlayers(players.Count);
         }
         else if (ai.ContainsKey(networkId)) 
         {
             ai.Remove(networkId);
+            DebugMenu.UpdateAI(ai.Count);
         }
     }
  

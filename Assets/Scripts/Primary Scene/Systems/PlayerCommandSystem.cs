@@ -146,7 +146,6 @@ public class PlayerCommandSystem : MonoBehaviour
                 commandsExecuted = 0;
             }
         }
-
         //Read Queue & Execute Commands
         if (systemEnabled && commandQueue.Count > 0) 
         {
@@ -158,6 +157,16 @@ public class PlayerCommandSystem : MonoBehaviour
                     commandsExecuted++;
                     PlayerCommand command = commandQueue[clients[i]].Dequeue();
                     PlayerControlObject controlObject = players[command.clientId];
+
+                    //Apply Correction
+                    if (command.correction) 
+                    {
+                        if(Vector3.Distance(controlObject.transform.position, command.correction_position) < 10) 
+                        {
+                            controlObject.transform.position = command.correction_position;
+                        }
+                    }
+
                     //ROTATE Player
                     controlObject.Rotate(command.look);
                     //MOVE Player

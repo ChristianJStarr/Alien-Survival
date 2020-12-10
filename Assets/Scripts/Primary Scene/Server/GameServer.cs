@@ -61,8 +61,10 @@ public class GameServer : NetworkedBehaviour
     public int DebugSnapshotId = 0;
     public float DebugSnapshotSize = 0;
     public int DebugCommandPerSecond = 0;
-
-
+    public int DebugCommandSize = 0;
+    private int DebugCommandSize_AvgCount = 0;
+    private int DebugCommandSize_AvgTotal = 0;
+    private bool debugClientId = true;
 
     private void Start()
     {
@@ -230,9 +232,7 @@ public class GameServer : NetworkedBehaviour
         }
         else 
         {
-            //Server_PlayerConnectSet(clientId);
-            Server_PlayerConnectSet(clientId, true);
-            escapePodSystem.SpawnPlayerInsideEscapePod(clientId);
+            Server_PlayerConnectSet(clientId);
         }
 
         ForceRequestInfoById(clientId);
@@ -433,6 +433,11 @@ public class GameServer : NetworkedBehaviour
                 writer.WriteSinglePacked(command.networkTime);
                 writer.WriteVector2Packed(command.move);
                 writer.WriteVector2Packed(command.look);
+                writer.WriteBool(command.correction);
+                if (command.correction) 
+                {
+                    writer.WriteVector3Packed(command.correction_position);
+                }
                 writer.WriteBool(command.jump);
                 writer.WriteBool(command.crouch);
                 writer.WriteBool(command.use);
@@ -448,18 +453,31 @@ public class GameServer : NetworkedBehaviour
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            //PlayerCommand Breakdown
-            playerCommandSystem.ExecuteCommand(new PlayerCommand()
+            #region Debug
+            DebugCommandSize_AvgCount++;
+            DebugCommandSize_AvgTotal += (int) stream.Length;
+            DebugCommandSize = DebugCommandSize_AvgTotal / DebugCommandSize_AvgCount;
+            if(DebugCommandSize_AvgCount > 15) 
             {
-                clientId = _clientId,
-                networkTime = reader.ReadSinglePacked(),
-                move = reader.ReadVector2Packed(),
-                look = reader.ReadVector2Packed(),
-                jump = reader.ReadBool(),
-                crouch = reader.ReadBool(),
-                use = reader.ReadBool(),
-                selectedSlot = reader.ReadInt16Packed()
-            });
+                DebugCommandSize_AvgCount = 0;
+                DebugCommandSize_AvgTotal = 0;
+            }
+            #endregion
+            //PlayerCommand Breakdown
+            PlayerCommand command = new PlayerCommand() { clientId = _clientId };
+            command.networkTime = reader.ReadSinglePacked();
+            command.move = reader.ReadVector2Packed();
+            command.look = reader.ReadVector2Packed();
+            command.correction = reader.ReadBool();
+            if (command.correction) 
+            {
+                command.correction_position = reader.ReadVector3Packed();
+            }
+            command.jump = reader.ReadBool();
+            command.crouch = reader.ReadBool();
+            command.use = reader.ReadBool();
+            command.selectedSlot = reader.ReadInt16Packed();
+            playerCommandSystem.ExecuteCommand(command);
         }
     }
 
@@ -542,6 +560,12 @@ public class GameServer : NetworkedBehaviour
     [ClientRPC]
     private void Client_RecieveWorldSnapshot(ulong clientId, Stream stream)
     {
+        if (debugClientId) 
+        {
+            debugClientId = false;
+            DebugMenu.UpdateConnect(clientId, PlayerPrefs.GetString("username"));
+        }
+
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
             Snapshot snapshot = new Snapshot()

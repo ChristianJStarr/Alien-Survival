@@ -1,42 +1,42 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class UfoMove : MonoBehaviour
 {
-    Vector3 target;
-    Transform ufo;
-    Vector3 reset;
-    public int speed = 80;
-    bool sendUFO;
+    [Tooltip("Seconds Between Ufo Appearance")]
     public float ufoDelay = 15;
+    [Space]
+    [Tooltip("Speed of Ufo")]
+    public int speed = 20;
+
+    private Vector3 target_position;
+    private Vector3 reset_position;
+
 
     void Start()
     {
-        ufo = GetComponent<Transform>();
-        reset = ufo.position;
-        target = new Vector3(reset.x - 500, reset.y, reset.z - 50);
-        StartCoroutine(WaitForUFO());
+        reset_position = transform.position;
+        target_position = transform.position;
+        target_position.x -= 500;
+        target_position.z -= 50;
+        StartCoroutine(UfoMovementLoop());
     }
 
-    void Update()
+    private IEnumerator UfoMovementLoop() 
     {
-        if (ufo.position != target && sendUFO == true) 
+        WaitForSeconds wait = new WaitForSeconds(ufoDelay);
+        while (true) 
         {
-            float step = speed * Time.deltaTime;
-            ufo.position = Vector3.MoveTowards(ufo.position, target, step);
+            yield return wait;
+            float time = 0;
+            Vector3 startPosition = transform.position;
+            while (time < speed)
+            {
+                transform.position = Vector3.Lerp(startPosition, target_position, time / speed);
+                time += Time.deltaTime;
+                yield return null;
+            }
+            transform.position = reset_position;
         }
-        else if(sendUFO == true)
-        {
-            sendUFO = false;
-            ufo.position = reset;
-            StartCoroutine(WaitForUFO());
-        }
-    }
-    IEnumerator WaitForUFO() 
-    {
-
-        yield return new WaitForSeconds(ufoDelay);
-        sendUFO = true;
     }
 }   

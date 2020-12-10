@@ -451,16 +451,16 @@ public class ClientInventoryTool
     //TOOL: Sort Slots
     public static void SortSlots(Item[] items, UI_ItemSlot[] slots)
     {
-        foreach (Item item in items)
+        for (int i = 0; i < items.Length; i++)
         {
-            foreach (UI_ItemSlot slot in slots)
+            for (int e = 0; e < slots.Length; e++)
             {
-                if (item.currSlot == slot.slotNumber)
+                if (items[i].currSlot == slots[e].slotNumber)
                 {
-                    ItemData data = ItemDataManager.Singleton.GetItemData(item.itemID);
+                    ItemData data = ItemDataManager.Singleton.GetItemData(items[i].itemID);
                     if (data != null)
                     {
-                        slot.AddItem(item, data);
+                        slots[e].AddItem(items[i], data);
                     }
                     break;
                 }

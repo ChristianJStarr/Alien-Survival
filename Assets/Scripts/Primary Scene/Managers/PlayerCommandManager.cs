@@ -18,6 +18,10 @@ public class PlayerCommandManager : MonoBehaviour
     public int selectedSlot;
     public int lastSelectedSlot;
 
+    //Counter for Sending Correction 
+    public int sendCorrectionAmount = 20; //Amount of frames until correction is sent
+    private int currentFrame = 0;
+
 
     private void Start()
     {
@@ -36,10 +40,11 @@ public class PlayerCommandManager : MonoBehaviour
         lastPosition = controlObject.transform.position;
     }
 
-    void FixedUpdate() //60 times per second.
+    void FixedUpdate() //50 times per second.
     {
         RotatePlayerLocally();
         SendPlayerCommand();
+        currentFrame++;
     }
 
     //Attempt to send Player Command to Server
@@ -54,6 +59,7 @@ public class PlayerCommandManager : MonoBehaviour
             AnimatePlayerLocally(); //Animate Player
             lastSelectedSlot = selectedSlot; //Set last selected slot
             gameServer.ClientSendPlayerCommand(command); //Send out this command
+            DebugMenu.UpdateCommand(command);
         }
         else if (controlObject != null)
         {
@@ -67,6 +73,12 @@ public class PlayerCommandManager : MonoBehaviour
         command.networkTime = networkingManager.NetworkTime;
         command.move.x = CrossPlatformInputManager.GetAxis("Horizontal");
         command.move.y = CrossPlatformInputManager.GetAxis("Vertical");
+        if (currentFrame == sendCorrectionAmount)
+        {
+            currentFrame = 0;
+            command.correction = true;
+            command.correction_position = controlObject.transform.position;
+        }
         command.look.y = controlObject.transform.rotation.eulerAngles.y;
         command.look.x = controlObject.cameraObject.localRotation.eulerAngles.x;
         command.jump = CrossPlatformInputManager.GetButton("Jump");
@@ -114,20 +126,8 @@ public class PlayerCommandManager : MonoBehaviour
     {
         if (controlObject == null) return;
         //Animate
-        Vector3 distance = (controlObject.transform.position - lastPosition);
-        if (distance != Vector3.zero) 
-        {
-            distance /= Time.deltaTime;
-            distance = controlObject.transform.InverseTransformDirection(distance);
-            distance.x = Mathf.Clamp(distance.x, -1, 2);
-            distance.z = Mathf.Clamp(distance.z, -1, 1);
-            controlObject.Animate(new Vector2(distance.x, distance.z));
-            lastPosition = controlObject.transform.position;
-        }
-        else 
-        {
-            controlObject.Animate(Vector2.zero);
-        }
+        controlObject.Animate(GetAnimationVector(controlObject.transform, lastPosition));
+        lastPosition = controlObject.transform.position;
     }
 
     //Is the current command valuable enough for send?
@@ -135,6 +135,22 @@ public class PlayerCommandManager : MonoBehaviour
     {
         return (command.look != lastLook || command.move.magnitude > 0 || command.jump || command.crouch || command.use || command.selectedSlot != lastSelectedSlot);
     }
+
+    
+    public static Vector2 GetAnimationVector(Transform current, Vector3 previous) 
+    {
+        //Animate
+        Vector3 distance = (current.position - previous);
+        if (distance != Vector3.zero)
+        {
+            distance /= Time.deltaTime;
+            distance = current.InverseTransformDirection(distance);
+            distance.x = Mathf.Clamp(distance.x, -1, 2);
+            distance.z = Mathf.Clamp(distance.z, -1, 1);
+        }
+        return new Vector2(distance.x, distance.z);
+    }
+
 }
 
 public class PlayerCommand 
@@ -147,6 +163,9 @@ public class PlayerCommand
     public Vector2 move;
     //Look Axis
     public Vector2 look;
+
+    public bool correction = false;
+    public Vector3 correction_position;
 
     //Buttons
     public bool jump;

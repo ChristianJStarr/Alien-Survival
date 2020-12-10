@@ -1,17 +1,11 @@
 ﻿using System.Collections;
-using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-/// <summary>
-/// Main Menu Scene. Primary Script
-/// </summary>
+
 public class MainMenuScript : MonoBehaviour
 {
-    //What: Main Menu Scene Controller. 
-    //Where: MainMenu Scene / UI
-
     public Animator alienAnimator; //Animator of Alien Model
     public PlayerStats playerStats; //Stored player data.
     public GameObject mainScreen; //Main Screen.
@@ -23,37 +17,10 @@ public class MainMenuScript : MonoBehaviour
     public Slider loadSlider; //Loading Screen slider.
     public Camera cam; //Scene Camera.
     public GameObject easterEggBeam;
-    static Transform camReset; //Camera default positon to reset to.
-
     public TextMeshProUGUI loadTip, loadMainText;
+    private TouchPhase touchPhase = TouchPhase.Ended;//Touch Phase
 
 
-    //Camera locations for switching screens effect.
-    public Vector3 playTargetCord;
-    public Quaternion playTargetRot;
-    public Vector3 profTargetCord;
-    public Quaternion profTargetRot;
-
-    //Defaults for above positions and rotations.
-    private Vector3 resetTargetCord;
-    private Quaternion resetTargetRot;
-    private Vector3 camTargetposition;
-    private Quaternion camTargetrotation;
-
-    //Touch Phase
-    private TouchPhase touchPhase = TouchPhase.Ended;
-
-    //Move Camera on Menu Change
-    private bool moveCameraOnMenuChange = false;
-
-    void Start() 
-    {
-        camReset = cam.transform;
-        resetTargetCord = camReset.position;
-        resetTargetRot = camReset.localRotation;
-        camTargetposition = resetTargetCord;
-        camTargetrotation = resetTargetRot;
-    }
     void Update()
     {
         //Detect double click for easter egg.
@@ -73,23 +40,7 @@ public class MainMenuScript : MonoBehaviour
                 }
             }
         }
-
-
-        //Move Camera On Menu Change
-        if (moveCameraOnMenuChange) 
-        {
-            float step = 15 * Time.deltaTime;
-            if (cam.transform.position != camTargetposition)
-            {
-                cam.transform.position = Vector3.MoveTowards(cam.transform.position, camTargetposition, step);
-            }
-            if (cam.transform.localRotation.y != camTargetrotation.y)
-            {
-                cam.transform.localRotation = Quaternion.RotateTowards(cam.transform.localRotation, camTargetrotation, step);
-            }
-        }
     }
-
 
     //Toggle the Loading Screen
     public void LoadingScreen(bool value) 
@@ -109,11 +60,6 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         onlineMenu.SetActive(true);
-        if (moveCameraOnMenuChange)
-        {
-            camTargetposition = playTargetCord;
-            camTargetrotation = playTargetRot;
-        }
     }
     
     //Open Profile Menu
@@ -121,11 +67,6 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         profileMenu.SetActive(true);
-        if (moveCameraOnMenuChange)
-        {
-            camTargetposition = profTargetCord;
-            camTargetrotation = profTargetRot;
-        }
     }
     
     //Open Settings Menu
@@ -133,11 +74,6 @@ public class MainMenuScript : MonoBehaviour
     {
         mainScreen.SetActive(false);
         settingsMenu.SetActive(true);
-        if (moveCameraOnMenuChange)
-        {
-            camTargetposition = profTargetCord;
-            camTargetrotation = profTargetRot;
-        }
     }
     
     //Close all Menus
@@ -149,13 +85,26 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         alienStore.SetActive(false);
         mainScreen.SetActive(true);
-        if (moveCameraOnMenuChange)
-        {
-            camTargetposition = resetTargetCord;
-            camTargetrotation = resetTargetRot;
-        }
     }
-    
+
+    //Open Alien Store
+    public void AlienStore()
+    {
+        mainScreen.SetActive(false);
+        alienStore.SetActive(true);
+    }
+
+    //Close All
+    public void CloseAll()
+    {
+        onlineMenu.SetActive(false);
+        profileMenu.SetActive(false);
+        loadScreen.SetActive(false);
+        settingsMenu.SetActive(false);
+        alienStore.SetActive(false);
+        mainScreen.SetActive(false);
+    }
+
     //Load the Game Function
     public void LoadGame() 
     {
@@ -165,11 +114,6 @@ public class MainMenuScript : MonoBehaviour
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
         StartLoadTip();
-        if (moveCameraOnMenuChange)
-        {
-            camTargetposition = resetTargetCord;
-            camTargetrotation = resetTargetRot;
-        }
     }
 
     //Log Out Function
@@ -198,33 +142,6 @@ public class MainMenuScript : MonoBehaviour
         //TODO: Make this shit work. 
     }
     
-    //Alien Store
-    public void AlienStore() 
-    {
-        mainScreen.SetActive(false);
-        alienStore.SetActive(true);
-        if (moveCameraOnMenuChange)
-        {
-            camTargetposition = profTargetCord;
-            camTargetrotation = profTargetRot;
-        }
-    }
-
-
-    public void CloseAll() 
-    {
-        onlineMenu.SetActive(false);
-        profileMenu.SetActive(false);
-        loadScreen.SetActive(false);
-        settingsMenu.SetActive(false);
-        alienStore.SetActive(false);
-        mainScreen.SetActive(false);
-        if (moveCameraOnMenuChange)
-        {
-            camTargetposition = resetTargetCord;
-            camTargetrotation = resetTargetRot;
-        }
-    }
 
     //Load Routine
     private IEnumerator LoadRoutine()
