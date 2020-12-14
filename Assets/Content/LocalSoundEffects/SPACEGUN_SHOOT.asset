@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 12e9ad6efcc9b064682f09e96071eb0d, type: 3}
-  m_Name: GUNSHOT_AR15_01
+  m_Name: SPACEGUN_SHOOT
   m_EditorClassIdentifier: 
+  soundEffectId: 1
   distance: 500
   volume: 0.5
   audioClips:

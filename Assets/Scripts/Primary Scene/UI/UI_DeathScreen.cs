@@ -29,8 +29,8 @@ public class UI_DeathScreen : MonoBehaviour
     public void DisableScreen() 
     {
         DeathCam.Hide();
-        gameObject.SetActive(false);
         ToggleDarkPostFx(false);
+        gameObject.SetActive(false);
     }
 
     //Toggle Dark Grayscale Post Fx
@@ -38,7 +38,7 @@ public class UI_DeathScreen : MonoBehaviour
     {
         if (value) 
         {
-            LerpPostFx(1, 10);
+            LerpPostFx(1, 2);
         }
         else 
         {

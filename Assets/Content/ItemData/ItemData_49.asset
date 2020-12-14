@@ -12,33 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_49
   m_EditorClassIdentifier: 
+  itemId: 49
+  itemName: Gun Powder
+  description: This is aGun Powder.
   icon: {fileID: 21300000, guid: 9d43e7319d535ff41afb1f491d4a79b7, type: 3}
-  itemID: 49
-  craftAmount: 10
   maxItemStack: 200
   armorType: 0
-  toolId: 0
-  toolGatherAmount: 0
+  isUsable: 0
+  startMaxDurability: 0
   useType: 0
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse: []
   maxDurability: 0
   durabilityId: 0
+  durabilityRefilId: 0
+  isHoldable: 0
   holdableId: 0
-  itemName: Gun Powder
-  description: This is aGun Powder.
+  holdableObject: {fileID: 0}
+  isCraftable: 1
+  craftAmount: 10
   recipe:
   - 33-5
   - 46-5
+  isPlaceable: 0
+  placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
   useSound: 
   hitSound: 
-  isCraftable: 1
-  isPlaceable: 0
-  isHoldable: 0
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 0
-  holdableObject: {fileID: 0}
-  placeableItem: {fileID: 0}

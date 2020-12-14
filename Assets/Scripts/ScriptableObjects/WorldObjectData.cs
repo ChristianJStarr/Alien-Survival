@@ -11,7 +11,7 @@ public class WorldObjectData : ScriptableObject
     [SerializeField] public int objectLevel = 0;
     [SerializeField] public GameObject objectPrefab;
     //Gather Specs
-    [SerializeField] public int gatherItemId = 0; //Gather Item ID
+    [SerializeField] public int gatheritemId = 0; //Gather Item ID
     [SerializeField] public int gatherAmount = 0; //Per Gather Amount
     [SerializeField] public int toolId;//Tool to Gather
 }

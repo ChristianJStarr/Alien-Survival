@@ -12,31 +12,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_40
   m_EditorClassIdentifier: 
+  itemId: 40
+  itemName: Log
+  description: This is aLog.
   icon: {fileID: 21300000, guid: 4f61213f599ceac4f8c55a6c10295acb, type: 3}
-  itemID: 40
-  craftAmount: 1
   maxItemStack: 200
   armorType: 0
-  toolId: 0
-  toolGatherAmount: 0
+  isUsable: 0
+  startMaxDurability: 0
   useType: 0
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse: []
   maxDurability: 0
   durabilityId: 0
+  durabilityRefilId: 0
+  isHoldable: 0
   holdableId: 0
-  itemName: Log
-  description: This is aLog.
+  holdableObject: {fileID: 0}
+  isCraftable: 0
+  craftAmount: 1
   recipe: []
+  isPlaceable: 0
+  placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
   useSound: 
   hitSound: 
-  isCraftable: 0
-  isPlaceable: 0
-  isHoldable: 0
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 0
-  holdableObject: {fileID: 0}
-  placeableItem: {fileID: 0}

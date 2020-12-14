@@ -6,7 +6,7 @@ using UnityEngine;
 public class ItemData : ScriptableObject
 {
     //-----------------Item Data-------------------
-    [SerializeField] public int itemID = 0;
+    [SerializeField] public int itemId = 0;
     [SerializeField] public string itemName = "New Item";
     [SerializeField] public string description = "This is the description for this item";
     [SerializeField]public Sprite icon = null;
@@ -55,8 +55,8 @@ public class ItemData : ScriptableObject
     [SerializeField] public int toolGatherAmount;
 
     //-------------------Item Sounds--------------------
-    [SerializeField] public string useSound;
-    [SerializeField] public string hitSound;
+    [SerializeField] public int useSoundId;
+    [SerializeField] public int hitSoundId;
 
     
 }

@@ -12,34 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_21
   m_EditorClassIdentifier: 
+  itemId: 21
+  itemName: Axe
+  description: This is aAxe.
   icon: {fileID: 21300000, guid: 6fd5cae3b5c035742a512239d3fecf57, type: 3}
-  itemID: 21
-  craftAmount: 1
   maxItemStack: 1
   armorType: 0
-  toolId: 1
-  toolGatherAmount: 10
+  isUsable: 0
+  startMaxDurability: 1
   useType: 3
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse:
   - 4-30
   maxDurability: 1000
   durabilityId: 0
-  holdableId: 1
-  itemName: Axe
-  description: This is aAxe.
-  recipe:
-  - 37-1
-  useSound: 
-  hitSound: AXE_CHOP
-  isCraftable: 1
-  isPlaceable: 0
+  durabilityRefilId: 0
   isHoldable: 1
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 1
+  holdableId: 1
   holdableObject: {fileID: 4603395025206164037, guid: b36da94937023614ca88bc59c55bad2d,
     type: 3}
+  isCraftable: 1
+  craftAmount: 1
+  recipe:
+  - 37-1
+  isPlaceable: 0
   placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 1
+  toolGatherAmount: 10
+  useSound: 
+  hitSound: AXE_CHOP

@@ -11,10 +11,9 @@ public class UI_CraftSlide : MonoBehaviour, IPointerClickHandler
     public Image bkg;
     public TextMeshProUGUI textname;
     public ItemData item;
+    public int itemId;
     public bool crafting;
     public bool craftable;
-
-    private UI_CraftingMenu craftingMenu;
 
     private Color onColor = new Color32(67, 67, 67, 180);
     private Color offColor = new Color32(67, 67, 67, 85);
@@ -25,13 +24,12 @@ public class UI_CraftSlide : MonoBehaviour, IPointerClickHandler
     {
         if(item != null) 
         {
-            craftingMenu.ShowTooltip(item);
+            UI_CraftingMenu.Singleton.ShowTooltip(item);
         }
     }
 
-    public void Craftable(bool value, ItemData itemData, UI_CraftingMenu menu)
+    public void Craftable(bool value, ItemData itemData)
     {
-        craftingMenu = menu;
         item = itemData;
         image.sprite = itemData.icon;
         textname.text = itemData.itemName;

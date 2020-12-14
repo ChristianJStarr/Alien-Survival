@@ -12,33 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_2
   m_EditorClassIdentifier: 
+  itemId: 2
+  itemName: Spacegun Mk2
+  description: This is the description for this item
   icon: {fileID: 21300000, guid: d64ea7b4564175b47a132ea9c6b2e40f, type: 3}
-  itemID: 2
-  craftAmount: 0
   maxItemStack: 1
   armorType: 0
-  toolId: 0
-  toolGatherAmount: 0
+  isUsable: 0
+  startMaxDurability: 0
   useType: 0
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse:
   - 4-10
   maxDurability: 20
   durabilityId: 50
-  holdableId: 0
-  itemName: Spacegun Mk2
-  description: This is the description for this item
-  recipe: []
-  useSound: 
-  hitSound: 
-  isCraftable: 0
-  isPlaceable: 0
+  durabilityRefilId: 0
   isHoldable: 1
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 0
+  holdableId: 0
   holdableObject: {fileID: 1808944862765798190, guid: b118503ab8878974d8777060c23ad002,
     type: 3}
+  isCraftable: 0
+  craftAmount: 0
+  recipe: []
+  isPlaceable: 0
   placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
+  useSound: 
+  hitSound: 

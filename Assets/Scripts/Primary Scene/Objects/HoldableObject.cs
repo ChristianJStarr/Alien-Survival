@@ -8,7 +8,11 @@ public class HoldableObject : MonoBehaviour
     public int state = 0;
 
     public Animator animator;
-    
+    public Transform useParticlePoint;
+
+    public Transform rightHandTarget;
+    public Transform leftHandTarget;
+
 
     private void Start() 
     {
@@ -20,7 +24,6 @@ public class HoldableObject : MonoBehaviour
     {
         //To be overridden;
     }
-
 
 
 }

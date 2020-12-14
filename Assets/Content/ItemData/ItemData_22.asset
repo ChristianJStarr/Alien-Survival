@@ -12,33 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_22
   m_EditorClassIdentifier: 
+  itemId: 22
+  itemName: Pipe
+  description: This is aPipe.
   icon: {fileID: 21300000, guid: 05c7216c78d4dd34ebe2bac9c1e274d7, type: 3}
-  itemID: 22
-  craftAmount: 1
   maxItemStack: 1
   armorType: 0
-  toolId: 0
-  toolGatherAmount: 0
+  isUsable: 0
+  startMaxDurability: 0
   useType: 0
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse:
   - 4-15
   maxDurability: 0
   durabilityId: 0
+  durabilityRefilId: 0
+  isHoldable: 1
   holdableId: 0
-  itemName: Pipe
-  description: This is aPipe.
+  holdableObject: {fileID: 0}
+  isCraftable: 1
+  craftAmount: 1
   recipe:
   - 39-2
+  isPlaceable: 0
+  placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
   useSound: 
   hitSound: 
-  isCraftable: 1
-  isPlaceable: 0
-  isHoldable: 1
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 0
-  holdableObject: {fileID: 0}
-  placeableItem: {fileID: 0}

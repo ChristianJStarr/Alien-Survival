@@ -1,7 +1,5 @@
 ﻿using MLAPI;
 using MLAPI.LagCompensation;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerInteractSystem : MonoBehaviour
@@ -18,8 +16,8 @@ public class PlayerInteractSystem : MonoBehaviour
         return !systemEnabled;
     }
 
-
-
+    public GameServer gameServer;
+    public PlayerObjectSystem playerObjectSystem;
     public PlayerInfoSystem playerInfoSystem;
     public WorldAISystem worldAISystem;
 
@@ -36,57 +34,53 @@ public class PlayerInteractSystem : MonoBehaviour
     {
         if (controlObject.selectedSlot != 0)
         {
-            Item item = playerInfoSystem.Inventory_GetItemFromSlot(clientId, controlObject.selectedSlot);
+            Item item = playerInfoSystem.Inventory_GetItemBySlot(clientId, controlObject.selectedSlot);
             if (item != null)
             {
                 //Item in hand
-                ItemData data = ItemDataManager.Singleton.GetItemData(item.itemID);
+                ItemData data = ItemDataManager.Singleton.GetItemData(item.itemId);
                 if (data != null && data.isUsable) //Item can be used 
                 {
                     if (data.useType == 1) //Shoot
                     {
                         Interact_Shoot(clientId, networkTime, item, data, controlObject);
+                        return;
                     }
                     else if (data.useType == 2) //Melee
                     {
                         Interact_Melee(clientId, networkTime, item, data, controlObject);
+                        return;
                     }
                     else if (data.useType == 3) //Tool
                     {
                         Interact_Tool(clientId, networkTime, item, data, controlObject);
+                        return;
                     }
                     else if (data.useType == 4) //Consume
                     {
                         Interact_Consume(clientId, networkTime, item, data, controlObject);
+                        return;
                     }
                     else if (data.useType == 5) //Build
                     {
                         Interact_Build(clientId, networkTime, item, data, controlObject);
-                    }
-                    else
-                    {
-                        Interact_Clickable(clientId, networkTime, controlObject);
+                        return;
                     }
                 }
-                else
-                {
-                    Interact_Clickable(clientId, networkTime, controlObject);
-                }
             }
-            else
-            {
-                Interact_Clickable(clientId, networkTime, controlObject);
-            }
-        }
-        else
-        {
-            Interact_Clickable(clientId, networkTime, controlObject);
-        }
+        } 
+        Interact_Clickable(clientId, networkTime, controlObject);
     }
 
     //Shoot
     private void Interact_Shoot(ulong clientId, float networkTime, Item item, ItemData data, PlayerControlObject controlObject)
     {
+        //If enough Ammo
+        //Set Holdable State Primary
+        //Spawn muzzleflash particle
+        //Play shot sound
+        //Detect Damage
+
         Interact_LagCompensateRaycast(networkTime, () =>
         {
             RaycastHit hit;
@@ -99,14 +93,29 @@ public class PlayerInteractSystem : MonoBehaviour
                     ClickableObject clickable = hit.collider.GetComponent<ClickableObject>();
                     if (clickable != null)
                     {
-                        //Interact with Clickable
+                        Interact_ClickableTask(clientId, clickable);
                     }
                 }
-                else if (item.durability > 0 && playerInfoSystem.Inventory_ChangeItemDurability(clientId, -1, data.maxDurability, item.currSlot))
+                else if (item.durability > 0 && playerInfoSystem.Inventory_ChangeItemDurability(clientId, item.currSlot, -1))
                 {
+                    //Effect Durability
+                    item.durability -= 1;
+
+                    //Set Animation State
+                    controlObject.holdableId = data.holdableId;
+                    controlObject.holdableState = 1;
+
+                    //Spawn Particle
+                    gameServer.Server_SpawnParticle(data.useParticleId, controlObject.holdableObject.useParticlePoint.position, 100);
+
+                    //Play Gunshot Sound
+                    gameServer.Server_PlaySoundEffect(data.useSoundId, controlObject.transform.position, 500, clientId);
+
+
                     //Damage Health of Object
                     if (hit.distance <= data.useRange)
                     {
+                        int particleId = 1; //Particle ID
                         if (hit.collider.CompareTag("Player"))
                         {
                             PlayerControlObject hitPlayer = hit.collider.GetComponent<PlayerControlObject>();
@@ -114,6 +123,8 @@ public class PlayerInteractSystem : MonoBehaviour
                             {
                                 //Damage Player
                                 playerInfoSystem.SetPlayerHealth(hitPlayer.OwnerClientId, data.useAmount, true);
+                                //Set Particle
+                                particleId = 2;
                             }
                         }
                         else if (hit.collider.CompareTag("AI"))
@@ -121,9 +132,19 @@ public class PlayerInteractSystem : MonoBehaviour
                             AIControlObject hitAI = hit.collider.GetComponent<AIControlObject>();
                             if (hitAI != null)
                             {
+                                //Damage AI
                                 worldAISystem.DamageAI(hitAI.NetworkId, data.useAmount);
+                                //Set Particle
+                                particleId = 2;
                             }
                         }
+
+
+                        //Spawn Particle
+                        gameServer.Server_SpawnParticle(data.useParticleId, controlObject.holdableObject.useParticlePoint.position, 100);
+
+                        //Play Hit Sound
+                        gameServer.Server_PlaySoundEffect(data.hitSoundId, hit.transform.position, 500);
                     }
                 }
                 else
@@ -172,13 +193,17 @@ public class PlayerInteractSystem : MonoBehaviour
                     ClickableObject clickable = hit.collider.GetComponent<ClickableObject>();
                     if (clickable != null)
                     {
-                        //Interact with Clickable
+                        Interact_ClickableTask(clientId, clickable);
                     }
                 }
             }
         });
     }
 
+    private void Interact_ClickableTask(ulong clientId, ClickableObject clickable) 
+    {
+        Debug.Log("Client:" + clientId + " Interacting with Clickable");
+    }
 
 
     //Interact Callback -> To Client
@@ -187,7 +212,7 @@ public class PlayerInteractSystem : MonoBehaviour
 
     }
 
-    //Lag Compensation Wrap
+    //Lag Compensation Wrapper
     private void Interact_LagCompensateRaycast(float networkTime, System.Action action)
     {
         LagCompensationManager.Simulate(NetworkingManager.Singleton.NetworkTime - networkTime, action);

@@ -12,7 +12,7 @@ public class WorldSnapshotSystem : MonoBehaviour
     private GameServer gameServer; //Game Server
 
     //Systems & Managers
-    public PlayerCommandSystem commandSystem;
+    public PlayerObjectSystem playerObjectSystem;
     public WorldAISystem worldAISystem;
     public WorldObjectSystem worldObjectSystem;
     private NetworkingManager networkingManager;
@@ -55,7 +55,7 @@ public class WorldSnapshotSystem : MonoBehaviour
 
         return systemEnabled;
     }
-    //Stop System
+    //Stop System 
     public bool StopSystem() 
     {
         systemEnabled = false;
@@ -205,26 +205,14 @@ public class WorldSnapshotSystem : MonoBehaviour
     //Read World State & Create Snapshot
     private Snapshot CreateWorldSnapshot() 
     {
-        Snapshot fullSnapshot = new Snapshot();
-        //Convert Players To Snapshot
-        PlayerControlObject[] players = commandSystem.players.Values.ToArray();
-        fullSnapshot.players = new Snapshot_Player[players.Length];
-        for (int i = 0; i < players.Length; i++)
+        Snapshot fullSnapshot = new Snapshot() 
         {
-            fullSnapshot.players[i] = players[i].ConvertToSnapshot();
-        }
-        //Convert AI To Snapshot
-        AIControlObject[] ai = worldAISystem.ai.ToArray();
-        fullSnapshot.ai = new Snapshot_AI[ai.Length];
-        for (int i = 0; i < ai.Length; i++)
-        {
-            fullSnapshot.ai[i] = ai[i].ConvertToSnapshot();
-        }
-        //Convert WorldObjects To Snapshot
-        fullSnapshot.worldObjects = worldObjectSystem.GetWorldObjectsSnapshot();
-        //Set Time & ID
-        fullSnapshot.networkTime = networkingManager.NetworkTime;
-        fullSnapshot.snapshotId = _snapshotId;
+            players = playerObjectSystem.GetControlObjectSnapshot(),
+            worldObjects = worldObjectSystem.GetWorldObjectsSnapshot(),
+            ai = worldAISystem.GetAIObjectsSnapshot(),
+            networkTime = networkingManager.NetworkTime,
+            snapshotId = _snapshotId
+        };
         //Add to Id inc
         _snapshotId++;
         if (_snapshotId > 100) _snapshotId = 1;

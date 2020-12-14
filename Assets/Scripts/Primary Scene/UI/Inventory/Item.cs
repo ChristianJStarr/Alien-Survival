@@ -4,7 +4,7 @@ using UnityEngine;
 [Serializable]
 public class Item
 {
-    [SerializeField] public int itemID = 0;
+    [SerializeField] public int itemId = 0;
     [SerializeField] public int itemStack = 0;
     [SerializeField] public int currSlot = 0;
     [SerializeField] public int durability = 0;

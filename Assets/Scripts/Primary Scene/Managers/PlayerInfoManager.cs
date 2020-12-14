@@ -1,4 +1,6 @@
 ﻿using MLAPI;
+using MLAPI.Serialization.Pooled;
+using System.IO;
 using UnityEngine;
 
 public class PlayerInfoManager : MonoBehaviour
@@ -18,16 +20,16 @@ public class PlayerInfoManager : MonoBehaviour
     public LoadAwake loadAwake;
     public UI_Topbar topbar;
     private GameServer gameServer;
-    private PlayerInfo storedPlayerInfo;
+    public PlayerInfo storedPlayerInfo;
     private Backpack playerBackpack;
     private string authKey;
-    private bool firstRequest = true;
+
+    private int lastHealth = 100;
 
     private void Start()
     {
         if(NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient)
         {
-            storedPlayerInfo = new PlayerInfo();
             gameServer = GameServer.singleton;
             authKey = PlayerPrefs.GetString("authKey");
         }
@@ -37,22 +39,96 @@ public class PlayerInfoManager : MonoBehaviour
         }
     }
 
-    //-------Update Inventory
-    private void UpdatedInventory()
+
+
+    //Primary Intake for PlayerInfo. Called from GameServer ClientRPC
+    public void IntakeStream(Stream stream) 
     {
-        DebugMsg.Notify("InfoManager : Updating Inventory.", 3);
-        inventory.Incoming(storedPlayerInfo.items, storedPlayerInfo.armor, storedPlayerInfo.blueprints);
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            if (storedPlayerInfo == null || storedPlayerInfo.inventory == null)
+            {
+                storedPlayerInfo = new PlayerInfo()
+                {
+                    inventory = new Inventory()
+                };
+            }
+            int depth = reader.ReadInt32Packed();
+            if (depth == 1)//All
+            {
+                storedPlayerInfo.health = reader.ReadInt32Packed();
+                storedPlayerInfo.food = reader.ReadInt32Packed();
+                storedPlayerInfo.water = reader.ReadInt32Packed();
+                int inventoryLength = reader.ReadInt32Packed();
+                if (inventoryLength > 0)
+                {
+                    storedPlayerInfo.inventory.Clear();
+                    for (int i = 0; i < inventoryLength; i++)
+                    {
+                        storedPlayerInfo.inventory.items.Add(new Item()
+                        {
+                            itemId = reader.ReadInt32Packed(),
+                            itemStack = reader.ReadInt32Packed(),
+                            currSlot = reader.ReadInt32Packed(),
+                            durability = reader.ReadInt32Packed()
+                        });
+                    }
+                }
+                storedPlayerInfo.inventory.blueprints = reader.ReadIntArrayPacked();
+                UpdateAll();
+            }
+            else if (depth == 2)//Health
+            {
+                storedPlayerInfo.health = reader.ReadInt32Packed();
+                UpdateHealth();
+            }
+            else if (depth == 3)//Food
+            {
+                storedPlayerInfo.food = reader.ReadInt32Packed();
+                UpdateFood();
+            }
+            else if (depth == 4)//Water
+            {
+                storedPlayerInfo.water = reader.ReadInt32Packed();
+                UpdateWater();
+            }
+            else if (depth == 5)//Items
+            {
+                int inventoryLength = reader.ReadInt32Packed();
+                if (inventoryLength > 0)
+                {
+                    storedPlayerInfo.inventory.Clear();
+                    for (int i = 0; i < inventoryLength; i++)
+                    {
+                        storedPlayerInfo.inventory.items.Add(new Item()
+                        {
+                            itemId = reader.ReadInt32Packed(),
+                            itemStack = reader.ReadInt32Packed(),
+                            currSlot = reader.ReadInt32Packed(),
+                            durability = reader.ReadInt32Packed()
+                        });
+                    }
+                    UpdateInventory();
+                }
+            }
+            else if (depth == 7) //Blueprints
+            {
+                storedPlayerInfo.inventory.blueprints = reader.ReadIntArrayPacked();
+                UpdateInventory();
+            }
+            else if (depth == 8) //Health / Food / Water
+            {
+                storedPlayerInfo.health = reader.ReadInt32Packed();
+                storedPlayerInfo.food = reader.ReadInt32Packed();
+                storedPlayerInfo.water = reader.ReadInt32Packed();
+                UpdateHealth();
+            }
+        }
     }
 
-    //-------Update Top Bar
-    private void UpdatedTopbar()
-    {
-        DebugMsg.Notify("InfoManager : Updating TopBar.", 3);
-        topbar.Incoming(storedPlayerInfo.health, 0, storedPlayerInfo.water, storedPlayerInfo.food);
-    }
-    
-    
-    
+
+
+
     //-----------------------------------------------------------------//
     //                      Clickable - Storage                        //
     //-----------------------------------------------------------------//
@@ -80,79 +156,41 @@ public class PlayerInfoManager : MonoBehaviour
 
 
     //-----------------------------------------------------------------//
-    //             Update PlayerInfo Called From Server                //
+    //    Update Specific Components that use Live PlayerInfo          //
     //-----------------------------------------------------------------//
 
-    public void UpdateAll(PlayerInfo info)
+    //Entire PlayerInfo could have Changed
+    public void UpdateAll()
     {
-        if (storedPlayerInfo == null) return;
-        storedPlayerInfo = info;
-        UpdatedInventory();
-        UpdatedTopbar();
-        if (firstRequest && loadAwake != null)
-        {
-            loadAwake.playerHasInfo = true;
-            firstRequest = false;
-        }
+        inventory.Incoming();
+        topbar.Incoming(storedPlayerInfo.health, 0, storedPlayerInfo.water, storedPlayerInfo.food);
+        BackpackEffect();
     }
-    public void UpdateHealth(int health) 
+    //Health has Changed
+    public void UpdateHealth() 
     {
-        if (storedPlayerInfo == null) return;
-        if (storedPlayerInfo.health > health)
-        {
-            if (playerBackpack != null)
-            {
-                playerBackpack.UpdateBackpackGlow(1);
-            }
-        }
-        else if (storedPlayerInfo.health < health)
-        {
-            if (playerBackpack != null)
-            {
-                playerBackpack.UpdateBackpackGlow(2);
-            }
-        }
-        storedPlayerInfo.health = health;
-        UpdatedTopbar();
+        topbar.Incoming(storedPlayerInfo.health, 0, storedPlayerInfo.water, storedPlayerInfo.food);
+        BackpackEffect();
     }
-    public void UpdateFood(int food) 
+    //Food has Changed
+    public void UpdateFood() 
     {
-        if (storedPlayerInfo == null) return;
-        storedPlayerInfo.food = food;
-        UpdatedTopbar();
+        topbar.Incoming(storedPlayerInfo.health, 0, storedPlayerInfo.water, storedPlayerInfo.food);
     }
-    public void UpdateWater(int water) 
+    //Water has Changed
+    public void UpdateWater() 
     {
-        if (storedPlayerInfo == null) return;
-        storedPlayerInfo.water = water;
-        UpdatedTopbar();
+        topbar.Incoming(storedPlayerInfo.health, 0, storedPlayerInfo.water, storedPlayerInfo.food);
     }
-    public void UpdateItems(Item[] items) 
+    //Inventory has Changed
+    public void UpdateInventory() 
     {
-        if (storedPlayerInfo == null) return;
-        storedPlayerInfo.items = items;
-        UpdatedInventory();
+        inventory.Incoming();
     }
-    public void UpdateArmor(Item[] armor) 
-    {
-        if (storedPlayerInfo == null) return;
-        storedPlayerInfo.armor = armor;
-        UpdatedInventory();
-    }
-    public void UpdateBlueprints(int[] blueprints) 
-    {
-        if (storedPlayerInfo == null) return;
-        storedPlayerInfo.blueprints = blueprints;
-        UpdatedInventory();
-    }
-
-
-
 
     //-----------------------------------------------------------------//
-    //             Player Request : Modify Own Values                  //
+    //             Player Requests to Modify Own Values                //
     //-----------------------------------------------------------------//
-
 
     //Move Item By Slots
     public void MoveItemBySlots(int oldSlot, int newSlot) 
@@ -169,12 +207,25 @@ public class PlayerInfoManager : MonoBehaviour
     {
         gameServer.CraftItemById(authKey, itemId, amount);
     }
-
     //Split Item by Slot & Amount
     public void SplitItemBySlot(int slot, int amount) 
     {
         gameServer.ClientSplitItemBySlot(authKey, slot, amount);
     }
-
-    
+    //Player Backpack Effect
+    private void BackpackEffect() 
+    {
+        if (playerBackpack != null)
+        {
+            if (storedPlayerInfo.health > lastHealth)
+            {
+                playerBackpack.UpdateBackpackGlow(2);
+            }
+            else if (storedPlayerInfo.health < lastHealth)
+            {
+                playerBackpack.UpdateBackpackGlow(1);
+            }
+            lastHealth = storedPlayerInfo.health;
+        }
+    }
 }

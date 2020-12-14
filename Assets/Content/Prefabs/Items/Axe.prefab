@@ -116,7 +116,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 1
+  state: 0
   animator: {fileID: -796257302832582152}
+  useParticlePoint: {fileID: 0}
 --- !u!1 &7942918199229196437
 GameObject:
   m_ObjectHideFlags: 0

@@ -91,7 +91,7 @@ public class ServerConnect : MonoBehaviour
     //Connection Wait
     private IEnumerator ConnectionWait(string ip, ushort port)
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(0f);
         networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
         ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = ip;
         ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)port;
@@ -267,7 +267,10 @@ public class ServerConnect : MonoBehaviour
                 hoursAdd = 0,
                 time = DateTime.Now,
                 isNew = true,
-                blueprints = storedProperties.defaultPlayerBlueprints
+                inventory = new Inventory()
+                {
+                    blueprints = new int[5] {1,2,3,4,5}
+                }
             };
             if (gameServer.CreatePlayer(newPlayer)) 
             {

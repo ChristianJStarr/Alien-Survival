@@ -13,7 +13,7 @@ public class WorldAISystem : MonoBehaviour
     private bool systemEnabled;// Is this System Enabled
 
     public static WorldAISystem Singleton;
-    public PlayerCommandSystem playerCommandSystem;
+    public PlayerObjectSystem playerObjectSystem;
     private int frameCount = 0;
     public List<AIControlObject> ai = new List<AIControlObject>();
 
@@ -103,7 +103,17 @@ public class WorldAISystem : MonoBehaviour
         c_RunSpeed = sp.ai_RunSpeed;
     }
 
-
+    public Snapshot_AI[] GetAIObjectsSnapshot() 
+    {
+        int count = ai.Count;
+        Snapshot_AI[] instance = new Snapshot_AI[count];
+        for (int i = 0; i < count; i++)
+        {
+            if (ai[i] == null) return new Snapshot_AI[0];
+            instance[i] = ai[i].ConvertToSnapshot();
+        }
+        return instance;
+    }
 
 
     //-------------------AI Functions--------------------
@@ -310,7 +320,7 @@ public class WorldAISystem : MonoBehaviour
             aiPositions[i] = ai[i].transform.position;
         }
 
-        PlayerControlObject[] players = playerCommandSystem.players.Values.ToArray();
+        PlayerControlObject[] players = playerObjectSystem.GetAllPlayerControlObjects();
 
         int count = players.Length;
         Vector3[] playerPositions = new Vector3[count];

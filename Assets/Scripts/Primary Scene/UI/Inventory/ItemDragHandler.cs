@@ -24,54 +24,44 @@ public class ItemDragHandler : MonoBehaviour, IDropHandler
     //On Item Drop
     public void OnDrop(PointerEventData eventData)
     {
-        GameObject drop = eventData.pointerDrag;
-        UI_ItemSlot parent = drop.GetComponentInParent<UI_ItemSlot>();
-        if (parent == null)
+        GameObject eventObject = eventData.pointerDrag;
+        UI_ItemSlot itemSlot = eventObject.GetComponentInParent<UI_ItemSlot>();
+        if (itemSlot == null) return;
+        if(itemSlot.dragType == 1)
         {
-            return;
-        }
-        Item item = parent.getItem();
-        if (parent.dragType == 1)
-        {
-            if (HoveringOverSlots()) // Dragging Over Standard Inventory Slots
+            if (HoveringOverSlots())
             {
                 var raycastResults = new List<RaycastResult>();
-                
                 EventSystem.current.RaycastAll(eventData, raycastResults);
-                
                 if (raycastResults.Count > 0)
                 {
                     GameObject obj = raycastResults[0].gameObject;
-                    if (parent.getItem() != null)
+                    if (itemSlot.itemInSlot)
                     {
                         UI_ItemSlot newSlot = null;
-                        
+
                         if (obj.name == "Image")
                         {
                             newSlot = obj.GetComponentInParent<UI_ItemSlot>();
                         }
-                        else if(newSlot == null) 
+                        else if (newSlot == null)
                         {
                             newSlot = obj.GetComponent<UI_ItemSlot>();
                         }
                         if (newSlot != null)
                         {
-                            playerInfoManager.MoveItemBySlots(parent.slotNumber, newSlot.slotNumber);
+                            playerInfoManager.MoveItemBySlots(itemSlot.slotNumber, newSlot.slotNumber);
                         }
                     }
                 }
             }
-            else //Drop Item
+            else 
             {
-                if (parent.getItem() != null)
+                if (itemSlot.itemInSlot)
                 {
-                    playerInfoManager.RemoveItemBySlot(item.currSlot);
+                    playerInfoManager.RemoveItemBySlot(itemSlot.GetItem().currSlot);
                 }
             }
-        }
-        else if (parent.dragType == 2)
-        {
-            
         }
     }
 

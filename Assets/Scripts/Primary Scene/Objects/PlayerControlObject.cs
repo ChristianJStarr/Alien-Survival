@@ -3,13 +3,22 @@ using UnityEngine;
 
 public class PlayerControlObject : NetworkedBehaviour
 {
+    public ulong owner_clientId;
+    public ulong owner_networkId;
+
+
+
+
     public CharacterController characterController;
     public Transform cameraObject;
     public Transform cameraPoint;
 
 
+    //--------------ANIMATING----------------
     public Animator animator;
     public Vector2 lastAnimationVector;
+    private bool ikActive = false;
+    public float ikArmWeight = 0.75F;
 
     //----------------STATES-----------------
     public bool use = false;
@@ -17,33 +26,42 @@ public class PlayerControlObject : NetworkedBehaviour
     public bool jumping = false;
 
     //----------MOVING / ROTATING------------
+    public bool isGrounded = true;
+    private bool needsMoveCorrection = false;
     public float gravity = 0;
     private float moveSpeed = 200;
     public float jumpHeight = .7F;
-    public bool isGrounded = true;
     public Vector3 moveTarget = Vector3.zero;
     public Vector2 lookTarget = Vector3.zero;
-    private bool needsMoveCorrection = false;
     public Vector3 correctionMove = Vector3.zero;
-
     public CollisionFlags collisionFlags;
 
     //------------HOLDING OBJECT-------------
     public int holdableId = 0;
+    public int holdableState = 0;
     public HoldableObject holdableObject;
     public Transform handParent;
+    //Hand Targets
+    private Transform rightHand;
+    private Transform leftHand;
 
     //------------SELECTED SLOT---------------
     public int selectedSlot = 0;
     public Item selectedItem;
 
-    //----------------TIMES-----------------
+    //----------------TIMES-------------------
     public float useDelayTime = 0;
+
+    //------------RAGDOLL COLLIDERS-----------
+    public CapsuleCollider[] ragdoll_capsules;
+    public SphereCollider ragdoll_sphere;
+    public BoxCollider[] ragdoll_boxes;
 
 
     private void Start() 
     {
         gravity = Physics.gravity.y;
+        SetRagdollColliders(false);
     }
     //Convert this ControlObject to Snapshot_Player Format
     public Snapshot_Player ConvertToSnapshot()
@@ -53,6 +71,7 @@ public class PlayerControlObject : NetworkedBehaviour
             networkId = NetworkId,
             location = transform.position,
             holdId = holdableId,
+            holdState = holdableState,
             rotation = new Vector2(cameraObject.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y)
         };
     }
@@ -191,6 +210,94 @@ public class PlayerControlObject : NetworkedBehaviour
 
         }
         else { needsMoveCorrection = false; }
+    }
+
+    
+
+
+
+
+    //-------------Player Ragdoll---------------
+
+    public void ToggleRagdoll(bool enable) 
+    {
+        SetRagdollColliders(enable);
+        animator.enabled = !enable;
+    }
+
+    private void SetRagdollColliders(bool enable) 
+    {
+        //Legs & Arms
+        for (int i = 0; i < ragdoll_capsules.Length; i++)
+        {
+            ragdoll_capsules[i].enabled = enable;
+        }
+        //Chest & Butt
+        for (int i = 0; i < ragdoll_boxes.Length; i++)
+        {
+            ragdoll_boxes[i].enabled = enable;
+        }
+        //Head
+        ragdoll_sphere.enabled = enable;
+    }
+
+
+
+    //------------Player Inverse K--------------
+
+    public void SetHandIK(Transform hand, bool left) 
+    {
+        if (left) 
+        {
+            leftHand = hand;
+        }
+        else 
+        {
+            rightHand = hand;
+        }
+        ikActive = true;
+    }
+
+    void OnAnimatorIK(int index)
+    {
+        if (ikActive && index == 0 && animator)
+        {
+            if (holdableId != 0)
+            {
+                if (rightHand != null)
+                {
+                    animator.SetIKPositionWeight(AvatarIKGoal.RightHand, ikArmWeight);
+                    animator.SetIKRotationWeight(AvatarIKGoal.RightHand, ikArmWeight);
+                    animator.SetIKPosition(AvatarIKGoal.RightHand, rightHand.position);
+                    animator.SetIKRotation(AvatarIKGoal.RightHand, rightHand.rotation);
+                }
+                else
+                {
+                    animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+                    animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+                }
+                if (leftHand != null)
+                {
+                    animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, ikArmWeight);
+                    animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, ikArmWeight);
+                    animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHand.position);
+                    animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHand.rotation);
+                }
+                else
+                {
+                    animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+                    animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
+                }
+            }
+            else
+            {
+                ikActive = false;
+                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+                animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+                animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+                animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
+            }
+        }
     }
 
 }

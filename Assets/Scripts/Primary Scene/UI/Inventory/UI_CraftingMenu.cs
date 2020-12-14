@@ -7,166 +7,92 @@ using UnityEngine.UI;
 
 public class UI_CraftingMenu : MonoBehaviour
 {
+    #region Singleton
+    public static UI_CraftingMenu Singleton;
+    private void Awake() { Singleton = this; }
+    #endregion
+
     public GameObject slideContent, craftSlide, slideParent, typeContainer, typePrefab;
     public TextMeshProUGUI craftTip_name, craftTip_desc, craftAmount_1, craftAmount_2, craftAmount_3, craftAmount_4, craftMaxButton, craftSingleButton;
     public Image craftTip_image, craftImage_1, craftImage_2, craftImage_3, craftImage_4;
-    private List<UI_CraftSlide> slideCache = new List<UI_CraftSlide>();
-    private List<InventoryResource> inv = new List<InventoryResource>();
+    private List<UI_CraftSlide> slides = new List<UI_CraftSlide>();
     private List<TopToolTypeSlide> typeCache = new List<TopToolTypeSlide>();
     private ItemData currentCraftItem;
-    
     public Button craftMaxButton_b, craftSingleButton_b;
-
     public ItemData[] itemDatas;
-
+    private int[] blueprints;
+    private int availableCraft;
     private readonly Color onColor = new Color32(255, 255, 255, 255);
     private readonly Color offColor = new Color32(255, 255, 255, 200);
     private readonly Color nullColor = new Color32(255, 255, 255, 0);
+    private int currentCraftId;
 
-    private int availableCraft;
-
-    void Start()
+    //Button: Craft Max
+    public void CraftMax()
     {
-        if(ItemDataManager.Singleton != null) 
+        if (currentCraftId != 0) 
         {
-            itemDatas = ItemDataManager.Singleton.ItemData;
-            for (int i = 0; i < itemDatas.Length; i++)
-            {
-                if (itemDatas[i].isCraftable)
-                {
-                    UI_CraftSlide slide = Instantiate(craftSlide, slideContent.transform).GetComponent<UI_CraftSlide>();
-                    slide.Craftable(false, itemDatas[i], this);
-                    slideCache.Add(slide);
-                }
-            }
-            ShowTooltip(slideCache.First().item);
+            PlayerInfoManager.singleton.CraftItemById(currentCraftId, availableCraft);
+        }
+    }
+
+    //Button: Craft Single
+    public void CraftOne()
+    {
+        if(currentCraftId != 0) 
+        {
+            PlayerInfoManager.singleton.CraftItemById(currentCraftId, 1);
         }
     }
 
     //Get Resources
-    public void GetResources(Item[] inventory, int[] blueprints)
+    public void GetResources()
     {
-        
-        if(inventory != null) 
+        Inventory inventory = PlayerInfoManager.singleton.storedPlayerInfo.inventory;
+        blueprints = inventory.blueprints;
+        for (int i = 0; i < inventory.blueprints.Length; i++)
         {
-            foreach (Item item in inventory)
+            int itemId = inventory.blueprints[i];
+            ItemData data = ItemDataManager.Singleton.GetItemData(itemId);
+            if (inventory.HasRecipe(itemId, data.recipe, true))
             {
-                bool placed = false;
-                foreach (InventoryResource invItem in inv)
-                {
-                    if (invItem.itemId == item.itemID)
-                    {
-                        invItem.itemAmount += item.itemStack;
-                        placed = true;
-                        break;
-                    }
-                    else
-                    {
-                        placed = false;
-                    }
-                }
-                if (!placed)
-                {
-                    InventoryResource newRes = new InventoryResource();
-                    newRes.itemId = item.itemID;
-                    newRes.itemAmount = item.itemStack;
-                    inv.Add(newRes);
-                }
+                UpdateCraftSlide(itemId, data, true);
             }
-            foreach (ItemData item in itemDatas)
+            else
             {
-                int recipeAmount = item.recipe.Length;
-                int recipeAvail = 0;
-                foreach (string recipe in item.recipe)
-                {
-                    string[] data = recipe.Split('-');
-                    int itemId = Convert.ToInt32(data[0]);
-                    int itemAmount = Convert.ToInt32(data[1]);
-                    if (HasItem(itemId, itemAmount, inv))
-                    {
-                        recipeAvail++;
-                    }
-                }
-                if (recipeAvail == recipeAmount)
-                {
-                    if(blueprints == null) 
-                    {
-                        FindSlideAndSet(true, item);
-                    }
-                    else if(blueprints.ToList().Contains(item.itemID)) 
-                    {
-                        FindSlideAndSet(true, item);
-                    }
-                }
-                else
-                {
-                    FindSlideAndSet(false, item);
-                }
+                UpdateCraftSlide(itemId, data, false);
             }
+        }
+        if(slides.Count > 0) 
+        {
             if (currentCraftItem != null)
             {
                 ShowTooltip(currentCraftItem);
             }
             else
             {
-                ShowTooltip(slideCache.First().item);
+                ShowTooltip(slides.First().item);
             }
         }
     }
-
-    //Find a Slide and Set
-    private void FindSlideAndSet(bool value, ItemData itemData) 
-    {
-        foreach (UI_CraftSlide slide in slideCache)
-        {
-            if(slide.item == itemData && slide.craftable != value) 
-            {
-                slide.Craftable(value, itemData, this);
-                break;
-            }
-        }
-    }
-
-    //Check if has item
-    public bool HasItem(int itemId, int itemAmount, List<InventoryResource> inv)
-    {
-        bool hasItem = false;
-        foreach (InventoryResource item in inv)
-        {
-            if (item.itemId == itemId && item.itemAmount >= itemAmount)
-            {
-                hasItem = true;
-                break;
-            }
-        }
-        return hasItem;
-    }
-
+    
     //Show craft tip
     public void ShowTooltip(ItemData item)
     {
         int lowest = 6000;
         currentCraftItem = item;
-        bool isCraftable = false;
-        foreach (UI_CraftSlide slide in slideCache)
-        {
-            if (item.itemID == slide.item.itemID)
-            {
-                isCraftable = true;
-                break;
-            }
-        }
+        currentCraftId = item.itemId;
         craftTip_name.text = item.itemName;
         craftTip_desc.text = item.description;
         craftTip_image.sprite = item.icon;
         craftAmount_1.text = craftAmount_2.text = craftAmount_3.text = craftAmount_4.text = "";
         craftImage_1.sprite = craftImage_2.sprite = craftImage_3.sprite = craftImage_4.sprite = null;
         craftImage_1.color = craftImage_2.color = craftImage_3.color = craftImage_4.color = nullColor;
-        if(item.craftAmount > 1) 
+        if (item.craftAmount > 1)
         {
             craftSingleButton.text = "CRAFT " + item.craftAmount;
         }
-        else 
+        else
         {
             craftSingleButton.text = "CRAFT ONE";
         }
@@ -177,7 +103,7 @@ public class UI_CraftingMenu : MonoBehaviour
             string[] recipe = item.recipe[i].Split('-');
             int itemId = Convert.ToInt32(recipe[0]);
             int itemAmount = Convert.ToInt32(recipe[1]);
-            UpdateSlot(i, itemId, itemAmount, isCraftable);
+            UpdateSlot(i, itemId, itemAmount, blueprints.Contains(item.itemId));
             canAmount.Add(HowManyItem(itemId, itemAmount));
         }
         BuildTypes(item.itemUse);
@@ -200,22 +126,57 @@ public class UI_CraftingMenu : MonoBehaviour
             craftMaxButton.text = "CRAFT MAX";
             craftSingleButton_b.interactable = true;
             craftMaxButton_b.interactable = false;
-            if (lowest == 0) 
+            if (lowest == 0)
             {
                 craftSingleButton_b.interactable = false;
             }
         }
     }
 
+
+
+
+
+    //Check if has item
+    private bool HasItem(int itemId, int itemAmount)
+    {
+        int available = PlayerInfoManager.singleton.storedPlayerInfo.inventory.AvailableItems(itemId);
+        if (available >= itemAmount)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    //Update Crafting Slide
+    private void UpdateCraftSlide(int itemId, ItemData data, bool focused) 
+    {
+        UI_CraftSlide slide = null;
+        for (int i = 0; i < slides.Count; i++)
+        {
+            if(slides[i].itemId == itemId) 
+            {
+                slide = slides[i];
+                break;
+            }
+        }
+        if (slide == null) 
+        {
+            slide = Instantiate(craftSlide, slideContent.transform).GetComponent<UI_CraftSlide>();
+            slides.Add(slide);
+        }
+        slide.Craftable(focused, data);
+    }
+    
     //Update slot
-    public void UpdateSlot(int pos, int itemId, int itemAmount, bool isCraftable)
+    private void UpdateSlot(int pos, int itemId, int itemAmount, bool isCraftable)
     {
 
         if (pos == 0)
         {
             craftAmount_1.text = itemAmount + "";
             craftImage_1.sprite = ItemDataManager.Singleton.GetIcon(itemId);
-            if (HasItem(itemId, itemAmount, inv))
+            if (HasItem(itemId, itemAmount))
             {
                 craftImage_1.color = onColor;
                 craftAmount_1.color = onColor;
@@ -230,7 +191,7 @@ public class UI_CraftingMenu : MonoBehaviour
         {
             craftAmount_2.text = itemAmount + "";
             craftImage_2.sprite = ItemDataManager.Singleton.GetIcon(itemId);
-            if (HasItem(itemId, itemAmount, inv))
+            if (HasItem(itemId, itemAmount))
             {
                 craftImage_2.color = onColor;
                 craftAmount_2.color = onColor;
@@ -245,7 +206,7 @@ public class UI_CraftingMenu : MonoBehaviour
         {
             craftAmount_3.text = itemAmount + "";
             craftImage_3.sprite = ItemDataManager.Singleton.GetIcon(itemId);
-            if (HasItem(itemId, itemAmount, inv))
+            if (HasItem(itemId, itemAmount))
             {
                 craftImage_3.color = onColor;
                 craftAmount_3.color = onColor;
@@ -260,7 +221,7 @@ public class UI_CraftingMenu : MonoBehaviour
         {
             craftAmount_4.text = itemAmount + "";
             craftImage_4.sprite = ItemDataManager.Singleton.GetIcon(itemId);
-            if (HasItem(itemId, itemAmount, inv))
+            if (HasItem(itemId, itemAmount))
             {
                 craftImage_4.color = onColor;
                 craftAmount_4.color = onColor;
@@ -274,18 +235,17 @@ public class UI_CraftingMenu : MonoBehaviour
     }
 
     //How many Items
-    public int HowManyItem(int itemId, int itemAmount)
+    private int HowManyItem(int itemId, int itemAmount)
     {
-        int howMany = 0;
-        foreach (InventoryResource item in inv.ToList())
+        int available = PlayerInfoManager.singleton.storedPlayerInfo.inventory.AvailableItems(itemId);
+        if(available < itemAmount) 
         {
-            if (item.itemId == itemId && item.itemAmount >= itemAmount)
-            {
-                howMany = item.itemAmount / itemAmount;
-                break;
-            }
+            return 0;
         }
-        return howMany;
+        else 
+        {
+            return available / itemAmount;
+        }
     }
 
     //Build Item Types
@@ -314,19 +274,5 @@ public class UI_CraftingMenu : MonoBehaviour
                 typeCache.Add(slide);
             }
         }
-
     }
-
-    //Button: Craft Max
-    public void CraftMax()
-    {
-        PlayerInfoManager.singleton.CraftItemById(currentCraftItem.itemID, availableCraft);
-    }
-
-    //Button: Craft Single
-    public void CraftOne()
-    {
-        PlayerInfoManager.singleton.CraftItemById(currentCraftItem.itemID, 1);
-    }
-
 }

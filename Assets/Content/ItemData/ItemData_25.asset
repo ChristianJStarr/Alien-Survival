@@ -12,18 +12,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_25
   m_EditorClassIdentifier: 
-  icon: {fileID: 21300000, guid: 05c7216c78d4dd34ebe2bac9c1e274d7, type: 3}
-  itemID: 25
-  craftAmount: 1
-  name: Fence
+  itemId: 25
+  itemName: New Item
   description: This is an Pipe
-  recipe:
-  - 41-3
+  icon: {fileID: 21300000, guid: 05c7216c78d4dd34ebe2bac9c1e274d7, type: 3}
   maxItemStack: 1
   armorType: 0
-  isCraftable: 1
+  isUsable: 0
+  startMaxDurability: 0
+  useType: 0
+  useRange: 10
+  useDelay: 1.2
+  useParticleId: 1
+  useAmount: 1
+  itemUse: []
+  maxDurability: 0
+  durabilityId: 0
+  durabilityRefilId: 0
   isHoldable: 0
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
+  holdableId: 0
   holdableObject: {fileID: 0}
+  isCraftable: 1
+  craftAmount: 1
+  recipe:
+  - 41-3
+  isPlaceable: 0
+  placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
+  useSound: 
+  hitSound: 

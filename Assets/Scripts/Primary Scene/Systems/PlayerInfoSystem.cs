@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MLAPI.Serialization.Pooled;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -64,6 +65,10 @@ public class PlayerInfoSystem : MonoBehaviour
                 {
                     active.Add(clientId, inactive[i]);
                     active[clientId].time = DateTime.Now;
+                    if (active[clientId].inventory.blueprints.Length == 0) 
+                    {
+                        active[clientId].inventory.blueprints = new int[5] {1,2,3,4,5}; 
+                    }
                     inactive.RemoveAt(i);
                     activeIds.Add(clientId);
                     return true;
@@ -144,42 +149,14 @@ public class PlayerInfoSystem : MonoBehaviour
         return false;
     }
 
-
     //Player Items
-    public Item[] GetPlayerItems(ulong clientId)
+    public Inventory GetInventory(ulong clientId)
     {
         if (active.ContainsKey(clientId))
         {
-            return active[clientId].items;
+            return active[clientId].inventory;
         }
         return null;
-    }
-    public void SetPlayerItems(ulong clientId, Item[] items)
-    {
-        if (active.ContainsKey(clientId))
-        {
-            active[clientId].items = items;
-            ForceRequestInfoById(clientId, 5);
-        }
-    }
-
-    //Player Armor
-    public Item[] GetPlayerArmor(ulong clientId)
-    {
-        if (active.ContainsKey(clientId))
-        {
-            return active[clientId].armor;
-        }
-        return null;
-    }
-    public void SetPlayerArmor(ulong clientId, Item[] armor)
-    {
-        if (active.ContainsKey(clientId))
-        {
-            active[clientId].armor = armor;
-
-            ForceRequestInfoById(clientId, 6);
-        }
     }
 
     //Player Blueprints
@@ -187,46 +164,11 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if (active.ContainsKey(clientId))
         {
-            return active[clientId].blueprints;
+            return active[clientId].inventory.blueprints;
         }
         return null;
     }
-    public void SetPlayerBlueprints(ulong clientId, int itemId, bool add = true)
-    {
-        if (active.ContainsKey(clientId))
-        {
-            if (active[clientId].blueprints.Length > 0)
-            {
-                List<int> tempBp = active[clientId].blueprints.ToList();
-
-                if (add)
-                {
-                    if (!tempBp.Contains(itemId))
-                    {
-                        tempBp.Add(itemId);
-                    }
-                }
-                else
-                {
-                    if (tempBp.Contains(itemId))
-                    {
-                        tempBp.Remove(itemId);
-                    }
-                }
-                active[clientId].blueprints = tempBp.ToArray();
-                ForceRequestInfoById(clientId, 7);
-            }
-            else
-            {
-                if (add)
-                {
-                    active[clientId].blueprints = new int[] { itemId };
-                    ForceRequestInfoById(clientId, 7);
-                }
-            }
-        }
-    }
-
+    
     //Player Health
     public int GetPlayerHealth(ulong clientId)
     {
@@ -252,7 +194,7 @@ public class PlayerInfoSystem : MonoBehaviour
             if(active[clientId].health == 0) 
             {
                 active[clientId].isDead = true;
-                gameServer.Server_PlayerDeath(clientId, info.items, info.armor, info.username);
+                gameServer.Server_PlayerDeath(clientId, info.inventory, info.username);
             }
 
             ForceRequestInfoById(clientId, 2);
@@ -405,7 +347,29 @@ public class PlayerInfoSystem : MonoBehaviour
         }
     }
 
+    //Get Drop Item (Duplicate)
+    public Item Inventory_GetDropItem(ulong clientId, int slot) 
+    {
+        if (Confirm(clientId)) 
+        {
+            return active[clientId].inventory.GetDropDuplicate(slot);
+        }
+        return null;
+    }
     
+    //Get Item from Slot
+    public Item Inventory_GetItemBySlot(ulong clientId, int slot) 
+    {
+        if (Confirm(clientId)) 
+        {
+            Item item = active[clientId].inventory.GetItemBySlot(slot);
+            if(item != null) 
+            {
+                return item;
+            }
+        }
+        return null;
+    }
 
     //-----------------------------------------------------------------//
     //         BASE-LEVEL PLAYERINFO QUICK SET FUNCTIONS               //
@@ -449,113 +413,48 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if (active.ContainsKey(clientId))
         {
-            active[clientId].items = null;
-            active[clientId].armor = null;
-
+            active[clientId].inventory.Clear();
             ForceRequestInfoById(clientId, 5);
-            ForceRequestInfoById(clientId, 6);
         }
     }
 
     //Add New Item
-    public void Inventory_AddNew(ulong clientId, int itemId, int amount, Action<bool> callback) 
+    public bool Inventory_AddNew(ulong clientId, int itemId, int amount) 
     {
         if (Confirm(clientId))
         {
-            ItemData itemData = ItemDataManager.Singleton.GetItemData(itemId);
-            if (itemData != null)
+            if (active[clientId].inventory.AddItems(itemId, amount)) 
             {
-                while (amount > 0)
-                {
-                    if (amount > itemData.maxItemStack)
-                    {
-                        amount -= itemData.maxItemStack;
-                        Inventory_Add(clientId, sit.CreateItemFromData(itemData, itemData.maxItemStack));
-                    }
-                    else
-                    {
-                        Inventory_Add(clientId, sit.CreateItemFromData(itemData, amount), returnValue => { callback(returnValue); });
-
-                        break;
-                    }
-                }
+                ForceRequestInfoById(clientId, 5);
+                return true;
             }
+            return false;
         }
-        
-    }
-
-    //Add Item
-    public void Inventory_Add(ulong clientId, Item item, Action<bool> success = null) 
-    {
-        if (Confirm(clientId)) 
-        {
-            item.currSlot = 44;
-            sit.AddItemToInventory(item, active[clientId].items, returnValue => { success(returnValue); });
-            ForceRequestInfoById(clientId, 5);
-        }
+        return false;
     }
 
     //Move Item
-    public void Inventory_MoveItem(ulong clientId, string authKey, int oldSlot, int newSlot)
+    public void Inventory_MoveItem(ulong clientId, string authKey, int current, int future)
     {
         if (Confirm(clientId, authKey))
         {
-            Item[] inventory = active[clientId].items;
-            Item newItem = sit.GetItemBySlot(inventory, newSlot);
-            Item oldItem = sit.GetItemBySlot(inventory, oldSlot);
-            if (newItem != null && oldItem != null)
-            {
-                ItemData newItemData = ItemDataManager.Singleton.GetItemData(newItem.itemID);
-                //Check if Item can add Durability
-                if(newItemData.maxDurability != 0) 
-                {
-                    if (newItem.durability + oldItem.itemStack <= newItemData.maxDurability && newItemData.durabilityRefilId == oldItem.itemID)
-                    {
-                        if(sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { })) 
-                        {
-                            if (sit.ChangeItemDurability(inventory, oldItem.itemStack, newItemData.maxDurability, newSlot)) 
-                            {
-                                ForceRequestInfoById(clientId, 5);
-                            }
-                        }
-                    }
-                    else if (newItemData.durabilityRefilId == oldItem.itemID)
-                    {
-                        if(sit.RemoveItemFromInventoryBySlot(oldSlot, inventory, callback => { }, newItemData.maxDurability - newItem.durability)) 
-                        {
-                            if (sit.ChangeItemDurability(inventory, oldItem.itemStack, newItemData.maxDurability, newSlot)) 
-                            {
-                                ForceRequestInfoById(clientId, 5);
-                            }
-                        }
-                    }
-                    else 
-                    {
-                        sit.MoveItemInInventory(oldSlot, newSlot, inventory);
-                        ForceRequestInfoById(clientId, 5);
-                    }
-                }
-                else 
-                {
-                    sit.MoveItemInInventory(oldSlot, newSlot, inventory);
-                    ForceRequestInfoById(clientId, 5);
-                }
-            }
-            else if(oldItem != null) 
-            {
-                sit.MoveItemInInventory(oldSlot, newSlot, inventory);
-                ForceRequestInfoById(clientId, 5);
-            }
+            active[clientId].inventory.MoveItem(current, future);
+            ForceRequestInfoById(clientId, 5);
         }
     }
 
     //Remove Item
-    public void Inventory_RemoveItem(ulong clientId, string authKey, int slot, Action<Item> droppedItem)
+    public bool Inventory_RemoveItem(ulong clientId, string authKey, int slot)
     {
-        if (Confirm(clientId, authKey) && sit.RemoveItemFromInventoryBySlot(slot, active[clientId].items, returnValue => { droppedItem(returnValue); }))
-        {
-            ForceRequestInfoById(clientId, 5);
+        if (Confirm(clientId, authKey))
+        { 
+            if(active[clientId].inventory.RemoveItem(true, slot)) 
+            {
+                ForceRequestInfoById(clientId, 5);
+                return true;
+            }
         }
+        return false;
     }
 
     //Craft Item
@@ -563,73 +462,32 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if (Confirm(clientId, authKey))
         {
-            sit.CraftItem(active[clientId].items, itemId, amount);
+            active[clientId].inventory.Craft(itemId, amount);
             ForceRequestInfoById(clientId, 5);
         }
-    }
-
-    //Get Item From Slot
-    public Item Inventory_GetItemFromSlot(ulong clientId, int itemSlot)
-    {
-        if (Confirm(clientId))
-        {
-            Item[] inventory = active[clientId].items;
-            for (int i = 0; i < inventory.Length; i++)
-            {
-                if (inventory[i].currSlot == itemSlot)
-                {
-                    return inventory[i];
-                }
-            }
-        }
-        return null;
     }
 
     //Change Item Durability
-    public bool Inventory_ChangeItemDurability(ulong clientId, int amount, int maxDurability, int slot)
+    public bool Inventory_ChangeItemDurability(ulong clientId, int slot, int amount)
     {
-        bool wasTaken = false;
         if (Confirm(clientId)) 
         {
-            wasTaken = sit.ChangeItemDurability(active[clientId].items, amount, maxDurability, slot);
-            ForceRequestInfoById(clientId, 5);
+            if(active[clientId].inventory.Durability(slot, amount)) 
+            {
+                ForceRequestInfoById(clientId, 5);
+                return true;
+            }
         }
-        return wasTaken;
+        return false;
     }
 
     //Reload to Durability
-    public void Inventory_ReloadToDurability(ulong clientId, string authKey, int slot) 
+    public void Inventory_ReloadToDurability(ulong clientId, int slot) 
     {
-        if(Confirm(clientId, authKey)) 
+        if(Confirm(clientId)) 
         {
-            Item item = Inventory_GetItemFromSlot(clientId, slot);
-            if (item != null)
-            {
-                ItemData data = ItemDataManager.Singleton.GetItemData(item.itemID);
-                if (item.durability < data.maxDurability)
-                {
-                    int needed = data.maxDurability - item.durability;
-                    int available = sit.GetMaxAvailableInventory(data.durabilityId, active[clientId].items);
-                    int final = 0;
-                    if (available <= needed)
-                    {
-                        final = available;
-                    }
-                    else if (available > needed)
-                    {
-                        final = needed;
-                    }
-
-                    if (sit.RemoveItemFromInventory(data.durabilityId, final, active[clientId].items))
-                    {
-                        if (sit.ChangeItemDurability(active[clientId].items, final, data.maxDurability, slot))
-                        {
-                            DebugMsg.Notify("Reloading for Player: " + clientId, 2);
-                            ForceRequestInfoById(clientId, 5);
-                        }
-                    }
-                }
-            }
+            active[clientId].inventory.Reload(slot);
+            ForceRequestInfoById(clientId, 5);
         }
     }
 
@@ -638,7 +496,8 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if(Confirm(clientId, authKey)) 
         {
-            sit.SplitItemStackById(active[clientId].items, slot, amount);
+            active[clientId].inventory.SplitItem(slot, amount);
+            ForceRequestInfoById(clientId, 5);
         }
     }
 
@@ -677,18 +536,113 @@ public class PlayerInfoSystem : MonoBehaviour
     }
 
     //Force Request Info
-    private void ForceRequestInfoById(ulong clientId, int depth = 1)
+    public void ForceRequestInfoById(ulong clientId, int depth = 1)
     {
-        //------DEPTH KEY------//
-        //   1 - ALL           //
-        //   2 - HEALTH        //
-        //   3 - FOOD          //
-        //   4 - WATER         //
-        //   5 - ITEMS         //
-        //   6 - ARMOR         //
-        //   7 - BLUEPRINTS    //
-        //   8 - H/F/W         //
-        gameServer.ForceRequestInfoById(clientId, depth);
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(depth);
+                if (depth == 1) //All
+                {
+                    PlayerInfo player = GetPlayerInfo(clientId);
+                    if (player != null)
+                    {
+                        writer.WriteInt32Packed(player.health);
+                        writer.WriteInt32Packed(player.food);
+                        writer.WriteInt32Packed(player.water);
+
+                        //INVENTORY ITEMS
+                        int inventoryLength = player.inventory.items.Count;
+                        if (inventoryLength > 0)
+                        {
+                            writer.WriteInt32Packed(inventoryLength);
+                            for (int i = 0; i < inventoryLength; i++)
+                            {
+                                if (player.inventory.items[i] != null)
+                                {
+                                    Item instance = player.inventory.items[i];
+                                    writer.WriteInt32Packed(instance.itemId);
+                                    writer.WriteInt32Packed(instance.itemStack);
+                                    writer.WriteInt32Packed(instance.currSlot);
+                                    writer.WriteInt32Packed(instance.durability);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteInt32Packed(0);
+                        }
+
+                        //BLUEPRINTS
+                        writer.WriteIntArrayPacked(player.inventory.blueprints);
+                    }
+                    gameServer.ServerSendPlayerInfo(clientId, writeStream);
+                }
+                else if (depth == 2) //Health
+                {
+                    writer.WriteInt32Packed(GetPlayerHealth(clientId));
+                    gameServer.ServerSendPlayerInfo(clientId, writeStream);
+                }
+                else if (depth == 3) //Food
+                {
+                    writer.WriteInt32Packed(GetPlayerFood(clientId));
+                    gameServer.ServerSendPlayerInfo(clientId, writeStream);
+                }
+                else if (depth == 4) //Water
+                {
+                    writer.WriteInt32Packed(GetPlayerWater(clientId));
+                    gameServer.ServerSendPlayerInfo(clientId, writeStream);
+                }
+                else if (depth == 5) //Items
+                {
+                    //INVENTORY ITEMS
+                    Inventory inventory = GetInventory(clientId);
+                    int inventoryLength = inventory.items.Count;
+                    if (inventoryLength > 0)
+                    {
+                        writer.WriteInt32Packed(inventoryLength);
+                        for (int i = 0; i < inventoryLength; i++)
+                        {
+                            if (inventory.items[i] != null)
+                            {
+                                Item instance = inventory.items[i];
+                                writer.WriteInt32Packed(instance.itemId);
+                                writer.WriteInt32Packed(instance.itemStack);
+                                writer.WriteInt32Packed(instance.currSlot);
+                                writer.WriteInt32Packed(instance.durability);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        writer.WriteInt32Packed(0);
+                    }
+                    gameServer.ServerSendPlayerInfo(clientId, writeStream);
+                }
+                else if (depth == 6) //Armor
+                {
+
+                    //Depreciated
+                }
+                else if (depth == 7) //Blueprints
+                {
+                    writer.WriteIntArrayPacked(GetPlayerBlueprints(clientId));
+                    gameServer.ServerSendPlayerInfo(clientId, writeStream);
+                }
+                else if (depth == 8) //Health / Food / Water
+                {
+                    PlayerInfo player = GetPlayerInfo(clientId);
+                    if (player != null)
+                    {
+                        writer.WriteInt32Packed(player.health);
+                        writer.WriteInt32Packed(player.food);
+                        writer.WriteInt32Packed(player.water);
+                    }
+                    gameServer.ServerSendPlayerInfo(clientId, writeStream);
+                }
+            }
+        }
     }
 
 
@@ -741,7 +695,7 @@ public class PlayerInfoSystem : MonoBehaviour
                             active[clientId].health = 0;
                             active[clientId].isDead = true;
                             healthChanged = true;
-                            gameServer.Server_PlayerDeath(clientId, info.items, info.armor, info.username);
+                            gameServer.Server_PlayerDeath(clientId, info.inventory, info.username);
                         }
                     }
                     if (info.food <= 0)
@@ -756,7 +710,7 @@ public class PlayerInfoSystem : MonoBehaviour
                             active[clientId].health = 0;
                             active[clientId].isDead = true;
                             healthChanged = true;
-                            gameServer.Server_PlayerDeath(clientId, info.items, info.armor, info.username);
+                            gameServer.Server_PlayerDeath(clientId, info.inventory, info.username);
                         }
                     }
                     else if (info.food > heal_food - 1 && info.water > heal_water - 1 && info.health < 100)
@@ -831,10 +785,8 @@ public class PlayerInfo
     [SerializeField] public int food = 0;
     [SerializeField] public int water = 0;
 
-    //Player Arrays
-    [SerializeField] public Item[] items = new Item[0];
-    [SerializeField] public Item[] armor = new Item[0];
-    [SerializeField] public int[] blueprints = new int[0];
+    //New Inventory
+    [SerializeField] public Inventory inventory;
 
     //Bool Checks
     [SerializeField] public bool isDead = false;
@@ -848,4 +800,530 @@ public class PlayerInfo
     //Data for InfoChecks
     [SerializeField] public DateTime time;
     [SerializeField] public Vector3 location;
+}
+
+
+
+[Serializable]
+public class Inventory
+{
+    [SerializeField] public int[] blueprints = new int[0];
+    [SerializeField] public List<Item> items = new List<Item>();
+
+    //Clear Inventory
+    public void Clear() 
+    {
+        items.Clear();
+    }
+
+    //Sort Inventory
+    public void Sort()
+    {
+        //Gives Items a slot if they dont have one.
+        List<Item> unassigned = new List<Item>();
+        List<int> assigned = new List<int>();
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (items[i].currSlot == 44 || items[i].currSlot == 0)
+            {
+                unassigned.Add(items[i]);
+            }
+            else
+            {
+                assigned.Add(items[i].currSlot);
+            }
+        }
+        for (int i = 0; i < 33; i++) //33 Inventory Space
+        {
+            int slot = i + 1;
+            if (!assigned.Contains(slot) && unassigned.Count > 0)
+            {
+                Item item = unassigned.First();
+                item.currSlot = slot;
+                assigned.Add(slot);
+                unassigned.Remove(item);
+            }
+        }
+    }
+
+    //Add Item
+    public bool AddItems(int itemId, int amount)
+    {
+        bool success = false;
+        ItemData data = ItemDataManager.Singleton.GetItemData(itemId);
+        if (data == null) return false;
+        int maxItemStack = data.maxItemStack;
+        if (amount > maxItemStack)
+        {
+            while (amount > 0)
+            {
+                if (amount > maxItemStack)
+                {
+                    if (AddItem(maxItemStack, CreateItem(data, maxItemStack)))
+                    {
+                        amount -= maxItemStack;
+                    }
+                }
+                else
+                {
+                    if (AddItem(maxItemStack, CreateItem(data, amount)))
+                    {
+                        success = true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (AddItem(maxItemStack, CreateItem(data, amount)))
+            {
+                success = true;
+            }
+        }
+        if (success) Sort();
+        return success;
+    }
+
+    //Remove Item
+    public bool RemoveItem(int itemId, int amount)
+    {
+        bool success = false;
+        if (AvailableItems(itemId) < amount) return false;
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (items[i].itemId == itemId)
+            {
+                if (items[i].itemStack > amount) //More than enough items 
+                {
+                    items[i].itemStack -= amount;
+                    amount = 0;
+                }
+                else if (items[i].itemStack == amount) //Just enough items
+                {
+                    items[i].itemStack = 0;
+                    amount = 0;
+                }
+                else if (items[i].itemStack < amount) //Not enough items
+                {
+                    items[i].itemStack = 0;
+                    amount -= items[i].itemStack;
+                }
+            }
+        }
+        if (amount == 0)
+        {
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                if (items[i].itemStack == 0)
+                {
+                    items.RemoveAt(i);
+                }
+            }
+        }
+        return success;
+    }
+    public bool RemoveItem(bool bySlot, int slot, int amount = 0)
+    {
+        if (!bySlot) return false;
+        Item item = GetItemBySlot(slot);
+        if (amount != 0)
+        {
+            if (item != null)
+            {
+                if (item.itemStack > amount)
+                {
+                    item.itemStack -= amount;
+                    return true;
+                }
+                else if (item.itemStack == amount)
+                {
+                    items.Remove(item);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            if (item != null)
+            {
+                items.Remove(item);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //Get Available 
+    public int AvailableItems(int itemId)
+    {
+        int amount = 0;
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (items[i].itemId == itemId)
+            {
+                amount += items[i].itemStack;
+            }
+        }
+        return amount;
+    }
+
+    //Move Item
+    public void MoveItem(int current, int future)
+    {
+        Item current_item = GetItemBySlot(current);
+        Item future_item = GetItemBySlot(future);
+
+        if (current_item != null)
+        {
+            if (SlotBelongsToItems(current))
+            {
+                if (SlotBelongsToItems(future))
+                {
+                    //Items to Items
+                    current_item.currSlot = future;
+                    if (future_item != null)
+                    {
+                        bool swap = true;
+                        ItemData armorData = ItemDataManager.Singleton.GetItemData(future_item.itemId);
+                        if (armorData.maxDurability != 0)
+                        {
+                            if (future_item.durability + current_item.itemStack <= armorData.maxDurability && armorData.durabilityRefilId == current_item.itemId)
+                            {
+                                if(RemoveItem(true, current)) 
+                                {
+                                    Durability(future, current_item.itemStack);
+                                    swap = false;
+                                }
+                            }
+                            else if (armorData.durabilityRefilId == current_item.itemId)
+                            {
+                                if(RemoveItem(true, current, armorData.maxDurability - future_item.durability)) 
+                                {
+                                    Durability(future, armorData.maxDurability);
+                                    swap = false;
+                                }
+                            }
+                        }
+                        if (swap) 
+                        {
+                            future_item.currSlot = current;
+                        }
+                    }
+                }
+                else if (SlotBelongsToArmor(future))
+                {
+                    //Items to Armor
+                    ItemData itemData = ItemDataManager.Singleton.GetItemData(current_item.itemId);
+                    if (itemData.isArmor)
+                    {
+                        if (itemData.armorType == GetArmorTypeFromSlot(future))
+                        {
+                            current_item.currSlot = future;
+                        }
+                        if (future_item != null)
+                        {
+                            ItemData armorData = ItemDataManager.Singleton.GetItemData(future_item.itemId);
+                            if (itemData.armorType == armorData.armorType)
+                            {
+                                future_item.currSlot = current;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (SlotBelongsToArmor(current))
+            {
+                if (SlotBelongsToItems(future))
+                {
+                    //Armor to Items
+                    if (future_item == null)
+                    {
+                        current_item.currSlot = future;
+                    }
+                    else
+                    {
+                        ItemData futureData = ItemDataManager.Singleton.GetItemData(future_item.itemId);
+                        if (futureData.isArmor && futureData.armorType == GetArmorTypeFromSlot(future))
+                        {
+                            current_item.currSlot = future;
+                            future_item.currSlot = current;
+                        }
+                    }
+                }
+                else if (SlotBelongsToArmor(future))
+                {
+                    //Armor to Armor
+                }
+            }
+        }
+    }
+
+    //Change Durability
+    public bool Durability(int slot, int amount)
+    {
+        Item item = GetItemBySlot(slot);
+        if (item != null)
+        {
+            ItemData data = ItemDataManager.Singleton.GetItemData(item.itemId);
+            if (item.durability + amount > 0 && item.durability + amount <= data.maxDurability)
+            {
+                item.durability += amount;
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+    public bool Reload(int slot) 
+    {
+        Item item = GetItemBySlot(slot);
+        if (item == null) return false;
+        ItemData data = ItemDataManager.Singleton.GetItemData(item.itemId);
+        if (item.durability < data.maxDurability)
+        {
+            int needed = data.maxDurability - item.durability;
+            int available = AvailableItems(item.itemId);
+            int final = 0;
+            if (available <= needed)
+            {
+                final = available;
+            }
+            else if (available > needed)
+            {
+                final = needed;
+            }
+            if (RemoveItem(data.durabilityId, final))
+            {
+                if(Durability(slot, final)) 
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    //Split Item
+    public void SplitItem(int slot, int amount)
+    {
+        Item item = GetItemBySlot(slot);
+        if (item != null && item.itemStack > amount && items.Count < 33)
+        {
+            item.itemStack -= amount;
+            items.Add(CreateItem(item, amount));
+            Sort();
+        }
+    }
+
+
+    //Blueprints
+    public void Blueprints(int itemId)
+    {
+        int length = blueprints.Length;
+        int[] temp = new int[length + 1];
+        for (int i = 0; i < length + 1; i++)
+        {
+            if (i != length)
+            {
+                temp[i] = blueprints[i];
+            }
+            else
+            {
+                temp[i] = itemId;
+            }
+        }
+    }
+    public void ClearBlueprints()
+    {
+        blueprints = new int[0];
+    }
+
+    //Craft
+    public void Craft(int itemId, int amount)
+    {
+        ItemData craftItem = ItemDataManager.Singleton.GetItemData(itemId);
+        if (HasRecipe(itemId, craftItem.recipe, true) && AddItems(itemId, amount * craftItem.craftAmount))
+        {
+            for (int i = 0; i < craftItem.recipe.Length; i++)
+            {
+                string[] recipeData = craftItem.recipe[i].Split('-');
+                int r_itemId = Convert.ToInt32(recipeData[0]);
+                int r_amount = Convert.ToInt32(recipeData[1]);
+                RemoveItem(r_itemId, r_amount);
+            }
+        }
+    }
+
+    //Drop Duplicate
+    public Item GetDropDuplicate(int slot) 
+    {
+        Item item = GetItemBySlot(slot);
+        if(item != null) 
+        {
+            return CreateItem(item, item.itemStack);
+        }
+        return null;
+    }
+
+    //Backends
+    public Item GetItemBySlot(int slot)
+    {
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (items[i].currSlot == slot)
+            {
+                return items[i];
+            }
+        }
+        return null;
+    }
+    private Item CreateItem(ItemData data, int amount)
+    {
+        Item item = new Item()
+        {
+            itemId = data.itemId,
+            itemStack = amount,
+            currSlot = 44
+        };
+        if (data.startMaxDurability)
+        {
+            item.durability = data.maxDurability;
+        }
+        return item;
+    }
+    private Item CreateItem(Item item, int amount)
+    {
+        return new Item()
+        {
+            itemId = item.itemId,
+            currSlot = 44,
+            itemStack = amount,
+        };
+    }
+    private bool AddItem(int maxItemStack, Item item)
+    {
+        if (item.itemStack <= 0) return false;
+        int count = items.Count;
+        if (count > 0)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                if (item.itemStack == 0) break;
+                if (item.itemId == items[i].itemId)
+                {
+                    int stackRoom = maxItemStack - items[i].itemStack;
+                    if (stackRoom > 0)
+                    {
+                        if (item.itemStack <= stackRoom)
+                        {
+                            items[i].itemStack += item.itemStack;
+                        }
+                        else
+                        {
+                            items[i].itemStack += stackRoom;
+                            item.itemStack -= stackRoom;
+                        }
+                    }
+                }
+            }
+            if (count < 33 && item.itemStack != 0)
+            {
+                item.currSlot = 44;
+                items.Add(item);
+                return true;
+            }
+            else if (item.itemStack == 0)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            item.currSlot = 44;
+            items.Add(item);
+            return true;
+        }
+        return false;
+    }
+    public bool HasRecipe(int itemId, string[] recipe, bool blueprint)
+    {
+        if (blueprint && !blueprints.Contains(itemId)) return false;
+        int recipeAmount = recipe.Length;
+        int recipeAvail = 0;
+        foreach (string recipeData in recipe)
+        {
+            string[] data = recipeData.Split('-');
+            int item = Convert.ToInt32(data[0]);
+            int amount = Convert.ToInt32(data[1]);
+            bool hasResources = false;
+
+            foreach (InventoryResource resource in CalculateResources())
+            {
+                if (resource.itemId == item && resource.itemAmount >= amount)
+                {
+                    hasResources = true;
+                    break;
+                }
+            }
+            if (hasResources)
+            {
+                recipeAvail++;
+            }
+        }
+        if (recipeAvail == recipeAmount)
+        {
+            return true;
+        }
+        return false;
+    }
+    public List<InventoryResource> CalculateResources()
+    {
+        Dictionary<int, InventoryResource> resources = new Dictionary<int, InventoryResource>();
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (resources.ContainsKey(items[i].itemId))
+            {
+                resources[items[i].itemId].itemAmount += items[i].itemStack;
+            }
+            else
+            {
+                resources.Add(items[i].itemId, new InventoryResource()
+                {
+                    itemId = items[i].itemId,
+                    itemAmount = items[i].itemStack
+                });
+            }
+        }
+        return resources.Values.ToList();
+    }
+
+
+
+    //What Slots Are for What
+    private bool SlotBelongsToItems(int slot)
+    {
+        if (slot > 0 && slot < 34)
+        {
+            return true;
+        }
+        return false;
+    }
+    private bool SlotBelongsToArmor(int slot)
+    {
+        if (slot > 33 && slot < 48)
+        {
+            return true;
+        }
+        return false;
+    }
+    private int GetArmorTypeFromSlot(int slot)
+    {
+        return 33 - slot;
+    }
+
 }

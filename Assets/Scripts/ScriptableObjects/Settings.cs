@@ -34,7 +34,8 @@ public class Settings : ScriptableObject
     public bool showBattery = false;
     public bool showTime = false;
 
-
+    //Camera
+    public bool firstPersonMode = true;
 
     //Chat Box
     public byte chatBoxState = 3;

@@ -1,4 +1,5 @@
 ﻿using MLAPI;
+using MLAPI.Serialization.Pooled;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 
@@ -7,6 +8,7 @@ public class PlayerCommandManager : MonoBehaviour
     public Settings settings;
     private GameServer gameServer;
     private PlayerCommand command;
+    public PlayerCameraManager playerCameraManager;
     private PlayerControlObject controlObject;
     private NetworkingManager networkingManager;
     
@@ -40,6 +42,11 @@ public class PlayerCommandManager : MonoBehaviour
         lastPosition = controlObject.transform.position;
     }
 
+    private void Update() 
+    {
+        UpdatePlayerCommand(); //update player command values
+    }
+
     void FixedUpdate() //50 times per second.
     {
         RotatePlayerLocally();
@@ -51,15 +58,34 @@ public class PlayerCommandManager : MonoBehaviour
     private void SendPlayerCommand()
     {
         if (networkingManager == null) return;
-        UpdatePlayerCommand(); //update player command values
         if(CommandIsValuable()) //Is this command valuable enough to send
         {
             lastLook = command.look;
             MovePlayerLocally(); //Move Player
             AnimatePlayerLocally(); //Animate Player
             lastSelectedSlot = selectedSlot; //Set last selected slot
-            gameServer.ClientSendPlayerCommand(command); //Send out this command
-            DebugMenu.UpdateCommand(command);
+            using (PooledBitStream writeStream = PooledBitStream.Get())
+            {
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    //CommandBreakdown
+                    writer.WriteSinglePacked(command.networkTime);
+                    writer.WriteVector2Packed(command.move);
+                    writer.WriteVector2Packed(command.look);
+                    writer.WriteBool(command.correction);
+                    if (command.correction)
+                    {
+                        writer.WriteVector3Packed(command.correction_position);
+                    }
+                    writer.WriteBool(command.jump);
+                    writer.WriteBool(command.crouch);
+                    writer.WriteBool(command.use);
+                    writer.WriteBool(command.reload);
+                    writer.WriteBool(command.aim);
+                    writer.WriteInt16Packed((short)command.selectedSlot);
+                    gameServer.ClientSendPlayerCommand(writeStream);
+                }
+            }
         }
         else if (controlObject != null)
         {
@@ -84,7 +110,14 @@ public class PlayerCommandManager : MonoBehaviour
         command.jump = CrossPlatformInputManager.GetButton("Jump");
         command.crouch = CrossPlatformInputManager.GetButton("Crouch");
         command.use = CrossPlatformInputManager.GetButton("Use");
+        command.reload = CrossPlatformInputManager.GetButtonDown("Reload");
+        if (CrossPlatformInputManager.GetButtonDown("Aim")) 
+        {
+            command.aim = !command.aim;
+        }
         command.selectedSlot = selectedSlot;
+
+        DebugMenu.UpdateCommand(command);
     }
 
     //Move the Player Locally
@@ -101,6 +134,7 @@ public class PlayerCommandManager : MonoBehaviour
     private void RotatePlayerLocally() 
     {
         if (controlObject == null) return;
+
         settings.sensitivity.x = Mathf.Clamp(settings.sensitivity.x, 0.1F, 1);
         settings.sensitivity.y = Mathf.Clamp(settings.sensitivity.y, 0.1F, 1);
         Vector2 lookAxis = new Vector2(CrossPlatformInputManager.GetAxis("Mouse Y"), CrossPlatformInputManager.GetAxis("Mouse X"));
@@ -113,12 +147,26 @@ public class PlayerCommandManager : MonoBehaviour
             controlObject.transform.rotation = Quaternion.Slerp(controlObject.transform.rotation, m_CharacterTargetRot, 3 * Time.fixedDeltaTime);
         }
 
-        //Camera Object ( Y Axis )
-        Quaternion m_CameraTargetRot = controlObject.cameraObject.localRotation * Quaternion.Euler(-lookAxis.x, 0f, 0f); //Clamp This
+        Quaternion m_CameraTargetRot = ClampRotationAroundXAxis(controlObject.cameraObject.localRotation * Quaternion.Euler(-lookAxis.x, 0f, 0f)); //Clamp This
         if (controlObject.cameraObject.localRotation != m_CameraTargetRot)
         {
-            controlObject.cameraObject.localRotation = Quaternion.Slerp(controlObject.cameraObject.localRotation, m_CameraTargetRot, 3 * Time.fixedDeltaTime);
+            //controlObject.cameraObject.localRotation = m_CameraTargetRot;
+            controlObject.cameraObject.localRotation = Quaternion.Lerp(controlObject.cameraObject.localRotation, m_CameraTargetRot, 3 * Time.fixedDeltaTime);
         }
+    }
+
+    private Quaternion ClampRotationAroundXAxis(Quaternion q)
+    {
+        q.x /= q.w;
+        q.z /= q.w;
+        q.y /= q.w;
+        q.w = 1.0F;
+
+        float angleX = 2.0f * Mathf.Rad2Deg * Mathf.Atan(q.x);
+        angleX = Mathf.Clamp(angleX, -70, 70);
+        q.x = Mathf.Tan(0.5f * Mathf.Deg2Rad * angleX);
+
+        return q.normalized;
     }
 
     //Animate the Player Locally
@@ -171,6 +219,8 @@ public class PlayerCommand
     public bool jump;
     public bool crouch;
     public bool use;
+    public bool reload;
+    public bool aim;
 
     //Hotbar
     public int selectedSlot;

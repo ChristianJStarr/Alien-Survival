@@ -12,31 +12,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_46
   m_EditorClassIdentifier: 
+  itemId: 46
+  itemName: Sulfur
+  description: This is aSulfur.
   icon: {fileID: 21300000, guid: 737cf22c1ac5e8f479a6afbb0f088091, type: 3}
-  itemID: 46
-  craftAmount: 1
   maxItemStack: 200
   armorType: 0
-  toolId: 0
-  toolGatherAmount: 0
+  isUsable: 0
+  startMaxDurability: 0
   useType: 0
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse: []
   maxDurability: 0
   durabilityId: 0
+  durabilityRefilId: 0
+  isHoldable: 0
   holdableId: 0
-  itemName: Sulfur
-  description: This is aSulfur.
+  holdableObject: {fileID: 0}
+  isCraftable: 0
+  craftAmount: 1
   recipe: []
+  isPlaceable: 0
+  placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
   useSound: 
   hitSound: 
-  isCraftable: 0
-  isPlaceable: 0
-  isHoldable: 0
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 0
-  holdableObject: {fileID: 0}
-  placeableItem: {fileID: 0}

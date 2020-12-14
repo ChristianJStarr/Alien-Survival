@@ -9,8 +9,8 @@ public class PlayerCommandSystem : MonoBehaviour
 
     public PlayerInfoSystem playerInfoSystem;
     public PlayerInteractSystem playerInteractSystem;
+    public PlayerObjectSystem playerObjectSystem;
 
-    public Dictionary<ulong, PlayerControlObject> players = new Dictionary<ulong, PlayerControlObject>();
     public Dictionary<ulong, Queue<PlayerCommand>> commandQueue = new Dictionary<ulong, Queue<PlayerCommand>>();
     
     public bool StartSystem() 
@@ -25,100 +25,12 @@ public class PlayerCommandSystem : MonoBehaviour
         return true;
     }
 
-
-    public void RegisterPlayer(ulong clientId, NetworkedObject playerObject) 
-    {
-        PlayerControlObject controlObject = playerObject.GetComponent<PlayerControlObject>();
-        if(controlObject != null) 
-        {
-            if (players.ContainsKey(clientId)) { players.Remove(clientId); }
-            players.Add(clientId, controlObject);
-        }
-    }
-    public void RemovePlayer(ulong clientId) 
-    {
-        if (players.ContainsKey(clientId)) 
-        {
-            players.Remove(clientId);
-        }
-    }
-
     private int commandsExecuted = 0;
     private float lastTime = 0;
 
-    //------------Player Object Commands------------//
 
-    //Teleport To Player
-    public void Teleport_ToPlayer(ulong clientId, ulong target_clientId) 
-    {
-        if(players.ContainsKey(clientId) && players.ContainsKey(target_clientId)) 
-        {
-            players[clientId].characterController.enabled = false;
-            players[clientId].transform.position = players[target_clientId].transform.position;
-            players[clientId].characterController.enabled = true;
-        }
-    }
 
-    //Teleport To Vector3
-    public void Teleport_ToVector(ulong clientId, Vector3 target_position) 
-    {
-        if (players.ContainsKey(clientId)) 
-        {
-            players[clientId].ApplyCorrection(target_position);
-        }
-    }
-    public void Teleport_ToVector(ulong clientId, Vector3 target_position, Quaternion target_rotation)
-    {
-        if (players.ContainsKey(clientId))
-        {
-            players[clientId].Teleport(target_position, target_rotation);
-        }
-    }
-    
-    //Get Positions Array
-    public Vector3[] GetPlayerPositionsArray() 
-    {
-        PlayerControlObject[] temp = players.Values.ToArray();
-        int length = temp.Length;
-        Vector3[] instance = new Vector3[length];
-        for (int i = 0; i < length; i++)
-        {
-            instance[i] = temp[i].transform.position;
-        }
-        return instance;
-    }
-    
-    
-    public Vector3[] GetPlayerPositionsArray(ulong exclude)
-    {
-        Vector3[] instance = null;
-        if (players.ContainsKey(exclude)) 
-        {
-            PlayerControlObject[] temp = players.Values.ToArray();
-            int length = temp.Length;
-            instance = new Vector3[length - 1];
-            for (int i = 0; i < length; i++)
-            {
-                if(temp[i].OwnerClientId != exclude) 
-                {
-                    instance[i] = temp[i].transform.position;
-                }
-            }
-        }
-        else 
-        {
-            PlayerControlObject[] temp = players.Values.ToArray();
-            int length = temp.Length;
-            instance = new Vector3[length];
-            for (int i = 0; i < length; i++)
-            {
-                instance[i] = temp[i].transform.position;
-            }
-        }
-        return instance;
-    }
-
-    //Execute the Command (60 sends per second per player) 50 players = 3000 per second
+    //Execute the Command (50 sends per second per player) 50 players = 2500 per second = EZ
     public void ExecuteCommand(PlayerCommand command)
     {
         if (commandQueue.ContainsKey(command.clientId))
@@ -132,9 +44,10 @@ public class PlayerCommandSystem : MonoBehaviour
         }
     }
 
-
     private void FixedUpdate() 
     {
+        #region Debug-Menu
+
         //Debug Counting
         if(NetworkingManager.Singleton != null && GameServer.singleton != null) 
         {
@@ -146,84 +59,98 @@ public class PlayerCommandSystem : MonoBehaviour
                 commandsExecuted = 0;
             }
         }
+        #endregion
+
         //Read Queue & Execute Commands
-        if (systemEnabled && commandQueue.Count > 0) 
+        if (systemEnabled && commandQueue.Count > 0)
         {
-            ulong[] clients = players.Keys.ToArray();
-            for (int i = 0; i < clients.Length; i++)
+            ulong[] clientIds = commandQueue.Keys.ToArray();
+            int client_count = clientIds.Length;
+            
+            for (int i = 0; i < client_count; i++)
             {
-                if (commandQueue.ContainsKey(clients[i]) && commandQueue[clients[i]].Count > 0) 
+                if(commandQueue[clientIds[i]].Count > 0) 
                 {
+                    ExecuteCommandOnClient(clientIds[i], commandQueue[clientIds[i]].Dequeue());
                     commandsExecuted++;
-                    PlayerCommand command = commandQueue[clients[i]].Dequeue();
-                    PlayerControlObject controlObject = players[command.clientId];
-
-                    //Apply Correction
-                    if (command.correction) 
-                    {
-                        if(Vector3.Distance(controlObject.transform.position, command.correction_position) < 10) 
-                        {
-                            controlObject.transform.position = command.correction_position;
-                        }
-                    }
-
-                    //ROTATE Player
-                    controlObject.Rotate(command.look);
-                    //MOVE Player
-                    if (command.move.magnitude > 0 || command.jump || command.crouch)
-                    {
-                        controlObject.Move(command.move, command.jump, command.crouch);
-                    }
-                    //Selected Slot Holdable
-                    if (controlObject.selectedSlot != command.selectedSlot)
-                    {
-                        controlObject.selectedSlot = command.selectedSlot;
-                        if (command.selectedSlot != 0)
-                        {
-                            Item item = playerInfoSystem.Inventory_GetItemFromSlot(command.clientId, command.selectedSlot);
-                            if (item != null)
-                            {
-                                controlObject.selectedItem = item;
-                                ItemData itemData = ItemDataManager.Singleton.GetItemData(item.itemID);
-                                if (itemData != null && itemData.isHoldable && itemData.holdableId != 0)
-                                {
-                                    if (itemData.holdableId != controlObject.holdableId)
-                                    {
-                                        controlObject.holdableId = itemData.holdableId;
-                                    }
-                                }
-                                else
-                                {
-                                    controlObject.holdableId = 0;
-                                }
-                            }
-                            else
-                            {
-                                controlObject.holdableId = 0;
-                            }
-                        }
-                        else
-                        {
-                            controlObject.holdableId = 0;
-                        }
-                    }
-                    //USE
-                    if (command.use)
-                    {
-                        if (!controlObject.use)
-                        {
-                            controlObject.use = true;
-                            playerInteractSystem.Interact(command.clientId, command.networkTime, controlObject);
-                        }
-                        else if (controlObject.useDelayTime <= NetworkingManager.Singleton.NetworkTime)
-                        {
-                            playerInteractSystem.Interact(command.clientId, command.networkTime, controlObject);
-                        }
-                    }
                 }
             }
         }
     }
 
+    private void ExecuteCommandOnClient(ulong clientId, PlayerCommand command) 
+    {
+        PlayerControlObject controlObject = playerObjectSystem.GetControlObjectByClientId(clientId);
+        if (controlObject == null) return;
+        //Apply Correction
+        if (command.correction)
+        {
+            if (Vector3.Distance(controlObject.transform.position, command.correction_position) < 10)
+            {
+                controlObject.transform.position = command.correction_position;
+            }
+        }
+
+        //ROTATE Player
+        controlObject.Rotate(command.look);
+
+        //MOVE Player
+        if (command.move.magnitude > 0 || command.jump || command.crouch)
+        {
+            controlObject.Move(command.move, command.jump, command.crouch);
+        }
+
+        //Selected Slot Holdable
+        if (controlObject.selectedSlot != command.selectedSlot)
+        {
+            controlObject.selectedSlot = command.selectedSlot;
+            controlObject.holdableState = 0;
+            if (command.selectedSlot != 0)
+            {
+                Item item = playerInfoSystem.Inventory_GetItemBySlot(command.clientId, command.selectedSlot);
+                if (item != null)
+                {
+                    controlObject.selectedItem = item;
+                    ItemData itemData = ItemDataManager.Singleton.GetItemData(item.itemId);
+                    if (itemData != null && itemData.isHoldable && itemData.holdableId != 0)
+                    {
+                        if (itemData.holdableId != controlObject.holdableId)
+                        {
+                            controlObject.holdableId = itemData.holdableId;
+                        }
+                    }
+                    else
+                    {
+                        controlObject.holdableId = 0;
+                    }
+                }
+                else
+                {
+                    controlObject.holdableId = 0;
+                }
+            }
+        }
+
+        //USE
+        if (command.use)
+        {
+            if (!controlObject.use)
+            {
+                controlObject.use = true;
+                playerInteractSystem.Interact(command.clientId, command.networkTime, controlObject);
+            }
+            else if (controlObject.useDelayTime <= NetworkingManager.Singleton.NetworkTime)
+            {
+                playerInteractSystem.Interact(command.clientId, command.networkTime, controlObject);
+            }
+        }
+
+        //RELOAD
+        if (command.reload) 
+        {
+            playerInfoSystem.Inventory_ReloadToDurability(command.clientId, command.selectedSlot);
+        }
+
+    }
 }
 

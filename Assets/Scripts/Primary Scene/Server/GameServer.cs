@@ -1,14 +1,9 @@
 ﻿using MLAPI;
-using MLAPI.LagCompensation;
 using MLAPI.Messaging;
-using MLAPI.Serialization;
 using MLAPI.Serialization.Pooled;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using UnityEngine;
 
 public class GameServer : NetworkedBehaviour
@@ -24,39 +19,32 @@ public class GameServer : NetworkedBehaviour
     }
 
     #endregion
-    [Header("Prefabs")]
-    public GameObject deathDropPrefab;
-    public GameObject[] particlePrefabs;
 
-
-    // -- SYSTEMS
     [Header("Systems")]
     public PlayerInfoSystem playerInfoSystem;
     public WorldAISystem worldAISystem;
     public WorldObjectSystem worldObjectSystem;
     public ChatSystem chatSystem;
     public PlayerCommandSystem playerCommandSystem;
+    public PlayerObjectSystem playerObjectSystem;
     public WorldSnapshotSystem worldSnapshotSystem;
     public EscapePodSystem escapePodSystem;
 
-    // -- MANAGERS
     [Header("Managers")]
     public PlayerInfoManager playerInfoManager;
     public PlayerUIManager playerUIManager;
     public ChatManager chatManager;
     public WorldSnapshotManager snapshotManager;
     public PlayerConnectManager playerConnectManager;
+    public WorldParticleManager worldParticleManager;
+    public LocalSoundManager localSoundManager;
     private NetworkingManager networkingManager;
 
-    //Properties
-    private ServerProperties storedProperties;
-
-    private int networkPing;
-
-    //Temp Location for Respawn
-    public Vector3 tempPlayerPosition = new Vector3(0, -5000, 0);
+    private ServerProperties storedProperties;//Properties
+    private int networkPing; //Client Side Ping
 
 
+    #region Debug Statistics
     //----ServerDebug
     public int DebugSnapshotId = 0;
     public float DebugSnapshotSize = 0;
@@ -65,6 +53,8 @@ public class GameServer : NetworkedBehaviour
     private int DebugCommandSize_AvgCount = 0;
     private int DebugCommandSize_AvgTotal = 0;
     private bool debugClientId = true;
+    #endregion
+
 
     private void Start()
     {
@@ -77,7 +67,7 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
-
+    #region Start Functions
     //-----------------------------------------------------------------//
     // (S) SERVER           START FUNCTIONS                            //
     //-----------------------------------------------------------------//
@@ -199,9 +189,9 @@ public class GameServer : NetworkedBehaviour
     {
         return playerInfoSystem.GetPlayerLocation(clientId);
     }
+    #endregion
 
-
-
+    #region ServerSide Callbacks
     //-----------------------------------------------------------------//
     // (S)  SERVER          SIDE CALLBACKS                             //
     //-----------------------------------------------------------------//
@@ -215,7 +205,7 @@ public class GameServer : NetworkedBehaviour
         ulong networkId = playerObject.NetworkId;
 
 
-        playerCommandSystem.RegisterPlayer(clientId, playerObject);
+        playerObjectSystem.RegisterControlObject(clientId, playerObject);
         playerInfoSystem.SetPlayerNetworkId(clientId, networkId);
         worldSnapshotSystem.Player_Connected(clientId, playerObject.NetworkId);
         chatSystem.PlayerConnected_AllMessage(playerName);
@@ -234,8 +224,11 @@ public class GameServer : NetworkedBehaviour
         {
             Server_PlayerConnectSet(clientId);
         }
-        playerInfoSystem.Inventory_AddNew(clientId, 20, 1, returnValue => { });
-        ForceRequestInfoById(clientId);
+
+        playerInfoSystem.Inventory_AddNew(clientId, 1, 1);
+
+        playerInfoSystem.Inventory_AddNew(clientId, 50, 200);
+        playerInfoSystem.ForceRequestInfoById(clientId);
     }
     
     //CALLBACK: Player Disconnected
@@ -244,12 +237,11 @@ public class GameServer : NetworkedBehaviour
         string playerName = playerInfoSystem.GetPlayerName(clientId);
         worldSnapshotSystem.Player_Disconnected(clientId);
         chatSystem.PlayerDisconnected_AllMessage(name);
-        playerCommandSystem.RemovePlayer(clientId);
+        playerObjectSystem.UnRegisterControlObject(clientId);
     }
+    #endregion
 
-
-
-    
+    #region ServerSide Tasks
     //-----------------------------------------------------------------//
     // (S) SERVER         Tasks                                        //
     //-----------------------------------------------------------------//
@@ -261,64 +253,31 @@ public class GameServer : NetworkedBehaviour
     public PlayerInfo Server_MovePlayerToInactive(ulong clientId) => playerInfoSystem.MovePlayerToInactive(clientId);
 
     //Handle Player Death (called from player info system when health reaches 0)
-    public void Server_PlayerDeath(ulong clientId, Item[] items, Item[] armor, string username) 
+    public void Server_PlayerDeath(ulong clientId, Inventory inventory, string username) 
     {
         Server_UIClosePlayerInventory(clientId);
-        ServerUI_ShowDeathScreen(clientId, playerInfoSystem.ResetTimeSurvived(clientId)); //Show Death Screen
-        Server_PlayerRagdoll(clientId); //Player Ragdoll Object
-        Server_PlayerDeathDrop(items, armor, playerCommandSystem.players[clientId].transform.position, username);
-        playerInfoSystem.Inventory_Clear(clientId);
-        playerCommandSystem.Teleport_ToVector(clientId, tempPlayerPosition);
+        Server_UIShowDeathScreen(clientId, playerInfoSystem.ResetTimeSurvived(clientId)); //Show Death Screen
+        playerObjectSystem.ToggleRagdoll(clientId, true);
+        Server_PlayerDeathDrop(inventory, playerObjectSystem.GetCurrentPosition(clientId), username);
         //Wait for Respawn Response
     }
 
-    //Handle Player Ragdoll
-    public void Server_PlayerRagdoll(ulong clientId) 
-    {
-        //Spawn a ragdoll alien at players location
-    }
-
     //Spawn DeathDrop
-    private void Server_PlayerDeathDrop(Item[] items, Item[] armor, Vector3 location, string username)
+    private void Server_PlayerDeathDrop(Inventory inventory, Vector3 location, string username)
     {
-        //if (items != null)
-        //{
-        //    GameObject deathDropObj = Instantiate(deathDropPrefab, location, Quaternion.identity);
-        //    deathDropObj.transform.position = location;
-        //    DeathDrop deathDrop = deathDropObj.GetComponent<DeathDrop>();
-        //    NetworkedObject networkedObject = deathDropObj.GetComponent<NetworkedObject>();
-        //    List<Item> dropItemTemp = items.ToList();
-        //    if (armor != null)
-        //    {
-        //        foreach (Item item in armor)
-        //        {
-        //            dropItemTemp.Add(item);
-        //        }
-        //    }
-        //    deathDrop.UpdateDropItems(dropItemTemp);
-        //    deathDrop.toolTip = "Death of " + username;
-        //    deathDrop.unique = GenerateUnique();
-        //    networkedObject.Spawn();
-        //}
-        //else if (armor != null)
-        //{
-        //    GameObject deathDropObj = Instantiate(deathDropPrefab, location, Quaternion.identity);
-        //    deathDropObj.transform.position = location;
-        //    DeathDrop deathDrop = deathDropObj.GetComponent<DeathDrop>();
-        //    NetworkedObject networkedObject = deathDropObj.GetComponent<NetworkedObject>();
-        //    deathDrop.UpdateDropItems(armor.ToList());
-        //    deathDrop.unique = GenerateUnique();
-        //    networkedObject.Spawn();
-        //}
+        //Spawn Loot
+        //inventory.Clear()
     }
 
     //Respawn Player
     public void Server_RespawnPlayer(ulong clientId)
     {
         GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-        Vector3 spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length)].transform.position;
-        playerCommandSystem.Teleport_ToVector(clientId, spawnpoint);
+        Vector3 spawnpoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length - 1)].transform.position;
+        playerObjectSystem.ToggleRagdoll(clientId, false);
+        playerObjectSystem.Teleport_ToVector(clientId, spawnpoint);
         playerInfoSystem.ResetPlayerInfo(clientId, spawnpoint);
+        Server_UIHideDeathScreen(clientId);
     }
 
     //Get ClientId from NetworkId
@@ -338,7 +297,71 @@ public class GameServer : NetworkedBehaviour
         playerConnectManager.ConnectCallback(playCutscene);
     }
 
+    //Spawn Particle for Player
+    public void Server_SpawnParticle(int particleId, Vector3 position, int visibility)
+    {
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(particleId);
+                writer.WriteVector3Packed(position);
+                InvokeClientRpcPerformance(Server_SpawnParticleRpc, playerObjectSystem.GetNearbyClients(position, visibility), writeStream);
+            }
+        }
+    }
 
+    [ClientRPC]
+    private void Server_SpawnParticleRpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            worldParticleManager.SpawnParticle(reader.ReadInt32Packed(), reader.ReadVector3Packed());
+        }
+    }
+
+
+    //Play Sound Effect for Player
+    public void Server_PlaySoundEffect(int soundEffectId, Vector3 position, int visibility)
+    {
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(soundEffectId);
+                writer.WriteVector3Packed(position);
+                InvokeClientRpcPerformance(Server_PlaySoundEffectRpc, playerObjectSystem.GetNearbyClients(position, visibility), writeStream);
+            }
+        }
+    }
+    public void Server_PlaySoundEffect(int soundEffectId, Vector3 position, int visibility, ulong clientToIgnore)
+    {
+        using (PooledBitStream writeStream = PooledBitStream.Get())
+        {
+            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            {
+                writer.WriteInt32Packed(soundEffectId);
+                writer.WriteVector3Packed(position);
+                InvokeClientRpcPerformance(Server_PlaySoundEffectRpc, playerObjectSystem.GetNearbyClients(position, visibility, clientToIgnore), writeStream);
+            }
+        }
+    }
+
+    [ClientRPC]
+    private void Server_PlaySoundEffectRpc(ulong clientId, Stream stream)
+    {
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        {
+            localSoundManager.PlaySoundEffect(reader.ReadInt32Packed(), reader.ReadVector3Packed());
+        }
+    }
+
+
+
+
+    #endregion
+
+    #region ServerSide Tasks: UI
     //-----------------------------------------------------------------//
     // (S)  SERVER         Tasks : User Interface                      //
     //-----------------------------------------------------------------//
@@ -384,7 +407,7 @@ public class GameServer : NetworkedBehaviour
 
     //-----Player Death Screen
     //Show
-    public void ServerUI_ShowDeathScreen(ulong clientId, TimeSpan span)
+    public void Server_UIShowDeathScreen(ulong clientId, TimeSpan span)
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
         {
@@ -414,37 +437,17 @@ public class GameServer : NetworkedBehaviour
     {
         playerUIManager.HideDeathScreen();
     }
+    #endregion
 
-    
-
-
+    #region Snapshotting Lockstepping
     //-----------------------------------------------------------------//
     // (C)<->(S)         Snapshotting                                  //
     //-----------------------------------------------------------------//
 
     //Send Player Command to Server
-    public void ClientSendPlayerCommand(PlayerCommand command)
+    public void ClientSendPlayerCommand(Stream stream)
     {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                //CommandBreakdown
-                writer.WriteSinglePacked(command.networkTime);
-                writer.WriteVector2Packed(command.move);
-                writer.WriteVector2Packed(command.look);
-                writer.WriteBool(command.correction);
-                if (command.correction) 
-                {
-                    writer.WriteVector3Packed(command.correction_position);
-                }
-                writer.WriteBool(command.jump);
-                writer.WriteBool(command.crouch);
-                writer.WriteBool(command.use);
-                writer.WriteInt16Packed((short)command.selectedSlot);
-                InvokeServerRpcPerformance(Server_AuthenticatePlayerCommand, writeStream, "PlayerCommand");
-            }
-        }
+        InvokeServerRpcPerformance(Server_AuthenticatePlayerCommand, stream, "PlayerCommand");
     }
     
     //Authenticate Player Command
@@ -463,7 +466,6 @@ public class GameServer : NetworkedBehaviour
                 DebugCommandSize_AvgTotal = 0;
             }
             #endregion
-            //PlayerCommand Breakdown
             PlayerCommand command = new PlayerCommand() { clientId = _clientId };
             command.networkTime = reader.ReadSinglePacked();
             command.move = reader.ReadVector2Packed();
@@ -476,6 +478,8 @@ public class GameServer : NetworkedBehaviour
             command.jump = reader.ReadBool();
             command.crouch = reader.ReadBool();
             command.use = reader.ReadBool();
+            command.reload = reader.ReadBool();
+            command.aim = reader.ReadBool();
             command.selectedSlot = reader.ReadInt16Packed();
             playerCommandSystem.ExecuteCommand(command);
         }
@@ -633,16 +637,15 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
+    #endregion
 
-
-
-
+    #region ClientSide Requests
     //-----------------------------------------------------------------//
     // (C)->(S)          Player Requests : Commands                    //
     //-----------------------------------------------------------------//
 
+
     //--Request Player Name 
-    //CLIENT
     public void GetNameByClientId(ulong clientId, Action<string> callback)
         {
             DebugMsg.Notify("Requesting Name of Client Id", 2);
@@ -654,15 +657,14 @@ public class GameServer : NetworkedBehaviour
         while (!response.IsDone) { yield return null; }
         callback(response.Value);
     }
-    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private string GetNameByClientId_Rpc(ulong clientId)
     {
         return playerInfoSystem.GetPlayerName(clientId);
     }
 
+
     //--Request to Move Item
-    //CLIENT
     public void MovePlayerItemBySlot(string authKey, int oldSlot, int newSlot)
     {
         DebugMsg.Notify("Requesting to Modify Inventory.", 2);
@@ -678,7 +680,6 @@ public class GameServer : NetworkedBehaviour
         }
 
     }
-    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void MovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
     {
@@ -688,8 +689,8 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+     
     //--Request to Remove Item
-    //CLIENT
     public void ClientRemoveItemBySlot(string authKey, int slot)
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -702,25 +703,24 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void RemovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
     {
         using (PooledBitReader reader = PooledBitReader.Get(stream))
         {
-            playerInfoSystem.Inventory_RemoveItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), returnedItem =>
+            string authKey = reader.ReadStringPacked().ToString();
+            int slot = reader.ReadInt32Packed();
+            Item item = playerInfoSystem.Inventory_GetDropItem(clientId, slot);
+            if(item != null && playerInfoSystem.Inventory_RemoveItem(clientId, authKey, slot)) 
             {
-                if (returnedItem != null)
-                {
-                    //Implement Dropping of item, Currently we're deleting it.
-                    //Drop returnedItem.itemID;
-                }
-            });
+                Debug.Log("Spawning Dropped Item: " + item.itemId);
+                //Spawn (item)
+            } 
         }
     }
 
+    
     //--Request to Split Item
-    //CLIENT
     public void ClientSplitItemBySlot(string authKey, int slot, int amount)
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -734,7 +734,6 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void SplitItemBySlot_Rpc(ulong clientId, Stream stream)
     {
@@ -744,8 +743,8 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+    
     //--Request to Craft Item
-    //ClIENT
     public void CraftItemById(string authKey, int itemId, int amount)
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -760,7 +759,6 @@ public class GameServer : NetworkedBehaviour
         }
         
     }
-    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void CraftItemById_Rpc(ulong clientId, Stream stream)
     {
@@ -770,8 +768,8 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+
     //--Request to Disconnect
-    //CLIENT
     public void RequestToDisconnect(string authKey) 
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -783,7 +781,6 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void RequestToDisconnect_Rpc(ulong clientId, Stream stream)
     {
@@ -797,8 +794,8 @@ public class GameServer : NetworkedBehaviour
         }
     }
 
+
     //--Request to Respawn
-    //CLIENT
     public void RequestToRespawn(string authKey) 
     {
         using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -810,7 +807,6 @@ public class GameServer : NetworkedBehaviour
             }
         }
     }
-    //SERVER
     [ServerRPC(RequireOwnership = false)]
     private void RequestToRespawn_Rpc(ulong clientId, Stream stream) 
     {
@@ -824,14 +820,15 @@ public class GameServer : NetworkedBehaviour
         }
     }
     
+    
     //--Request Ping
-    //CLIENT
     public int GetPlayerPing()
     {
         return networkPing;
     }
+    #endregion
 
-
+    #region Game Chat
     //-----------------------------------------------------------------//
     //         Chat System                                             //
     //-----------------------------------------------------------------//
@@ -869,328 +866,25 @@ public class GameServer : NetworkedBehaviour
             ChatManager.singleton.Incoming(reader.ReadStringPacked().ToString());
         }
     }
+    #endregion
 
-
-
+    #region PlayerInfo Pipeline
     //-----------------------------------------------------------------//
     // (S)->(C)        PlayerInfo Pipeline                             //
     //-----------------------------------------------------------------//
- 
-    public void ForceRequestInfoById(ulong clientId, int depth = 1) 
+
+    public void ServerSendPlayerInfo(ulong clientId, Stream stream) 
     {
-        //------DEPTH KEY------//
-        //   1 - ALL           //
-        //   2 - HEALTH        //
-        //   3 - FOOD          //
-        //   4 - WATER         //
-        //   5 - ITEMS         //
-        //   6 - ARMOR         //
-        //   7 - BLUEPRINTS    //
-        //   8 - HP/FOOD/WATER //
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
-            {
-                writer.WriteInt32Packed(depth);
-                if (depth == 1) //All
-                {
-                    PlayerInfo player = playerInfoSystem.GetPlayerInfo(clientId);
-                    if (player != null)
-                    {
-                        writer.WriteInt32Packed(player.health);
-                        writer.WriteInt32Packed(player.food);
-                        writer.WriteInt32Packed(player.water);
-                        writer.WriteVector3Packed(player.location);
-                        
-                        //INVENTORY ITEMS
-                        if(player.items != null) 
-                        {
-                            int inventoryLength = player.items.Length;
-                            if (inventoryLength > 0)
-                            {
-                                writer.WriteInt32Packed(inventoryLength);
-                                for (int i = 0; i < inventoryLength; i++)
-                                {
-                                    if (player.items[i] != null)
-                                    {
-                                        Item instance = player.items[i];
-                                        writer.WriteInt32Packed(instance.itemID);
-                                        writer.WriteInt32Packed(instance.itemStack);
-                                        writer.WriteInt32Packed(instance.currSlot);
-                                        writer.WriteInt32Packed(instance.durability);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                writer.WriteInt32Packed(0);
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-
-
-                        //ARMOR ITEMS
-                        if (player.armor != null)
-                        {
-                            int armorLength = player.armor.Length;
-                            if (armorLength > 0)
-                            {
-                                writer.WriteInt32Packed(armorLength);
-                                for (int i = 0; i < armorLength; i++)
-                                {
-                                    if (player.armor[i] != null)
-                                    {
-                                        Item instance = player.armor[i];
-                                        writer.WriteInt32Packed(instance.itemID);
-                                        writer.WriteInt32Packed(instance.itemStack);
-                                        writer.WriteInt32Packed(instance.currSlot);
-                                        writer.WriteInt32Packed(instance.durability);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                writer.WriteInt32Packed(0);
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-
-                        writer.WriteIntArrayPacked(player.blueprints);
-                    }
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-                }
-                else if (depth == 2) //Health
-                {
-                    writer.WriteInt32Packed(playerInfoSystem.GetPlayerHealth(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-                }
-                else if (depth == 3) //Food
-                {
-                    writer.WriteInt32Packed(playerInfoSystem.GetPlayerFood(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-                }
-                else if (depth == 4) //Water
-                {
-                    writer.WriteInt32Packed(playerInfoSystem.GetPlayerWater(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-                }
-                else if (depth == 5) //Items
-                {
-                    //INVENTORY ITEMS
-                    Item[] inventory = playerInfoSystem.GetPlayerItems(clientId);
-                    if (inventory != null)
-                    {
-                        int inventoryLength = inventory.Length;
-                        if (inventoryLength > 0)
-                        {
-                            writer.WriteInt32Packed(inventoryLength);
-                            for (int i = 0; i < inventoryLength; i++)
-                            {
-                                if (inventory[i] != null)
-                                {
-                                    Item instance = inventory[i];
-                                    writer.WriteInt32Packed(instance.itemID);
-                                    writer.WriteInt32Packed(instance.itemStack);
-                                    writer.WriteInt32Packed(instance.currSlot);
-                                    writer.WriteInt32Packed(instance.durability);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-                    }
-                    else
-                    {
-                        writer.WriteInt32Packed(0);
-                    }
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-                }
-                else if (depth == 6) //Armor
-                {
-                    //ARMOR ITEMS
-                    Item[] armor = playerInfoSystem.GetPlayerArmor(clientId);
-                    if (armor != null)
-                    {
-                        int armorLength = armor.Length;
-                        if (armorLength > 0)
-                        {
-                            writer.WriteInt32Packed(armorLength);
-                            for (int i = 0; i < armorLength; i++)
-                            {
-                                if (armor[i] != null)
-                                {
-                                    Item instance = armor[i];
-                                    writer.WriteInt32Packed(instance.itemID);
-                                    writer.WriteInt32Packed(instance.itemStack);
-                                    writer.WriteInt32Packed(instance.currSlot);
-                                    writer.WriteInt32Packed(instance.durability);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteInt32Packed(0);
-                        }
-                    }
-                    else
-                    {
-                        writer.WriteInt32Packed(0);
-                    }
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-
-                }
-                else if (depth == 7) //Blueprints
-                {
-                    writer.WriteIntArrayPacked(playerInfoSystem.GetPlayerBlueprints(clientId));
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-                }
-                else if (depth == 8) //Health / Food / Water
-                {
-                    PlayerInfo player = playerInfoSystem.GetPlayerInfo(clientId);
-                    if (player != null)
-                    {
-                        writer.WriteInt32Packed(player.health);
-                        writer.WriteInt32Packed(player.food);
-                        writer.WriteInt32Packed(player.water);
-                    }
-                    InvokeClientRpcPerformance(SendInfoToPlayer_Rpc, (new ulong[] { clientId }).ToList(), writeStream, "PlayerInfo");
-                }
-            }
-        }
+        InvokeClientRpcOnClientPerformance(ServerSendPlayerInfo_Rpc, clientId, stream, "PlayerInfo");
     }
     [ClientRPC]
-    private void SendInfoToPlayer_Rpc(ulong clientId, Stream stream) 
+    private void ServerSendPlayerInfo_Rpc(ulong clientId, Stream stream) 
     {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            int depth = reader.ReadInt32Packed();
-            if(depth == 1)//All
-            {
-                PlayerInfo info = new PlayerInfo()
-                {
-                    health = reader.ReadInt32Packed(),
-                    food = reader.ReadInt32Packed(),
-                    water = reader.ReadInt32Packed(),
-                    location = reader.ReadVector3Packed()
-                };
-
-                //READ INVENTORY ITEMS
-                int inventoryLength = reader.ReadInt32Packed();
-                if(inventoryLength > 0) 
-                {
-                    Item[] items = new Item[inventoryLength];
-                    for (int i = 0; i < inventoryLength; i++)
-                    {
-                        items[i] = new Item()
-                        {
-                            itemID = reader.ReadInt32Packed(),
-                            itemStack = reader.ReadInt32Packed(),
-                            currSlot = reader.ReadInt32Packed(),
-                            durability = reader.ReadInt32Packed()
-                        };
-                    }
-                    info.items = items;
-                }
-
-                //READ INVENTORY ARMOR
-                int armorLength = reader.ReadInt32Packed();
-                if (armorLength > 0)
-                {
-                    Item[] items = new Item[armorLength];
-                    for (int i = 0; i < armorLength; i++)
-                    {
-                        items[i] = new Item()
-                        {
-                            itemID = reader.ReadInt32Packed(),
-                            itemStack = reader.ReadInt32Packed(),
-                            currSlot = reader.ReadInt32Packed(),
-                            durability = reader.ReadInt32Packed()
-                        };
-                    }
-                    info.armor = items;
-                }
-
-                info.blueprints = reader.ReadIntArrayPacked();
-
-
-                playerInfoManager.UpdateAll(info);
-            }
-            else if(depth == 2)//Health
-            {
-                int health = reader.ReadInt32Packed();
-                playerInfoManager.UpdateHealth(health);
-            }
-            else if (depth == 3)//Food
-            {
-                int food = reader.ReadInt32Packed();
-                playerInfoManager.UpdateFood(food);
-            }
-            else if (depth == 4)//Water
-            {
-                int water = reader.ReadInt32Packed();
-                playerInfoManager.UpdateWater(water);
-            }
-            else if (depth == 5)//Items
-            {
-                int inventoryLength = reader.ReadInt32Packed();
-                if (inventoryLength > 0)
-                {
-                    Item[] items = new Item[inventoryLength];
-                    for (int i = 0; i < inventoryLength; i++)
-                    {
-                        items[i] = new Item()
-                        {
-                            itemID = reader.ReadInt32Packed(),
-                            itemStack = reader.ReadInt32Packed(),
-                            currSlot = reader.ReadInt32Packed(),
-                            durability = reader.ReadInt32Packed()
-                        };
-                    }
-                    playerInfoManager.UpdateItems(items);
-                }
-            }
-            else if (depth == 6)//Armor
-            {
-                int armorLength = reader.ReadInt32Packed();
-                if (armorLength > 0)
-                {
-                    Item[] items = new Item[armorLength];
-                    for (int i = 0; i < armorLength; i++)
-                    {
-                        items[i] = new Item()
-                        {
-                            itemID = reader.ReadInt32Packed(),
-                            itemStack = reader.ReadInt32Packed(),
-                            currSlot = reader.ReadInt32Packed(),
-                            durability = reader.ReadInt32Packed()
-                        };
-                    }
-                    playerInfoManager.UpdateArmor(items);
-                }
-            }
-            else if (depth == 7) //Blueprints
-            {
-                int[] blueprints = reader.ReadIntArrayPacked();
-                playerInfoManager.UpdateBlueprints(blueprints);
-            }
-            else if (depth == 8) //Health / Food / Water
-            {
-                playerInfoManager.UpdateHealth(reader.ReadInt32Packed());
-                playerInfoManager.UpdateFood(reader.ReadInt32Packed());
-                playerInfoManager.UpdateWater(reader.ReadInt32Packed());
-            }
-        }
+        playerInfoManager.IntakeStream(stream);
     }
-    
+    #endregion
 
+    #region ServerLoops
     //-----------------------------------------------------------------//
     //                          LOOPS                                  //
     //-----------------------------------------------------------------//
@@ -1209,7 +903,7 @@ public class GameServer : NetworkedBehaviour
             playerInfoSystem.AutoSave();
         }
     }
-
+    #endregion
 }
 //1156 06/20/20
 //1692 06/25/20
@@ -1219,3 +913,5 @@ public class GameServer : NetworkedBehaviour
 //1123 09/22/20 
 //1374 11/23/20 
 //1229 11/30/20
+//893  12/12/20
+//917  12/13/20

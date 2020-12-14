@@ -76,7 +76,7 @@ public class SelectedItemHandler : MonoBehaviour
     //        selectedItem = inventory.SelectSlot(slot);
     //        if(selectedItem != null) 
     //        {
-    //            selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemID);
+    //            selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemId);
     //            if (selectedItemData != null) 
     //            {
     //                if (selectedItemData.isPlaceable)
@@ -110,7 +110,7 @@ public class SelectedItemHandler : MonoBehaviour
     ////Hold Item Function
     //private void ShowHoldableItem() 
     //{
-    //    selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemID); 
+    //    selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemId); 
     //    SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
     //    holdableManager.PulloutHoldable(selectedItemData.holdableId);
     //    UpdateTargets();
@@ -119,7 +119,7 @@ public class SelectedItemHandler : MonoBehaviour
     ////Show Placeable Item
     //private void ShowPlaceableItem()
     //{
-    //    selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemID); //Get ItemData from ItemID
+    //    selectedItemData = ItemDataManager.Singleton.GetItemData(selectedItem.itemId); //Get ItemData from itemId
     //    SetControlUseType(selectedItemData.useType); //Set Control Use Type Icon
 
     //    //Get Prefab from ItemData and Spawn it infront of player when activated

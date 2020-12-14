@@ -12,7 +12,6 @@ public class DeathCam : MonoBehaviour
 
     public Transform player; //Player Object Transform
     public GameObject deathCamPrefab; //Prefab for Deathcam
-    public Animator animator;
 
     private GameObject deathCam; //Death Camera Object
     private int layerMask; //Player Headroom Ignore Mask
@@ -51,15 +50,17 @@ public class DeathCam : MonoBehaviour
         {
             deathCam.SetActive(false);
         }
-        animator.enabled = !value;
     }
 
     //Align the Camera
     private void AlignCamera() 
     {
+        Camera death_camera = deathCam.GetComponent<Camera>();
+        death_camera.backgroundColor = Camera.main.backgroundColor;
+        death_camera.fieldOfView = Camera.main.fieldOfView;
         deathCam.SetActive(true);
         Vector3 target_position = player.transform.position + new Vector3(0, GetCeilingHeight(), 0);
-        StartCoroutine(LerpCamera(target_position, Quaternion.LookRotation(-(target_position - player.transform.position)), 10));
+        StartCoroutine(LerpCamera(target_position, Quaternion.LookRotation(-(target_position - player.transform.position)), 2));
     }
 
     //Lerp the Camera Position & Rotation

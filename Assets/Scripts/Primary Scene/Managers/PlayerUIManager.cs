@@ -54,16 +54,6 @@ public class PlayerUIManager : MonoBehaviour
         deathScreen.DisableScreen();
     }
 
-    
-
-
-
-
-
-
-
-
-
 
 
 

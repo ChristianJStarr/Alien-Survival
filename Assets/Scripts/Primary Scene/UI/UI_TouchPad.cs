@@ -160,7 +160,8 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
         tune = .2F;
         //Apply Sensitivity
-
+        Vector2 touchAxis = pointerDelta;
+        Vector2 sensitivity = new Vector2(Xsensitivity, Ysensitivity);
         //Apply Speed
         if (acceleration)
         {
@@ -175,6 +176,6 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
         //Update Axies
         UpdateVirtualAxes(new Vector3(pointerDelta.x, pointerDelta.y, 0));
-
+        DebugMenu.UpdateTouch(touchAxis, sensitivity, pointerDelta);
     }
 }

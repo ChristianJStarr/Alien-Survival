@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: HoldableData_1
   m_EditorClassIdentifier: 
   holdableId: 1
-  prefab: {fileID: 4603395025206164037, guid: b36da94937023614ca88bc59c55bad2d, type: 3}
+  prefab: {fileID: 1808944862765798190, guid: dbc912fc5e653574ab197ee69187aca1, type: 3}

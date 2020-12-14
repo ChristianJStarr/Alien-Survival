@@ -11,18 +11,20 @@ public class ItemDataManager : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        string[] guids = AssetDatabase.FindAssets("t:ItemData", new[] { "Assets/Content/ItemData" });
-        int count = guids.Length;
-        if (ItemData.Length == count) return;
-        ItemData = new ItemData[count];
-        for (int n = 0; n < count; n++)
-        {
-            var path = AssetDatabase.GUIDToAssetPath(guids[n]);
-            ItemData[n] = AssetDatabase.LoadAssetAtPath<ItemData>(path);
-            //ItemData[n].description = "This is a " + ItemData[n].itemName + ".";
-        }
+        //string[] guids = AssetDatabase.FindAssets("t:ItemData", new[] { "Assets/Content/ItemData" });
+        //int count = guids.Length;
+        //if (ItemData.Length == count) return;
+        //ItemData = new ItemData[count];
+        //for (int n = 0; n < count; n++)
+        //{
+        //    var path = AssetDatabase.GUIDToAssetPath(guids[n]);
+        //    ItemData[n] = AssetDatabase.LoadAssetAtPath<ItemData>(path);
+        //    //ItemData[n].description = "This is a " + ItemData[n].itemName + ".";
+        //}
     }
 #endif
+
+
     private void Awake() 
     {
         Singleton = this;
@@ -32,11 +34,14 @@ public class ItemDataManager : MonoBehaviour
     // Get ItemData From Item ID
     public ItemData GetItemData(int itemId) 
     {
+        
         for (int i = 0; i < ItemData.Length; i++)
         {
-            if (itemId == ItemData[i].itemID) 
+            if (itemId == ItemData[i].itemId) 
             {
-                return ItemData[i];
+                ItemData data = ItemData[i];
+                Debug.Log("Item Data Requested. " + data.itemId + " " + data.icon.texture.width);
+                return data;
             }
         }
         return null;

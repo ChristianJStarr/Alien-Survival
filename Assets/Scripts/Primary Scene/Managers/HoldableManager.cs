@@ -51,6 +51,14 @@ public class HoldableManager : NetworkedBehaviour
                     {
                         controlObject.holdableObject = holdableObject;
                     }
+                    if (holdableObject.leftHandTarget != null)
+                    {
+                        controlObject.SetHandIK(holdableObject.leftHandTarget, true);
+                    }
+                    if (holdableObject.rightHandTarget != null)
+                    {
+                        controlObject.SetHandIK(holdableObject.rightHandTarget, false);
+                    }
                 }
             }
         }
@@ -65,6 +73,14 @@ public class HoldableManager : NetworkedBehaviour
                     if (holdableObject != null)
                     {
                         controlObject.holdableObject = holdableObject;
+                        if(holdableObject.leftHandTarget != null) 
+                        {
+                            controlObject.SetHandIK(holdableObject.leftHandTarget, true);
+                        }
+                        if (holdableObject.rightHandTarget != null)
+                        {
+                            controlObject.SetHandIK(holdableObject.rightHandTarget, false);
+                        }
                     }
                 }
             }
@@ -91,6 +107,14 @@ public class HoldableManager : NetworkedBehaviour
                     {
                         controlObject.holdableObject = holdableObject;
                     }
+                    if (holdableObject.leftHandTarget != null)
+                    {
+                        controlObject.SetHandIK(holdableObject.leftHandTarget, true);
+                    }
+                    if (holdableObject.rightHandTarget != null)
+                    {
+                        controlObject.SetHandIK(holdableObject.rightHandTarget, false);
+                    }
                 }
             }
         }
@@ -105,6 +129,14 @@ public class HoldableManager : NetworkedBehaviour
                     if (holdableObject != null)
                     {
                         controlObject.holdableObject = holdableObject;
+                    }
+                    if (holdableObject.leftHandTarget != null)
+                    {
+                        controlObject.SetHandIK(holdableObject.leftHandTarget, true);
+                    }
+                    if (holdableObject.rightHandTarget != null)
+                    {
+                        controlObject.SetHandIK(holdableObject.rightHandTarget, false);
                     }
                 }
             }

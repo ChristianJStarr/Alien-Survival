@@ -12,35 +12,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_5
   m_EditorClassIdentifier: 
+  itemId: 5
+  itemName: Pistol
+  description: This is the description for this item
   icon: {fileID: 21300000, guid: b70861866dbc8c24b8eaa9592e6f64e5, type: 3}
-  itemID: 5
-  craftAmount: 1
   maxItemStack: 1
   armorType: 0
-  toolId: 0
-  toolGatherAmount: 0
+  isUsable: 0
+  startMaxDurability: 0
   useType: 0
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse:
   - 4-5
   maxDurability: 12
   durabilityId: 8
+  durabilityRefilId: 0
+  isHoldable: 1
   holdableId: 0
-  itemName: Pistol
-  description: This is the description for this item
+  holdableObject: {fileID: 652379469175077091, guid: b1e2d3a9a7c08ee4eb6fd24d589fa58b,
+    type: 3}
+  isCraftable: 1
+  craftAmount: 1
   recipe:
   - 43-2
   - 39-1
+  isPlaceable: 0
+  placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
   useSound: 
   hitSound: 
-  isCraftable: 1
-  isPlaceable: 0
-  isHoldable: 1
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 0
-  holdableObject: {fileID: 652379469175077091, guid: b1e2d3a9a7c08ee4eb6fd24d589fa58b,
-    type: 3}
-  placeableItem: {fileID: 0}

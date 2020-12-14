@@ -7,7 +7,7 @@ public class EscapePodSystem : MonoBehaviour
 {
     private bool systemEnabled = false;
 
-    public PlayerCommandSystem playerCommandSystem;
+    public PlayerObjectSystem playerObjectSystem;
 
     //Prefab & Pool
     public GameObject escapePodPrefab;
@@ -47,7 +47,7 @@ public class EscapePodSystem : MonoBehaviour
     {
         Debug.Log("Attemping to Spawn Player in Escape Pod.");
         EscapePodObject escapePod = SpawnPod(clientId);
-        playerCommandSystem.Teleport_ToVector(clientId, escapePod.spawn_Position.position, escapePod.spawn_Position.rotation);
+        playerObjectSystem.Teleport_ToVector(clientId, escapePod.spawn_Position.position, escapePod.spawn_Position.rotation);
     }
 
     //Check for Inactive Pods Loop
@@ -69,7 +69,7 @@ public class EscapePodSystem : MonoBehaviour
     private void CheckInactivePods() 
     {
         Debug.Log("Checking Inactive Pods");
-        Vector3[] players = playerCommandSystem.GetPlayerPositionsArray();
+        Vector3[] players = playerObjectSystem.GetPlayerPositionsArray();
         int podCount = spawnedPods.Count;
         if(players.Length > 0) 
         {
@@ -79,6 +79,7 @@ public class EscapePodSystem : MonoBehaviour
                 float minDistance = 2000;
                 for (int e = 0; e < players.Length; e++)
                 {
+                    if (spawnedPods[i] == null) break;
                     float cur = Vector3.Distance(players[e], spawnedPods[i].transform.position);
                     if (minDistance > cur) { minDistance = cur; }
                 }
@@ -116,7 +117,7 @@ public class EscapePodSystem : MonoBehaviour
     private Vector3 GetSpawnpoint(ulong clientId) 
     {
         Debug.Log("Getting Spawnpoint for Pod");
-        Vector3[] players = playerCommandSystem.GetPlayerPositionsArray(clientId);
+        Vector3[] players = playerObjectSystem.GetPlayerPositionsArray(clientId);
         float[] distance = new float[players.Length];
         int spawnpoints_Length = spawnpoints.Length;
         int players_Length = players.Length;

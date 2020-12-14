@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -29,8 +30,17 @@ public class UI_Tooltip : MonoBehaviour
     {
         if(storedItem.currSlot == slot) 
         {
-            gameObject.SetActive(false);
+            //gameObject.SetActive(false);
+
+            StartCoroutine(WaitForItem(slot));
         }
+
+
+    }
+    private IEnumerator WaitForItem(int slot) 
+    {
+        yield return new WaitForSeconds(2);
+        Debug.Log("StoredItem:" + storedItem.currSlot + " " + slot);
     }
 
     //Set ItemData to this tooltip.

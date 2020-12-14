@@ -12,32 +12,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf1349d02820c3542bfc020648073049, type: 3}
   m_Name: ItemData_44
   m_EditorClassIdentifier: 
+  itemId: 44
+  itemName: Stick
+  description: This is aStick.
   icon: {fileID: 21300000, guid: 8f772e5b75913094b9cf01dd35221a1f, type: 3}
-  itemID: 44
-  craftAmount: 10
   maxItemStack: 200
   armorType: 0
-  toolId: 0
-  toolGatherAmount: 0
+  isUsable: 0
+  startMaxDurability: 0
   useType: 0
   useRange: 10
+  useDelay: 1.2
   useParticleId: 1
+  useAmount: 1
   itemUse: []
   maxDurability: 0
   durabilityId: 0
+  durabilityRefilId: 0
+  isHoldable: 0
   holdableId: 0
-  itemName: Stick
-  description: This is aStick.
+  holdableObject: {fileID: 0}
+  isCraftable: 1
+  craftAmount: 10
   recipe:
   - 40-1
+  isPlaceable: 0
+  placeableItem: {fileID: 0}
+  isArmor: 0
+  showInInventory: 1
+  toolId: 0
+  toolGatherAmount: 0
   useSound: 
   hitSound: 
-  isCraftable: 1
-  isPlaceable: 0
-  isHoldable: 0
-  isArmor: 0
-  isDragging: 0
-  showInInventory: 1
-  startMaxDurability: 0
-  holdableObject: {fileID: 0}
-  placeableItem: {fileID: 0}

@@ -2,11 +2,14 @@
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
-using System;
 using System.Collections;
 
 public class UI_Inventory : MonoBehaviour
 {
+    #region Singleton
+    public static UI_Inventory Singleton;
+    private void Awake() { Singleton = this; }
+    #endregion
     public UI_Tooltip ui_tooltip;
     public GameObject inventoryUI, inventoryBkg, bounds, bounds2, bounds3, hotBarButtons, tint, tint2, playerViewCamera, storageCrateSlotContainer;
     public ControlControl controls;
@@ -16,11 +19,6 @@ public class UI_Inventory : MonoBehaviour
     public UI_ItemSlot[] itemSlots, armorSlots, storageCrateSlots;
     public bool invOpen = false;
     public UI_CraftingMenu craftingMenu;
-    
-    private Item[] items;
-    private Item[] armor;
-    private int[] blueprints;
-
 
     //Inventory UI Slide Menus
     private Vector2 leftTarget = new Vector3(-354F, -41.99303F);
@@ -29,7 +27,7 @@ public class UI_Inventory : MonoBehaviour
     public InventorySlideModule[] rightSlideMenus;
     public RectTransform leftSlideMenus;
 
-    private int activeSlideMenu;
+    private int activeSlideMenu = 100;
     private bool rightMove = false;
     private bool leftMove = false;
     private bool leftActive = false;
@@ -44,29 +42,14 @@ public class UI_Inventory : MonoBehaviour
     private Sprite normalIcon;
 
 
+    //Configuration
+    private float c_SlideLerpSpeed = 0.5F; //Seconds
+
+
     private void Start()
     {
         normalIcon = buttonIcon.sprite;
-        craftingMenu = GetComponent<UI_CraftingMenu>();
-        UI_ItemSlot[] itemSlotsTemp = itemsParent.GetComponentsInChildren<UI_ItemSlot>(true);
-        List<UI_ItemSlot> hotBarSlotsTemp = hotBarParent.GetComponentsInChildren<UI_ItemSlot>(true).ToList();
-        armorSlots = armorSlotsContainer.GetComponentsInChildren<UI_ItemSlot>(true);
-        storageCrateSlots = storageCrateSlotContainer.GetComponentsInChildren<UI_ItemSlot>(true);
-        foreach (UI_ItemSlot slot in itemSlotsTemp)
-        {
-            hotBarSlotsTemp.Add(slot);
-        }
-        itemSlots = hotBarSlotsTemp.ToArray();
-
-        //Assign Slot_Numbers to Item Slots
-        AssignSlotNumbersToSlots();
     }
-    private void Update()
-    {
-        UpdateMenus();
-    }
-
-
 
     //Button: Inventory Open/Close
     public void InvButton()
@@ -77,9 +60,10 @@ public class UI_Inventory : MonoBehaviour
         {
             controls.Show();
             ui_tooltip.gameObject.SetActive(false);
-            SlideMenu(true, false);
-            SlideMenu(false, false);
+            MoveSideMenu(true, false);
+            MoveSideMenu(false, false);
             buttonIcon.sprite = normalIcon;
+            rightSlideMenus[activeSlideMenu].gameObject.SetActive(false);
         }
         else
         {
@@ -98,11 +82,6 @@ public class UI_Inventory : MonoBehaviour
             {
                 itemSlots[i].Toggle();
             }
-        }
-        //Turn off armor slots
-        for (int i = 0; i < armorSlots.Length; i++)
-        {
-            armorSlots[i].Toggle();
         }
     }
 
@@ -129,7 +108,6 @@ public class UI_Inventory : MonoBehaviour
             if (playerViewCamera != null) { playerViewCamera.SetActive(invOpen); }
             controls.Hide();
             buttonIcon.sprite = closeIcon;
-            SetRightMenu(activeSlideMenu, true);
             tint.SetActive(invOpen);
             hotBarButtons.SetActive(!invOpen);
             inventoryBkg.SetActive(invOpen);
@@ -142,50 +120,49 @@ public class UI_Inventory : MonoBehaviour
                     itemSlots[i].Toggle();
                 }
             }
-            //Turn off armor slots
-            for (int i = 0; i < armorSlots.Length; i++)
-            {
-                armorSlots[i].Toggle();
-            }
         }
     }
 
-
-
-
     //Incoming Inventory Data from Server
-    public void Incoming(Item[] _items, Item[] _armor, int[] _blueprints) 
+    public void Incoming()
     {
-        items = _items;
-        armor = _armor;
-        blueprints = _blueprints;
-        if (craftingMenu == null)
-        {
-            craftingMenu = GetComponent<UI_CraftingMenu>();
-        }
-        craftingMenu.GetResources(items, blueprints);
+        UpdateCraftingMenu();
         UpdateUI();
     }
 
-    //Assign Slot Numbers To Slots
-    private void AssignSlotNumbersToSlots() 
+    //Update Crafting Menu
+    private void UpdateCraftingMenu()
     {
+        if (craftingMenu == null)
+        {
+            craftingMenu = UI_CraftingMenu.Singleton;
+        }
+        craftingMenu.GetResources();
+    }
+
+    //Assign Slot Numbers To Slots
+    private void FindAndRegisterSlots()
+    {
+        UI_ItemSlot[] hotbar = hotBarParent.GetComponentsInChildren<UI_ItemSlot>(true);
+        UI_ItemSlot[] primary = itemsParent.GetComponentsInChildren<UI_ItemSlot>(true);
+        UI_ItemSlot[] armor = armorSlotsContainer.GetComponentsInChildren<UI_ItemSlot>(true);
         int slotNumber = 1;
-        for (int i = 0; i < itemSlots.Length; i++) //33 0-32
+        List<UI_ItemSlot> temp = new List<UI_ItemSlot>();
+        temp = hotbar.ToList();
+        for (int i = 0; i < primary.Length; i++)
         {
-            itemSlots[i].slotNumber = slotNumber; // 1-33
+            temp.Add(primary[i]);
+        }
+        for (int i = 0; i < armor.Length; i++)
+        {
+            temp.Add(armor[i]);
+        }
+        for (int i = 0; i < temp.Count; i++)
+        {
+            temp[i].slotNumber = slotNumber;
             slotNumber++;
         }
-        for (int i = 0; i < armorSlots.Length; i++) //5 0-4
-        {
-            armorSlots[i].slotNumber = slotNumber; //34-38
-            slotNumber++;
-        }
-        for (int i = 0; i < storageCrateSlots.Length; i++) //18 0-17
-        {
-            storageCrateSlots[i].slotNumber = slotNumber; //39-56
-            slotNumber++;
-        }
+        itemSlots = temp.ToArray();
     }
 
     //Check the Hover Object
@@ -193,16 +170,16 @@ public class UI_Inventory : MonoBehaviour
     {
         if (HoveringOverLeftMenu())
         {
-            if (!leftActive) 
+            if (!leftActive)
             {
-                ToggleSlideMenu(true);
+                ToggleSideMenu(true);
             }
         }
         else if (HoveringOverRightMenu())
         {
-            if (!rightActive) 
+            if (!rightActive)
             {
-                ToggleSlideMenu(false);
+                ToggleSideMenu(false);
             }
         }
         else if (leftActive)
@@ -212,7 +189,7 @@ public class UI_Inventory : MonoBehaviour
                 StartCoroutine(CheckHoverObjectWait());
             }
         }
-        else if (rightActive) 
+        else if (rightActive)
         {
             if (!checkingHover)
             {
@@ -222,22 +199,22 @@ public class UI_Inventory : MonoBehaviour
     }
 
     //Wait for Check Hover Objecet
-    private IEnumerator CheckHoverObjectWait() 
+    private IEnumerator CheckHoverObjectWait()
     {
         checkingHover = true;
-        yield return new WaitForSeconds(.4F);
+        yield return new WaitForSeconds(.2F);
         if (!HoveringOverLeftMenu())
         {
             if (leftActive)
             {
-                ToggleSlideMenu(true);
+                ToggleSideMenu(true);
             }
         }
         if (!HoveringOverRightMenu())
         {
             if (rightActive)
             {
-                ToggleSlideMenu(false);
+                ToggleSideMenu(false);
             }
         }
         checkingHover = false;
@@ -266,133 +243,33 @@ public class UI_Inventory : MonoBehaviour
         return (RectTransformUtility.RectangleContainsScreenPoint(leftSlideMenus, Input.mousePosition));
     }
 
-    //Button: Slide Menu
-    public void ToggleSlideMenu(bool left)
-    {
-        if (left) 
-        {
-            SlideMenu(left, !leftActive);
-            if (rightActive) 
-            {
-                SlideMenu(!left, false);
-            }
-        }
-        else //right 
-        {
-            SlideMenu(left, !rightActive);
-            if (leftActive)
-            {
-                SlideMenu(!left, false);
-            }
-        }
-    }
-
-    //Update Menu Positions
-    private void UpdateMenus() 
-    {
-            if (leftMove)
-            {
-                if (leftSlideMenus.anchoredPosition != leftTarget)
-                {
-                    leftSlideMenus.anchoredPosition = Vector2.MoveTowards(leftSlideMenus.anchoredPosition, leftTarget, 6000 * Time.deltaTime);
-                }
-                else
-                {
-                    leftMove = false;
-                }
-            }
-            if (rightMove)
-            {
-                RectTransform rect = rightSlideMenus[activeSlideMenu].rect;
-                if (rect.anchoredPosition != rightTarget)
-                {
-                    rect.anchoredPosition = Vector2.MoveTowards(rect.anchoredPosition, rightTarget, 6000 * Time.deltaTime);
-                }
-                else
-                {
-                    rightMove = false;
-                }
-            }
-            if (leftActive || rightActive)
-            {
-                tint2.SetActive(true);
-            }
-            else
-            {
-                tint2.SetActive(false);
-            }
-    }
-
-    //Set Right Menu
-    private void SetRightMenu(int menuId, bool active) 
-    {
-        if(activeSlideMenu != menuId) 
-        {
-            activeSlideMenu = menuId;
-            for (int i = 0; i < rightSlideMenus.Length; i++)
-            {
-                if (i != menuId)
-                {
-                    rightSlideMenus[menuId].gameObject.SetActive(false);
-                }
-            }
-            rightSlideMenus[menuId].gameObject.SetActive(active);
-            rightSlideMenus[menuId].storedUIData = storedUIData;
-        }
-        else if (active && rightSlideMenus[menuId].needsUIData)
-        {
-            rightSlideMenus[menuId].storedUIData = storedUIData;
-        }
-    }
-
-    //Slide Menus 
-    private void SlideMenu(bool left, bool state) 
-    {
-        if (!left) //Right
-        {
-            InventorySlideModule module = rightSlideMenus[activeSlideMenu];
-            if (state) 
-            {
-                rightTarget = module.onPos;
-            }
-            else 
-            {
-                rightTarget = module.offPos;
-            }
-            rightMove = true;
-            rightActive = state;
-        }
-        else //Left
-        {
-            
-            if (state)
-            {
-                leftTarget = new Vector2(507, -38);
-            }
-            else
-            {
-                leftTarget = new Vector2(-354.1534F, -38);
-            }
-            leftMove = true;
-            leftActive = state;
-        }
-    }
+    
+    //--------------------------//
+    //  - Top Tool Tip          //
+    //--------------------------//
 
     //Active Top Tip (item)
-    public void ActivateToolTip(Item item) 
+    public void ActivateToolTip(Item item)
     {
-        ui_tooltip.SetData(ItemDataManager.Singleton.GetItemData(item.itemID), item);
+        ItemData data = ItemDataManager.Singleton.GetItemData(item.itemId);
+        if (data != null)
+        {
+            ui_tooltip.SetData(data, item);
+        }
+        else
+        {
+            Debug.LogError("ItemDataManager has Failed. Data with Id: " + item.itemId + " doesn't exist.");
+        }
     }
-    
+
     //Hide Top Tip
-    public void HideTooltip(int slot) 
+    public void HideTooltip(int slot)
     {
         ui_tooltip.Hide(slot);
     }
 
-
     //Set Slot to Focused
-    public void SetSlotFocused(int slot) 
+    public void SetSlotFocused(int slot)
     {
         for (int i = 0; i < 6; i++)
         {
@@ -400,87 +277,170 @@ public class UI_Inventory : MonoBehaviour
         }
     }
 
-    //Get Item from Slot
-    public Item GetItemFromSlot(int slot) 
-    {
-        for (int i = 0; i < items.Length; i++)
-        {
-            if(items[i].currSlot == slot) 
-            {
-                return items[i];
-            }
-        }
-        return null;
-    }
-
     //Update the Standard Inventory UI
     private void UpdateUI()
     {
-        //Inventory Slots
-        ClientInventoryTool.ClearSlots(itemSlots);
-        if (items != null)
+        Inventory inventory = PlayerInfoManager.singleton.storedPlayerInfo.inventory;
+        int inv_length = inventory.items.Count;
+        int sl_length = itemSlots.Length;
+        List<int> modified_slots = new List<int>();
+
+        //Find Item Slots
+        if (sl_length == 0)
         {
-            ClientInventoryTool.SortSlots(items, itemSlots);
+            FindAndRegisterSlots();
+            sl_length = itemSlots.Length;
         }
 
-        //Armor Slots
-        ClientInventoryTool.ClearSlots(armorSlots);
-        if (armor != null) 
+        //Apply Data to Slots
+        for (int i = 0; i < inv_length; i++)
         {
-            ClientInventoryTool.SortSlots(armor, armorSlots);
+            Item item = inventory.items[i];
+            int index = item.currSlot - 1;
+            if(itemSlots[index] != null) 
+            {
+                itemSlots[index].Incoming(item);
+                modified_slots.Add(index);
+            }
+        }
+
+        //Clear Unmodified Slots
+        for (int i = 0; i < sl_length; i++)
+        {
+            if (!modified_slots.Contains(i)) 
+            {
+                itemSlots[i].Clear();
+            }
         }
     }
 
 
+    //--------------------------//
+    //  - Side Menus            //
+    //--------------------------//
 
 
-    //Interface Hider Show/Hide
-    public void Show() 
+    private void SetRightMenu(int menuId, bool active)
+    {
+        activeSlideMenu = menuId;
+        for (int i = 0; i < rightSlideMenus.Length; i++)
+        {
+            if (i != menuId)
+            {
+                rightSlideMenus[menuId].gameObject.SetActive(false);
+            }
+        }
+        rightSlideMenus[menuId].gameObject.SetActive(active);
+        rightSlideMenus[menuId].storedUIData = storedUIData;
+    }
+    public void ToggleSideMenu(bool left)
+    {
+        if (left)
+        {
+            MoveSideMenu(left, !leftActive);
+            if (rightActive)
+            {
+                MoveSideMenu(!left, false);
+            }
+        }
+        else
+        {
+            MoveSideMenu(left, !rightActive);
+            if (leftActive)
+            {
+                MoveSideMenu(!left, false);
+            }
+        }
+    }
+    private void MoveSideMenu(bool left, bool state)
+    {
+        if (left && leftActive != state)
+        {
+            StartCoroutine(MoveSideLerp(left, state, c_SlideLerpSpeed));
+        }
+        else if (!left && rightActive != state)
+        {
+            StartCoroutine(MoveSideLerp(left, state, c_SlideLerpSpeed));
+        }
+    }
+    private IEnumerator MoveSideLerp(bool left, bool state, float duration) 
+    {
+        Vector2 target;
+        if (left)
+        {
+            leftActive = state;
+
+            if (state)
+            {
+                target = new Vector2(507, -38);
+            }
+            else
+            {
+                target = new Vector2(-354.1534F, -38);
+            }
+            float time = 0;
+            Vector2 startPosition = leftSlideMenus.anchoredPosition;
+            while (time < duration && leftActive == state)
+            {
+                leftSlideMenus.anchoredPosition = Vector2.Lerp(startPosition, target, time / duration);
+                time += Time.deltaTime;
+                yield return null;
+            }
+            if (leftActive == state)
+            {
+                leftSlideMenus.anchoredPosition = target;
+            }
+        }
+        else
+        {
+            rightActive = state;
+            InventorySlideModule module = rightSlideMenus[activeSlideMenu];
+            if (state)
+            {
+                target = module.onPos;
+            }
+            else
+            {
+                target = module.offPos;
+            }
+            float time = 0;
+            Vector2 startPosition = module.rect.anchoredPosition;
+            while (time < duration && rightActive == state)
+            {
+                module.rect.anchoredPosition = Vector2.Lerp(startPosition, target, time / duration);
+                time += Time.deltaTime;
+                yield return null;
+            }
+            if (rightActive == state) 
+            {
+                module.rect.anchoredPosition = target;
+            }
+        }
+        if (leftActive || rightActive)
+        {
+            tint2.SetActive(true);
+        }
+        else
+        {
+            tint2.SetActive(false);
+        }
+    }
+
+
+    //--------------------------//
+    //  - Interface Hider       //
+    //--------------------------//
+    
+    public void Show()
     {
         inventoryUI.SetActive(true);
     }
-    public void Hide() 
+    public void Hide()
     {
         inventoryUI.SetActive(false);
     }
 }
 
-
-public class ClientInventoryTool
-{
-    //TOOL: Sort Slots
-    public static void SortSlots(Item[] items, UI_ItemSlot[] slots)
-    {
-        for (int i = 0; i < items.Length; i++)
-        {
-            for (int e = 0; e < slots.Length; e++)
-            {
-                if (items[i].currSlot == slots[e].slotNumber)
-                {
-                    ItemData data = ItemDataManager.Singleton.GetItemData(items[i].itemID);
-                    if (data != null)
-                    {
-                        slots[e].AddItem(items[i], data);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    //TOOL: Clear Slots
-    public static void ClearSlots(UI_ItemSlot[] slots) 
-    {
-        if(slots != null && slots.Length > 0) 
-        {
-            foreach (UI_ItemSlot slot in slots)
-            {
-                slot.ClearSlot();
-            }
-        }
-    }
-
-}
 
 
 public class UIData 
