@@ -12,7 +12,7 @@ public class UI_Inventory : MonoBehaviour
     #endregion
     public UI_Tooltip ui_tooltip;
     public GameObject inventoryUI, inventoryBkg, bounds, bounds2, bounds3, hotBarButtons, tint, tint2, playerViewCamera, storageCrateSlotContainer;
-    public ControlControl controls;
+    public ControlsManager controls;
     public Transform itemsParent, armorSlotsContainer, hotBarParent;
     public Image buttonIcon;
     public Item toolTipItem;

@@ -23,6 +23,78 @@ public class PlayerUIManager : MonoBehaviour
     public UI_Inventory inventory;
     public UI_DeathScreen deathScreen; //----Death Screen
     public UI_Joystick joystick; //----Joy Stick
+    public UI_PauseControl pauseMenu;
+
+    //Interfaces
+    public ChatManager chat;
+    public ControlsManager controls;
+    public GameObject notifyTray;
+    public UI_Reticle reticle;
+
+
+    //Inventory
+    public void Show_Inventory() 
+    {
+        HideAllInterfaces();
+    }
+    public void Hide_Inventory() 
+    {
+    
+    }
+
+    //Death Screen
+    public void Show_DeathScreen() 
+    {
+        topbar.Hide();
+        inventory.Hide();
+        controls.Hide();
+        notifyTray.SetActive(false);
+        reticle.Hide();
+    }
+    public void Hide_DeathScreen() 
+    {
+    
+    }
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //Hide All, Used for Death/Sleep screen etc.
+    public void HideAllInterfaces()
+    {
+        //chat.Hide();
+        topbar.Hide();
+        inventory.Hide();
+        controls.Hide();
+        notifyTray.SetActive(false);
+        reticle.Hide();
+    }
+
+    //Show All
+    public void ShowAllInterfaces()
+    {
+        //chat.Show();
+        topbar.Show();
+        inventory.Show();
+        controls.Show();
+        notifyTray.SetActive(true);
+        reticle.Show();
+    }
 
 
     void Start()

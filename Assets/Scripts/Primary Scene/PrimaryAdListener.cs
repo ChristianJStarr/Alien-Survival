@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.Advertisements;
-using UnityEngine.SceneManagement;
 
 public class PrimaryAdListener : MonoBehaviour, IUnityAdsListener
 {
@@ -19,34 +18,29 @@ public class PrimaryAdListener : MonoBehaviour, IUnityAdsListener
     }
     public void ShowAd()
     {
+#if !UNITY_EDITOR
         Advertisement.Show(myPlacementId);
+#endif
     }
     public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
     {
-        if (SceneManager.GetActiveScene().name == "Primary") 
+        if (showResult == ShowResult.Finished)
         {
-            if (showResult == ShowResult.Finished)
-            {
-                gameServer.RequestToRespawn(authKey);
-            }
-            else if (showResult == ShowResult.Skipped)
-            {
-                gameServer.RequestToRespawn(authKey);
-            }
-            else if (showResult == ShowResult.Failed)
-            {
-                gameServer.RequestToRespawn(authKey);
-            }
+            gameServer.RequestToRespawn(authKey);
+        }
+        else if (showResult == ShowResult.Skipped)
+        {
+            gameServer.RequestToRespawn(authKey);
+        }
+        else if (showResult == ShowResult.Failed)
+        {
+            gameServer.RequestToRespawn(authKey);
         }
     }
 
     public void OnUnityAdsReady(string placementId)
     {
-        // If the ready Placement is rewarded, show the ad:
-        if (placementId == myPlacementId)
-        {
-            //Advertisement.Show(myPlacementId);
-        }
+        // If the ready Placement is rewarded, show the ad
     }
 
     public void OnUnityAdsDidError(string message)

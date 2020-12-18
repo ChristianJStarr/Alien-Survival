@@ -1,31 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class InterfaceHider : MonoBehaviour
 {
-
+    #region Singleton
     public static InterfaceHider Singleton;
-
     private void Awake() { Singleton = this; }
-
-
-
-
-
+    #endregion
 
     //Interfaces
-
     public ChatManager chat;
-
     public UI_Topbar topBar;
-
     public UI_Inventory inventory;
-
-    public ControlControl controls;
-
+    public ControlsManager controls;
     public GameObject notifyTray;
-
     public UI_Reticle reticle;
 
 
@@ -40,7 +27,7 @@ public class InterfaceHider : MonoBehaviour
         reticle.Hide();
     }
 
-
+    //Show All
     public void ShowAllInterfaces() 
     {
         //chat.Show();
@@ -50,12 +37,4 @@ public class InterfaceHider : MonoBehaviour
         notifyTray.SetActive(true);
         reticle.Show();
     }
-
-
-
-
-
-
-
-
 }

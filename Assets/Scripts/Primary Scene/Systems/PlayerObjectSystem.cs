@@ -1,6 +1,8 @@
 ﻿using MLAPI;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 public class PlayerObjectSystem : MonoBehaviour
@@ -13,6 +15,19 @@ public class PlayerObjectSystem : MonoBehaviour
     private bool systemEnabled = false;
     //Player Object Dictionary   ClientID Key
     private Dictionary<ulong, PlayerControlObject> players = new Dictionary<ulong, PlayerControlObject>();
+
+
+    //--------JOBS-----------------------------------
+    private bool useJobs = false;
+    private NativeArray<Vector3> positions_native;
+    private NativeArray<bool> nearby_native;
+    private GetNearbyClientsJob getNearbyClientsJob;
+    private JobHandle getNearbyClientsHandle;
+
+
+
+
+
 
 
 
@@ -91,41 +106,7 @@ public class PlayerObjectSystem : MonoBehaviour
         }
         return instance;
     }
-    //Get Nearby Clients
-    public List<ulong> GetNearbyClients(Vector3 position, int distance)
-    {
-        List<ulong> nearby = new List<ulong>();
-        ulong[] clientIds = players.Keys.ToArray();
-        Vector3[] positions = GetPlayerPositionsArray();
-        int clients = clientIds.Length;
-        for (int i = 0; i < clients; i++)
-        {
-            if(Vector3.Distance(positions[i], position) < distance) 
-            {
-                nearby.Add(clientIds[i]);
-            }
-        }
-        return nearby;
-    }
-    public List<ulong> GetNearbyClients(Vector3 position, int distance, ulong clientToIgnore)
-    {
-        List<ulong> nearby = new List<ulong>();
-        ulong[] clientIds = players.Keys.ToArray();
-        Vector3[] positions = GetPlayerPositionsArray();
-        int clients = clientIds.Length;
-        for (int i = 0; i < clients; i++)
-        {
-            if (Vector3.Distance(positions[i], position) < distance)
-            {
-                if(clientIds[i] != clientToIgnore) 
-                {
-                    nearby.Add(clientIds[i]);
-                }
-            }
-        }
-        return nearby;
-    }
-
+   
     //-------------Modify Control Object-----------------
 
     public void ModifyHoldable(ulong clientId, int holdableId, int holdableState) 
@@ -223,7 +204,98 @@ public class PlayerObjectSystem : MonoBehaviour
 
 
 
+    
+    //Get List of Nearby Clients
+    public List<ulong> GetNearbyClients(Vector3 position, int distance, ulong clientToIgnore = 0)
+    {
+        if (useJobs) 
+        {
+            return GetNearbyClients_Job(position, distance, clientToIgnore);   
+        }
+        else 
+        {
+            return GetNearbyClients_Task(position, distance, clientToIgnore);
+        }
+    }
+    public List<ulong> GetNearbyClients(ulong clientId, int distance, ulong clientToIgnore = 0)
+    {
+        if (players.ContainsKey(clientId)) 
+        {
+            Vector3 position = players[clientId].transform.position;
+            if (useJobs)
+            {
+                return GetNearbyClients_Job(position, distance, clientToIgnore);
+            }
+            else
+            {
+                return GetNearbyClients_Task(position, distance, clientToIgnore);
+            }
+        }
+        return new List<ulong>();
+    }
+    private List<ulong> GetNearbyClients_Task(Vector3 position, int distance, ulong clientToIgnore)
+    {
+        DebugMsg.Begin(299, "Getting Nearby Clients. Task", 2);
+        List<ulong> nearby = new List<ulong>();
+        ulong[] clientIds = players.Keys.ToArray();
+        Vector3[] positions = GetPlayerPositionsArray();
+        int clients = clientIds.Length;
+        for (int i = 0; i < clients; i++)
+        {
+            if (Vector3.Distance(positions[i], position) < distance)
+            {
+                if (clientIds[i] != clientToIgnore)
+                {
+                    nearby.Add(clientIds[i]);
+                }
+            }
+        }
+        DebugMsg.End(299, "Finsihed Getting Nearby Clients. Task", 2);
+        return nearby;
+    }
+    private List<ulong> GetNearbyClients_Job(Vector3 position, int distance, ulong clientToIgnore)
+    {
+        DebugMsg.Begin(298, "Getting Nearby Clients. IJOB", 2);
+        List<ulong> nearby = new List<ulong>();
+        ulong[] clientIds = players.Keys.ToArray();
+        int clients = clientIds.Length;
+        positions_native = new NativeArray<Vector3>(GetPlayerPositionsArray(), Allocator.TempJob);
+        nearby_native = new NativeArray<bool>(clients, Allocator.TempJob);
+        getNearbyClientsJob = new GetNearbyClientsJob()
+        {
+            positions = positions_native,
+            returns = nearby_native,
+            point = position,
+            length = distance
+        };
+        getNearbyClientsHandle = getNearbyClientsJob.Schedule(clients, getNearbyClientsHandle);
+        getNearbyClientsHandle.Complete();
+        for (int i = 0; i < clients; i++)
+        {
+            if (nearby_native[i] && clientIds[i] != clientToIgnore)
+            {
+                nearby.Add(clientIds[i]);
+            }
+        }
+        positions_native.Dispose();
+        nearby_native.Dispose();
+        DebugMsg.End(298, "Finsihed Getting Nearby Clients. IJOB", 2);
+        return nearby;
+    }
 
 
 
+
+}
+
+public struct GetNearbyClientsJob : IJobFor 
+{
+    [ReadOnly]public NativeArray<Vector3> positions;
+    public NativeArray<bool> returns;
+    public Vector3 point;
+    public float length;
+    public void Execute(int index) 
+    {
+        returns[index] = Vector3.Distance(positions[index], point) <= length;
+    }
 }
