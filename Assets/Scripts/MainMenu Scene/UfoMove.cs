@@ -7,7 +7,7 @@ public class UfoMove : MonoBehaviour
     public float ufoDelay = 15;
     [Space]
     [Tooltip("Speed of Ufo")]
-    public int speed = 20;
+    public float speed = 0.8F;
 
     private Vector3 target_position;
     private Vector3 reset_position;

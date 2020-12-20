@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class MainMenuScript : MonoBehaviour
 {
     public Animator alienAnimator; //Animator of Alien Model
+    public Transform alienCenterMass;
     public PlayerStats playerStats; //Stored player data.
     public GameObject mainScreen; //Main Screen.
     public GameObject loadScreen; //Loading Screen.
@@ -19,22 +20,36 @@ public class MainMenuScript : MonoBehaviour
     public GameObject easterEggBeam;
     public TextMeshProUGUI loadTip, loadMainText;
     private TouchPhase touchPhase = TouchPhase.Ended;//Touch Phase
+    public bool enableEasterEgg = false;
 
+    public void TestEgg() 
+    {
+        alienAnimator.enabled = false;
+        StartCoroutine(EasterEggStart());
+    }
 
     void Update()
+    {
+        if (enableEasterEgg) 
+        {
+            DetectEasterEggInput();
+        }
+    }
+
+    private void DetectEasterEggInput() 
     {
         //Detect double click for easter egg.
         if (Input.touchCount == 1 && Input.GetTouch(0).phase == touchPhase && Input.GetTouch(0).tapCount == 2)
         {
-            if (mainScreen.activeSelf) 
+            if (mainScreen.activeSelf)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit))
                 {
-                    if (hit.collider != null)
+                    if (hit.collider != null && hit.collider.CompareTag("Player"))
                     {
-                        alienAnimator.SetTrigger("EasterEgg");
+                        alienAnimator.enabled = false;
                         StartCoroutine(EasterEggStart());
                     }
                 }
@@ -142,24 +157,6 @@ public class MainMenuScript : MonoBehaviour
         //TODO: Make this shit work. 
     }
     
-
-    //Load Routine
-    private IEnumerator LoadRoutine()
-    {
-        int loadProgress = 0;
-        int lastLoadProgress = 0;
-        for (loadProgress = 0; loadProgress < 500; loadProgress++)
-        {
-            lastLoadProgress = loadProgress;
-            loadProgress++;
-            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; loadSlider.value = loadProgress / 5; }
-            yield return null;
-        }
-
-        loadProgress = 100;
-        loadSlider.value = loadProgress;
-    }
-     
     //Log Out Routine
     private IEnumerator LogOutRoutine()
     {
@@ -189,6 +186,7 @@ public class MainMenuScript : MonoBehaviour
     private IEnumerator EasterEggStart() 
     {
         yield return new WaitForSeconds(5f);
+        easterEggBeam.transform.position = alienCenterMass.position + (Vector3.up * 9);
         easterEggBeam.SetActive(true);
     }
 
@@ -208,6 +206,10 @@ public class MainMenuScript : MonoBehaviour
 
     private IEnumerator LoadTipWait()
     {
+
+
+
+
         yield return new WaitForSeconds(6);
         if (loadingTipIndex + 1 >= loadingTips.Length) 
         {

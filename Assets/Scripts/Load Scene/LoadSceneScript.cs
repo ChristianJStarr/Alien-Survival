@@ -292,7 +292,6 @@ public class LoadSceneScript : MonoBehaviour
             signupScreen.SetActive(false);
             userReporting.SetActive(false);
             loadScreen.SetActive(true);
-            StartLoadTip();
             if (nightChance > 15)
             {
                 background.texture = blurTexture;
@@ -389,7 +388,6 @@ public class LoadSceneScript : MonoBehaviour
     {
         connectionError.SetActive(false);
         loadScreen.SetActive(true);
-        StartLoadTip();
         yield return new WaitForSeconds(5f);
         if (currentErrorType == 1)
         {
@@ -528,7 +526,7 @@ public class LoadSceneScript : MonoBehaviour
                 }
                 else
                 {
-                    ///Signup was unsuccesful.
+                    //Signup was unsuccesful.
                     //Guest Credentials are taken(rare) or connection error.
                     PlayerPrefs.DeleteKey("guest-a");
                     PlayerPrefs.DeleteKey("guest-b");
@@ -581,35 +579,5 @@ public class LoadSceneScript : MonoBehaviour
         var sha = new System.Security.Cryptography.MD5CryptoServiceProvider();
         return System.BitConverter.ToString(sha.ComputeHash(bytes));
     }
-
-    //Get Load Screen Tip Text
-
-    private string[] loadingTips;
-    private int loadingTipIndex;
-
-    private void StartLoadTip()
-    {
-        string json = (Resources.Load("loading-tips") as TextAsset).text;
-        loadingTips = JsonHelper.FromJson<string>(json);
-        loadingTipIndex = Random.Range(0, loadingTips.Length - 1);
-        loadTip.text = loadingTips[loadingTipIndex];
-        StartCoroutine(LoadTipWait());
-    }
-
-    private IEnumerator LoadTipWait()
-    {
-        yield return new WaitForSeconds(6);
-        if (loadingTipIndex + 1 >= loadingTips.Length)
-        {
-            loadingTipIndex = 0;
-        }
-        else
-        {
-            loadingTipIndex++;
-        }
-        loadTip.text = loadingTips[loadingTipIndex];
-        StartCoroutine(LoadTipWait());
-    }
-
 }
 

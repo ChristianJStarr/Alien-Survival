@@ -2,6 +2,8 @@
 using TMPro;
 using UnityEngine;
 
+
+[RequireComponent(typeof(TextMeshProUGUI))]
 public class MultiLangText : MonoBehaviour
 {
     public string key = "";
@@ -18,12 +20,11 @@ public class MultiLangText : MonoBehaviour
         MultiLangSystem.ChangedLanguage -= UpdateText;
     }
 
-    private void OnValidate()
+
+    private void Start()
     {
         UpdateText();
     }
-
-
 
     private void UpdateText() 
     {
@@ -32,30 +33,28 @@ public class MultiLangText : MonoBehaviour
             LangDataSingle langDatas = MultiLangSystem.GetLangDataFromKey(key);
             if (langDatas != null)
             {
-                if (text == null)
+                if (!text)
                 {
                     text = GetComponent<TextMeshProUGUI>();
                 }
-                if (text != null)
+                if (storedFontSize == 0)
                 {
-                    if (storedFontSize == 0)
+                    storedFontSize = text.fontSize;
+                }
+                text.text = langDatas.text;
+                if (langDatas.fontSize == 0)
+                {
+                    if (text.fontSize != storedFontSize)
                     {
-                        storedFontSize = text.fontSize;
-                    }
-                    text.text = langDatas.text;
-                    if (langDatas.fontSize == 0)
-                    {
-                        if (text.fontSize != storedFontSize)
-                        {
-                            text.fontSize = storedFontSize;
-                        }
-                    }
-                    else
-                    {
-                        text.fontSize = langDatas.fontSize;
+                        text.fontSize = storedFontSize;
                     }
                 }
+                else
+                {
+                    text.fontSize = langDatas.fontSize;
+                }
             }
+            else { Debug.Log("NULL"); }
         }
     }
 }

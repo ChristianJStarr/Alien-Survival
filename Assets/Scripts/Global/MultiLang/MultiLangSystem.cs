@@ -3,71 +3,71 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class MultiLangSystem
+public class MultiLangSystem : MonoBehaviour
 {
-    public static Dictionary<string, LangData> langDictionary = new Dictionary<string, LangData>();
-    private static int systemLanguage = 10;
-
+    #region Singleton 
+    public static MultiLangSystem Singleton;
+    private void Awake() 
+    {
+        Singleton = this;
+        DontDestroyOnLoad(gameObject);
+    }
+    #endregion
+    #region DelegateEvent
     public delegate void OnLanguageChangeDelegate();
     public static event OnLanguageChangeDelegate ChangedLanguage;
+    #endregion
+    
+    public string language_DataPath = "/Data/ls-lang.txt";
+    private Dictionary<string, LangData> dictionary = new Dictionary<string, LangData>();
+    public int systemLanguage = 6;
 
-    //Change the Current System Lange
-    public static void ChangeCurrentLanguage(int language) 
+
+    private void Start() 
     {
-        if (systemLanguage != language) 
-        {
-            systemLanguage = language;
-            ChangedLanguage();
-        }
+        systemLanguage = GetSystemLanguage();
+        PopulateLanguageDictionary();
     }
 
-    //Get Language Data from String Key
-    public static LangDataSingle GetLangDataFromKey(string key) 
-    {
-        LangDataSingle instance = null;
-        if (langDictionary != null)
-        {
-            if (langDictionary.Count == 0)
-            {
-                PopulateLanguageDictionary();
-            }
-            if (langDictionary.ContainsKey(key))
-            {
-                LangData data = langDictionary[key];
-                for (int i = 0; i < data.lang.Length; i++)
-                {
-                    if (data.lang[i].language == GetSystemLanguage())
-                    {
-                        return data.lang[i];
-                    }
-                }
-            }
-        }
-        return instance;
-    }
 
     //Populate the Language Dictionary
-    private static void PopulateLanguageDictionary()
+    private void PopulateLanguageDictionary()
     {
-        if (langDictionary.Count > 0)
-        {
-            langDictionary.Clear();
-        }
-        string path = Application.dataPath + "/ls-lang.txt";
+        string path = Application.dataPath + language_DataPath;
         if (File.Exists(path))
         {
+            DebugMsg.Notify("Populating Language Dictionary.", 1);
             LangData[] temp = JsonHelper.FromJson<LangData>(File.ReadAllText(path));
             for (int i = 0; i < temp.Length; i++)
             {
-                langDictionary.Add(temp[i].key, temp[i]);
+                dictionary.Add(temp[i].key, temp[i]);
             }
         }
     }
 
-    //Get The System Language
-    private static int GetSystemLanguage() 
+
+    //Change the Current System Lange
+    public static void ChangeCurrentLanguage(int language)
     {
-        if(systemLanguage == 0)
+        if(Singleton != null) 
+        {
+            Singleton.ChangeCurrentLanguage_Task(language);
+        }
+    }
+    private void ChangeCurrentLanguage_Task(int language) 
+    {
+        if (systemLanguage != language)
+        {
+            systemLanguage = language;
+            ChangedLanguage?.Invoke();
+        }
+    }
+
+
+    //Get The System Language
+    private int GetSystemLanguage()
+    {
+        if (systemLanguage == 0)
         {
             SystemLanguage current = Application.systemLanguage;
             if (current == SystemLanguage.English) { systemLanguage = 10; }
@@ -80,7 +80,37 @@ public class MultiLangSystem
         }
         return systemLanguage;
     }
+
+
+    //Get Language Data From Key
+    public static LangDataSingle GetLangDataFromKey(string key) 
+    {
+        if(Singleton != null) 
+        {
+            return Singleton.GetLangDataFromKey_Task(key);
+        }
+        return null;
+    }
+    private LangDataSingle GetLangDataFromKey_Task(string key) 
+    {
+        DebugMsg.Notify("Getting LangData. " + key, 1);
+        int sysLanguage = GetSystemLanguage();
+        if (dictionary.ContainsKey(key))
+        {
+            LangData data = dictionary[key];
+            for (int i = 0; i < data.lang.Length; i++)
+            {
+                if (data.lang[i].language == sysLanguage)
+                {
+                    return data.lang[i];
+                }
+            }
+        }
+        return null;
+    }
 }
+
+
 
 [Serializable]
 public class LangData 
@@ -88,6 +118,7 @@ public class LangData
     public string key;
     public LangDataSingle[] lang;
 }
+
 [Serializable]
 public class LangDataSingle 
 {

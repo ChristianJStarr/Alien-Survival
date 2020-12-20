@@ -1,50 +1,42 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 public class MainMenuEasterEgg : MonoBehaviour
 {
     public GameObject Alien;
+    public float beamDuration = 2;
     private Volume PostFx;
-    private float weightTarget = 0;
-    private float inc = 0.9F;
-    private bool hasFaded = false;
-    private bool fadeOut = false;
+
 
     private void Start()
     {
         PostFx = GetComponent<Volume>();
-        weightTarget = 1;
+        StartCoroutine(LerpPostFx());
     }
-    private void Update()
+
+    private IEnumerator LerpPostFx() 
     {
-        if (fadeOut) 
+        float time = 0;
+        float startValue = PostFx.weight;
+        while (time < beamDuration)
         {
-            if (PostFx.weight != weightTarget)
-            {
-                PostFx.weight -= inc * Time.deltaTime;
-            }
-            if (PostFx.weight <= .5)
-            {
-                Alien.SetActive(false);
-                gameObject.SetActive(false);
-            }
+            PostFx.weight = Mathf.Lerp(startValue, 1, time / beamDuration);
+            time += Time.deltaTime;
+            yield return null;
         }
-        else 
+        time = 0;
+
+        Alien.SetActive(false);
+        gameObject.SetActive(false);
+
+        while (time < beamDuration)
         {
-            if (PostFx.weight != weightTarget)
-            {
-                PostFx.weight += inc * Time.deltaTime;
-            }
-            if (!hasFaded)
-            {
-                if (PostFx.weight >= 1)
-                {
-                    hasFaded = true;
-                    weightTarget = 0;
-                    fadeOut = true;
-                }
-            }
+            PostFx.weight = Mathf.Lerp(startValue, 0, time / beamDuration);
+            time += Time.deltaTime;
+            yield return null;
         }
+        PostFx.weight = 0;
     }
 }
 

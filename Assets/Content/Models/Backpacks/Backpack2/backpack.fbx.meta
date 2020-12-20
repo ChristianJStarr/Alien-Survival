@@ -3,7 +3,22 @@ guid: 06b7fc6e1f1d34a4a8743da7c5ba5b9e
 ModelImporter:
   serializedVersion: 20101
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Body
+    second: {fileID: 2100000, guid: cf5d34c0a2e9c2f4488bd62669f6951c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RingGlow
+    second: {fileID: 2100000, guid: aba10e3364b15cc428ddee3ef9eb9cf1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Straps
+    second: {fileID: 2100000, guid: cf5d34c0a2e9c2f4488bd62669f6951c, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0

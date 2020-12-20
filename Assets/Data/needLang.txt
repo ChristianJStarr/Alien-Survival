@@ -1,0 +1,55 @@
+JOIN SERVER
+ALIEN STORE
+PROFILE
+HOURS SURVIVED
+LEVEL
+SEARCH
+REFRESH
+SERVER NAME
+SERVER MODE
+MAP TYPE
+PLAYERS
+PING
+SERVERS
+PLAYERS HI/LO
+PLAYERS LO/HI
+PING HI/LO
+PING LO/HI
+NAME A-Z
+NAME Z-A
+SETTINGS
+APPLY CHANGES
+QUALITY
+Game Quality
+LOW
+MEDIUM
+HIGH
+VOLUME
+Interface Sounds
+Menu Music
+Ambient Noises
+Sound Effects
+CONTROLS
+Vert. Sensitivity
+Horz. Sensitivity
+Button Opacity
+Button Layout
+IN-GAME STATUS BAR
+FPS Count
+Ping Count
+Current Time
+Battery Level
+Time Survived
+Kills
+Deaths
+K:D Ration
+Percentile
+LOG OUT
+YOUR PROFILE
+Connecting To Server
+ABILITIES
+EQUIPMENT
+SPECIAL
+
+
+
