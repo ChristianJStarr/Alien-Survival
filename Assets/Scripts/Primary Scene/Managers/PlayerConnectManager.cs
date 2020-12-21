@@ -19,7 +19,7 @@ public class PlayerConnectManager : MonoBehaviour
         cutsceneObject.SetActive(true);
         blackScreen.gameObject.SetActive(true);
         videoScreen.SetActive(true);
-        InterfaceHider.Singleton.HideAllInterfaces();
+        PlayerUIManager.Singleton.HideAllInterfaces();
         playerIsReady = true;
         if (callbackReceived) 
         {
@@ -85,7 +85,7 @@ public class PlayerConnectManager : MonoBehaviour
             if (videoScreen.activeSelf) 
             {
                 videoScreen.SetActive(false);
-                InterfaceHider.Singleton.ShowAllInterfaces();
+                PlayerUIManager.Singleton.ShowAllInterfaces();
                 StartCoroutine(LerpOpacity(0, duration, true));
             }
             else 

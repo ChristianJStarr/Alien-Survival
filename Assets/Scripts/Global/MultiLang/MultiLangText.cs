@@ -26,7 +26,7 @@ public class MultiLangText : MonoBehaviour
         UpdateText();
     }
 
-    private void UpdateText() 
+    public void UpdateText()
     {
         if (key.Length > 0)
         {

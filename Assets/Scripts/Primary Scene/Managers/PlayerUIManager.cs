@@ -42,35 +42,6 @@ public class PlayerUIManager : MonoBehaviour
     
     }
 
-    //Death Screen
-    public void Show_DeathScreen() 
-    {
-        topbar.Hide();
-        inventory.Hide();
-        controls.Hide();
-        notifyTray.SetActive(false);
-        reticle.Hide();
-    }
-    public void Hide_DeathScreen() 
-    {
-    
-    }
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -115,18 +86,16 @@ public class PlayerUIManager : MonoBehaviour
     //Show
     public void ShowDeathScreen(double hours) 
     {
-        InterfaceHider.Singleton.HideAllInterfaces();
+        HideAllInterfaces();
         deathScreen.EnableScreen(TimeSpan.FromHours(hours));
         joystick.ForceStopAutoSprint();
     }
     //Hide
     public void HideDeathScreen() 
     {
-        InterfaceHider.Singleton.ShowAllInterfaces();
+        ShowAllInterfaces();
         deathScreen.DisableScreen();
     }
-
-
 
 
 

@@ -23,6 +23,29 @@ public class MultiLangSystem : MonoBehaviour
     private Dictionary<string, LangData> dictionary = new Dictionary<string, LangData>();
     public int systemLanguage = 6;
 
+    public static string[] masterKeyList;
+
+    public static string[] GetKeys() 
+    {
+        if(masterKeyList == null || masterKeyList.Length == 0) 
+        {
+            string path = Application.dataPath + "/Data/ls-lang.txt";
+            if (File.Exists(path))
+            {
+                LangData[] temp = JsonHelper.FromJson<LangData>(File.ReadAllText(path));
+                int length = temp.Length;
+                if (temp != null && length > 0)
+                {
+                    masterKeyList = new string[length];
+                    for (int i = 0; i < length; i++)
+                    {
+                        masterKeyList[i] = temp[i].key;
+                    }
+                }
+            }
+        }
+        return masterKeyList;
+    }
 
     private void Start() 
     {
@@ -40,10 +63,14 @@ public class MultiLangSystem : MonoBehaviour
         {
             DebugMsg.Notify("Populating Language Dictionary.", 1);
             LangData[] temp = JsonHelper.FromJson<LangData>(File.ReadAllText(path));
-            //File.WriteAllText(Application.dataPath + "/Data/ls-lang2.txt", JsonUtility.ToJson(new HeadLang() { datas = temp})); // Creates Copy 
-            for (int i = 0; i < temp.Length; i++)
+            if(temp != null && temp.Length > 0) 
             {
-                dictionary.Add(temp[i].key, temp[i]);
+                dictionary.Clear();
+                //File.WriteAllText(Application.dataPath + "/Data/ls-lang2.txt", JsonUtility.ToJson(new HeadLang() { datas = temp})); // Creates Copy 
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    dictionary.Add(temp[i].key, temp[i]);
+                }
             }
         }
     }

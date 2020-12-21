@@ -266,7 +266,7 @@ public class GameServer : NetworkedBehaviour
     private void Server_PlayerDeathDrop(Inventory inventory, Vector3 location, string username)
     {
         //Spawn Loot
-        //inventory.Clear()
+        inventory.Clear();
     }
 
     //Respawn Player

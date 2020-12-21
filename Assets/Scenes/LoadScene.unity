@@ -4721,6 +4721,7 @@ GameObject:
   - component: {fileID: 799257719}
   - component: {fileID: 799257721}
   - component: {fileID: 799257720}
+  - component: {fileID: 799257722}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -4767,7 +4768,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uBCF4\uACE0\uC11C"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -4845,6 +4846,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 799257718}
   m_CullTransparentMesh: 0
+--- !u!114 &799257722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799257718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: login
 --- !u!1 &809981989
 GameObject:
   m_ObjectHideFlags: 0
@@ -7343,7 +7357,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dd992c7d055b3b4db3b684e98c371b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: signingIn
+  key: login
 --- !u!1 &1359880104
 GameObject:
   m_ObjectHideFlags: 0

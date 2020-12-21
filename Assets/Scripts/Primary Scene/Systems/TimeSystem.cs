@@ -106,6 +106,10 @@ public class TimeSystem : MonoBehaviour
             {
                 mainCamera.backgroundColor = skyColor;
             }
+            if(RenderSettings.ambientSkyColor != skyColor) 
+            {
+                RenderSettings.ambientSkyColor = skyColor;
+            }
 
             Color32 fogColor = GetFogColor(_partOfDay);
             if(RenderSettings.fogColor != fogColor)
@@ -284,10 +288,12 @@ public class TimeSystem : MonoBehaviour
         while (time < duration)
         {
             mainCamera.backgroundColor = Color.Lerp(startValue, target, time / duration);
+            RenderSettings.ambientSkyColor = mainCamera.backgroundColor;
             time += Time.deltaTime;
             yield return null;
         }
         mainCamera.backgroundColor = target;
+        RenderSettings.ambientSkyColor = target;
         lerpingSky = false;
     }
     //Lerp the Fog Color

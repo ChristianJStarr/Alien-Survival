@@ -31,7 +31,7 @@ public class UI_PauseControl : MonoBehaviour
             pauseMenu.SetActive(true);//Show the pause menu.
             gamePaused = true;
 
-            InterfaceHider.Singleton.HideAllInterfaces();
+            PlayerUIManager.Singleton.HideAllInterfaces();
             
             StartCoroutine(BattleLog());
         }
@@ -41,7 +41,7 @@ public class UI_PauseControl : MonoBehaviour
             pauseMenu.SetActive(false);//Hide the pause menu.
             gamePaused = false;
 
-            InterfaceHider.Singleton.ShowAllInterfaces();
+            PlayerUIManager.Singleton.ShowAllInterfaces();
         }
     }
 

@@ -75,7 +75,7 @@ public class Backpack : MonoBehaviour
     private void SetMaterial(Material material) 
     {
         Material[] mats = glowRing.materials;
-        mats[4] = material;
+        mats[2] = material;
         glowRing.materials = mats;
     }
 }

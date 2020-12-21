@@ -58,24 +58,15 @@ public class ControlsManager : MonoBehaviour
     public void SetOpacity(int target_opacity) 
     {
         btn_opacity = text_opacity = target_opacity;
-        Color backgroundColor;
-        Color iconColor;
-        if (uiActive)
-        {
-            backgroundColor = new Color32(0, 0, 0, (byte)btn_opacity);
-            iconColor = new Color32(255, 255, 255, (byte)text_opacity);
-        }
-        else
-        {
-            backgroundColor = new Color32(255, 255, 255, 0);
-            iconColor = new Color32(255, 255, 255, 0);
-        }
+        Color backgroundColor = new Color32(0, 0, 0, (byte)btn_opacity);
+        Color iconColor = new Color32(255, 255, 255, (byte)text_opacity);
+
         for (int i = 0; i < controlObjects.Length; i++)
         {
             if (!controlObjects[i].autoShowHide)
             {
-                backgroundColor = new Color32(0, 0, 0, (byte)btn_opacity);
-                iconColor = new Color32(255, 255, 255, (byte)text_opacity);
+                backgroundColor = new Color32(0, 0, 0, (byte)settings.gameControlsOpacity);
+                iconColor = new Color32(255, 255, 255, (byte)settings.gameControlsOpacity);
             }
             if (controlObjects[i].background != null)
             {
@@ -95,14 +86,7 @@ public class ControlsManager : MonoBehaviour
                     else
                     {
                         Color32 tempColor = controlObjects[i].icon[e].color;
-                        if (uiActive)
-                        {
-                            controlObjects[i].icon[e].color = new Color32(tempColor.r, tempColor.g, tempColor.b, (byte)text_opacity);
-                        }
-                        else
-                        {
-                            controlObjects[i].icon[e].color = new Color32(tempColor.r, tempColor.g, tempColor.b, 0);
-                        }
+                        controlObjects[i].icon[e].color = new Color32(tempColor.r, tempColor.g, tempColor.b, (byte)text_opacity);
                     }
                 }
             }
@@ -136,9 +120,13 @@ public class ControlsManager : MonoBehaviour
         {
             uiActive = value;
             int opacity = settings.gameControlsOpacity;
+            if (!value) 
+            {
+                opacity = 0;
+            }
             if (btn_opacity != opacity && text_opacity != opacity)
             {
-                SetOpacity(settings.gameControlsOpacity);
+                SetOpacity(opacity);
             }
         }
         cover.raycastTarget = !value;
