@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,8 +9,7 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public bool acceleration = true;
     public string horizontalAxisName = "TouchHorizontal"; // The name given to the horizontal axis for the cross platform input
     public string verticalAxisName = "TouchVertical"; // The name given to the vertical axis for the cross platform input
-    public float Xsensitivity = 1f;
-    public float Ysensitivity = 1f;
+    private Vector2 sensitivity;
     public Settings settings;
     CrossPlatformInputManager.VirtualAxis m_HorizontalVirtualAxis; // Reference to the joystick in the cross platform input
     CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis; // Reference to the joystick in the cross platform input
@@ -24,10 +22,6 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private Image m_Image;
     Vector3 m_PreviousMouse;
 
-
-    //Utility
-    private UtilAverage verticalAvg;
-    private UtilAverage horizontalAvg;
 
 
 
@@ -50,17 +44,14 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     void Start()
     {
-        Xsensitivity = settings.xSensitivity;
-        Ysensitivity = settings.ySensitivity;
+#if !UNITY_SERVER
+
+        sensitivity = settings.sensitivity;
         m_Image = GetComponent<Image>();
         m_Center = m_Image.transform.position;
-
-        verticalAvg = new UtilAverage();
-        horizontalAvg = new UtilAverage();
-        verticalAvg.minMax = true;
-        horizontalAvg.minMax = true;
-        verticalAvg.avgName = "Touch Vertical ";
-        horizontalAvg.avgName = "Touch Horizontal ";
+#else
+        enabled = false;
+#endif
     }
 
     void Update()
@@ -72,12 +63,11 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         if (Input.touchCount >= m_Id + 1 && m_Id != -1)
         {
 #if !UNITY_EDITOR
-                MobileDragUpdate();
+            MobileDragUpdate();
 #else
             EditorUpdate();
 #endif
         }
-
     }
 
 
@@ -86,8 +76,7 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public void Change()
     {
         //Change touch sensitivity.
-        Xsensitivity = settings.xSensitivity;
-        Ysensitivity = settings.ySensitivity;
+        sensitivity = settings.sensitivity;
     }
 
     //Create the Virtual Axes
@@ -103,9 +92,7 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     void UpdateVirtualAxes(Vector3 value)
     {
         m_HorizontalVirtualAxis.Update(value.x);
-        horizontalAvg.Input(value.x);
         m_VerticalVirtualAxis.Update(value.y);
-        verticalAvg.Input(value.y);
     }
 
     //On Pointer DOWN
@@ -161,7 +148,6 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         tune = .2F;
         //Apply Sensitivity
         Vector2 touchAxis = pointerDelta;
-        Vector2 sensitivity = new Vector2(Xsensitivity, Ysensitivity);
         //Apply Speed
         if (acceleration)
         {

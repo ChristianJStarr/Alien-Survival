@@ -25,8 +25,8 @@ public class SettingsMenu : MonoBehaviour
         //Get Quality
         SetToggle(quality, settings.quality);
         //Get Controls
-        xSense.value = settings.xSensitivity;
-        ySense.value = settings.ySensitivity;
+        xSense.value = settings.sensitivity.x;
+        ySense.value = settings.sensitivity.y;
         opacity.value = settings.gameControlsOpacity;
         //SetDebug
         SetToggleBool(showFps, settings.showFps);
@@ -84,7 +84,6 @@ public class SettingsMenu : MonoBehaviour
     //Apply Settings Values
     public void ApplySettings() 
     {
-    //Store settings menu items in settings scriptable object.
         //Volume
         settings.uiVolume = ui.value;
         settings.musicVolume = menu.value;
@@ -92,60 +91,38 @@ public class SettingsMenu : MonoBehaviour
         settings.effectsVolume = effects.value;
 
         //Quality
-        if (settings.autoQuality)
+        settings.quality = Convert.ToInt32(quality.ActiveToggles().FirstOrDefault().name);
+        //Change quality level settings.
+
+        if(QualitySettings.GetQualityLevel() != settings.quality - 1) 
         {
-            
-            //Init auto settings
-        }
-        else
-        {
-            settings.quality = Convert.ToInt32(quality.ActiveToggles().FirstOrDefault().name);
-            //Change quality level settings.
             QualitySettings.SetQualityLevel(settings.quality - 1, true);
-
+            int fps = 60;
+            if (settings.quality == 1)
+            {
+                fps = 30;
+            }
+            else if (settings.quality == 2)
+            {
+                fps = 45;
+            }
+            Application.targetFrameRate = fps;
         }
 
+        
         //Controls
-        settings.xSensitivity = xSense.value;
-        settings.ySensitivity = ySense.value;
+        settings.sensitivity = new Vector2(xSense.value, ySense.value);
         settings.gameControlsOpacity = (int)opacity.value;
 
         //Object Distance
         settings.objectDistance = GetObjectDistance();
 
-        //Debug
-        if (showFps.ActiveToggles().FirstOrDefault().name == "show")
-        {
-            settings.showFps = true;
-        }
-        else if (showFps.ActiveToggles().FirstOrDefault().name == "hide")
-        {
-            settings.showFps = false;
-        }
-        if (showPing.ActiveToggles().FirstOrDefault().name == "show")
-        {
-            settings.showPing = true;
-        }
-        else if (showPing.ActiveToggles().FirstOrDefault().name == "hide")
-        {
-            settings.showPing = false;
-        }
-        if (showTime.ActiveToggles().FirstOrDefault().name == "show")
-        {
-            settings.showTime = true;
-        }
-        else if (showTime.ActiveToggles().FirstOrDefault().name == "hide")
-        {
-            settings.showTime = false;
-        }
-        if (showBattery.ActiveToggles().FirstOrDefault().name == "show")
-        {
-            settings.showBattery = true;
-        }
-        else if (showBattery.ActiveToggles().FirstOrDefault().name == "hide")
-        {
-            settings.showBattery = false;
-        }
+        //Notify Tray
+        if (showFps.ActiveToggles().FirstOrDefault().name == "show") settings.showFps = true; else settings.showFps = false;
+        if (showPing.ActiveToggles().FirstOrDefault().name == "show") settings.showPing = true; else settings.showPing = false;
+        if (showTime.ActiveToggles().FirstOrDefault().name == "show") settings.showTime = true; else settings.showTime = false;
+        if (showBattery.ActiveToggles().FirstOrDefault().name == "show") settings.showBattery = true; else settings.showBattery = false;
+        
         ChangedSettings?.Invoke();
         BackButton();
     }
@@ -155,19 +132,19 @@ public class SettingsMenu : MonoBehaviour
     {
         if (settings.quality == 4)
         {
-            return 1000;
+            return 400;
         }
         else if (settings.quality == 3)
         {
-            return 700;
+            return 300;
         }
         else if (settings.quality == 2)
         {
-            return 500;
+            return 250;
         }
         else
         {
-            return 300;
+            return 200;
         }
     }
 }

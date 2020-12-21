@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[RequireComponent(typeof(Light))]
 public class MainMenuCampfireFlicker : MonoBehaviour
 {
-    public Light fireLight;
+    private Light fireLight;
     private bool flickerLight = true;
-    private int intensity = 60;
+    public int intensity = 60;
     private bool flickerStarted;
 
 
@@ -22,6 +24,7 @@ public class MainMenuCampfireFlicker : MonoBehaviour
 
     private void Start()
     {
+        fireLight = GetComponent<Light>();
         if(QualitySettings.GetQualityLevel() > 0) 
         {
             flickerStarted = true;
@@ -58,7 +61,7 @@ public class MainMenuCampfireFlicker : MonoBehaviour
         while (flickerLight) 
         {
             yield return wait;
-            intensity = Random.Range(50, 70);
+            intensity = Random.Range(8, 15);
         }
     }
 

@@ -20,7 +20,18 @@ public class UI_ExpBar : MonoBehaviour
         slider.maxValue = max;
         slider.value = value;
     }
-    
+    public void SetExp(int value, string lang)
+    {
+        int level = GetLevelFromExp(value);
+        levelText.text = lang + " " + level;
+        int min = level - 1;
+        min *= min * 100;
+        int max = (level * level) * 100;
+        slider.minValue = min;
+        slider.maxValue = max;
+        slider.value = value;
+    }
+
 
     public static int GetLevelFromExp(int exp) 
     {

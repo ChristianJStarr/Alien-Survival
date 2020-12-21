@@ -6,8 +6,6 @@ using TMPro;
 
 public class LoadSceneScript : MonoBehaviour
 {
-    //What: Load Scene Script. Does Login/Signup/Stats & Loading into main menu.
-    //Where: The Load Scene.
     public bool devServer = false;
     public GameObject mainScreen, loginScreen, signupScreen, loadScreen, userReporting, terms, termsCheck, connectionError; //Each screen layer.
     public TextMeshProUGUI loginNotify, signupNotify, loadTip, version_1, version_2, version_3; //Notify text field for login and signup screen.
@@ -25,7 +23,6 @@ public class LoadSceneScript : MonoBehaviour
     private AsyncOperation asyncTemp;
     private string privacyPolicyUrl = "https://aliensurvival.com/privacy-app.php";
     private string termsConditionsUrl = "https://aliensurvival.com/terms-app.php";
-    private int nightChance = 0;
 
     private float storedFontSizeLogin = 0;
     private float storedFontSizeSignup = 0;
@@ -44,46 +41,23 @@ public class LoadSceneScript : MonoBehaviour
 
     void Start() 
     {
-        //Run Server if Server
-
 #if UNITY_SERVER
-                RunServer();
-#endif
-#if UNITY_EDITOR
-        if (devServer)
-        {
-            RunServer();
-        }
+        RunServer();
+        return;
 #endif
         ChangeNotify("signup", "defaultSignup");
         ChangeNotify("login", "defaultLogin");
-        //Set Night Chance
-        SetNightChance();
         
         //Set Version Text
         version_1.text = version_2.text = version_3.text = "v" + Application.version;
+ 
+        //Change asterisk to dot in input field.
+        usernameText.asteriskChar = passwordText.asteriskChar = regUsernameText.asteriskChar = regPassText.asteriskChar = '•';
 
-        //Handle Target FrameRate
-        if(QualitySettings.GetQualityLevel() > 1) 
-        {
-            Application.targetFrameRate = 60;
-        }
-        else 
-        {
-            Application.targetFrameRate = 30;
-        }
-        
         //Check if user has logged in before and has username/pass stored.
         if (PlayerPrefs.GetInt("terms") == 0)
         {
-            if (nightChance > 15)
-            {
-                background.texture = blurTexture;
-            }
-            else
-            {
-                background.texture = blurNightTexture;
-            }
+            background.texture = blurTexture;
             terms.SetActive(true);
         }
         else
@@ -94,19 +68,10 @@ public class LoadSceneScript : MonoBehaviour
             }
             else
             {
+                background.texture = regTexture;
                 mainScreen.SetActive(true);
-                if (nightChance > 15)
-                {
-                    background.texture = regTexture;
-                }
-                else
-                {
-                    background.texture = nightTexture;
-                }
             }
         }
-        //Change asterisk to dot in input field.
-        usernameText.asteriskChar = passwordText.asteriskChar = regUsernameText.asteriskChar = regPassText.asteriskChar = '•';
     }
 
     private void UpdateText() 
@@ -119,13 +84,6 @@ public class LoadSceneScript : MonoBehaviour
     {
         Application.targetFrameRate = 20;
         SceneManager.LoadScene(1);
-    }
-
-    private void SetNightChance() 
-    {
-        nightChance = Random.Range(0, 30);
-        PlayerPrefs.SetInt("nightChance", nightChance);
-        PlayerPrefs.Save();
     }
 
     public void CheckTerms() 
@@ -153,14 +111,7 @@ public class LoadSceneScript : MonoBehaviour
         }
         else 
         {
-            if (nightChance > 15)
-            {
-                background.texture = regTexture;
-            }
-            else
-            {
-                background.texture = nightTexture;
-            }
+            background.texture = regTexture;
             mainScreen.SetActive(true);
         }
     }
@@ -258,20 +209,7 @@ public class LoadSceneScript : MonoBehaviour
         loginScreen.SetActive(false);
         signupScreen.SetActive(false);
         mainScreen.SetActive(true);
-        if (nightChance > 15)
-        {
-            if (background.texture != regTexture)
-            {
-                background.texture = regTexture;
-            }
-        }
-        else
-        {
-            if (background.texture != nightTexture)
-            {
-                background.texture = nightTexture;
-            }
-        }
+        background.texture = regTexture;
         regUsernameText.text = "";
         regPassText.text = "";
         usernameText.text = "";
@@ -292,14 +230,7 @@ public class LoadSceneScript : MonoBehaviour
             signupScreen.SetActive(false);
             userReporting.SetActive(false);
             loadScreen.SetActive(true);
-            if (nightChance > 15)
-            {
-                background.texture = blurTexture;
-            }
-            else
-            {
-                background.texture = blurNightTexture;
-            }
+            background.texture = blurTexture;
         }
         StartCoroutine(LoadRoutine());//Start loading the MainMenu scene.
         DebugMsg.Begin(6, "Loading the Main Menu.", 2);
@@ -369,14 +300,7 @@ public class LoadSceneScript : MonoBehaviour
         signupScreen.SetActive(false);
         mainScreen.SetActive(false);
         connectionError.SetActive(true);
-        if (nightChance > 15)
-        {
-            background.texture = blurTexture;
-        }
-        else
-        {
-            background.texture = blurNightTexture;
-        }
+        background.texture = blurTexture;
     }
 
     public void RetryConnection()

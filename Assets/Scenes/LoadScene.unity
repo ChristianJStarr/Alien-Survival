@@ -155,10 +155,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: 585bda0bffd0a724c9e8ea9565c3245d, type: 2}
-  low_Pipeline: {fileID: 11400000, guid: dc10a0df2e292e04db39ba4c5f3deded, type: 2}
-  med_Pipeline: {fileID: 11400000, guid: a7c89d01d4b495d47b4336630126e56f, type: 2}
-  high_Pipeline: {fileID: 11400000, guid: 0b06cab761a78aa41b981fcf45fa1b0b, type: 2}
-  ultra_Pipeline: {fileID: 11400000, guid: 5f2abc25b445f314c94239adbab59a3b, type: 2}
 --- !u!4 &68773767
 Transform:
   m_ObjectHideFlags: 0
@@ -4451,7 +4447,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   language_DataPath: /Data/ls-lang.txt
-  systemLanguage: 6
+  systemLanguage: 0
 --- !u!4 &775737474
 Transform:
   m_ObjectHideFlags: 0
@@ -5511,8 +5507,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: If you're experiencing performance issues try reducing your game quality
-    in the settings.
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 036f1cfb3c8bd2048afbc7e194da9b4d, type: 2}
   m_sharedMaterial: {fileID: -4042778444821107851, guid: 036f1cfb3c8bd2048afbc7e194da9b4d,
@@ -5610,7 +5605,6 @@ MonoBehaviour:
   - tip_3
   - tip_4
   - tip_5
-  - tip_6
 --- !u!1 &928857067
 GameObject:
   m_ObjectHideFlags: 0

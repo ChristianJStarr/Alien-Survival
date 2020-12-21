@@ -1,55 +1,24 @@
-JOIN SERVER
-ALIEN STORE
-PROFILE
-HOURS SURVIVED
-LEVEL
-SEARCH
-REFRESH
-SERVER NAME
-SERVER MODE
-MAP TYPE
-PLAYERS
-PING
-SERVERS
-PLAYERS HI/LO
-PLAYERS LO/HI
-PING HI/LO
-PING LO/HI
-NAME A-Z
-NAME Z-A
-SETTINGS
-APPLY CHANGES
-QUALITY
-Game Quality
-LOW
-MEDIUM
-HIGH
-VOLUME
-Interface Sounds
-Menu Music
-Ambient Noises
-Sound Effects
-CONTROLS
-Vert. Sensitivity
-Horz. Sensitivity
-Button Opacity
-Button Layout
-IN-GAME STATUS BAR
-FPS Count
-Ping Count
-Current Time
-Battery Level
-Time Survived
-Kills
-Deaths
-K:D Ration
-Percentile
-LOG OUT
-YOUR PROFILE
-Connecting To Server
-ABILITIES
-EQUIPMENT
-SPECIAL
-
-
-
+{
+  "needed": [
+    {
+      "key": "tip_1",
+      "value": "If you're experiencing performance issues, try reducing your game quality in the settings."
+    },
+    {
+      "key": "tip_2",
+      "value": "Your connection to the server may be unstable when not using wifi."
+    },
+    {
+      "key": "tip_3",
+      "value": "Found a bug? Submit a report and we'll fix it as soon as possible."
+    },
+    {
+      "key": "tip_4",
+      "value": "Have a suggestion? Submit a report, detailed suggestion, and we'll consider it."
+    },
+    {
+      "key": "tip_5",
+      "value": "You can view recent changes on our devblog. Visit aliensurvivial.com/devblog"
+    }
+  ]
+}

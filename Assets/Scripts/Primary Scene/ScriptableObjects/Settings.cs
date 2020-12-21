@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "GameSettings", menuName = "ScriptableObjects/Settings", order = 1)]
 public class Settings : ScriptableObject
@@ -6,15 +7,30 @@ public class Settings : ScriptableObject
     //Original Settings?
     public bool validated = false;
 
-
     //Volume
     public float uiVolume = 1;
     public float musicVolume = 1;
     public float ambientVolume = 1;
     public float effectsVolume = 1;
 
-    //Quality
-    public bool autoQuality = false; 
+    internal void Validate()
+    {
+        if (!validated)
+        {
+            uiVolume = 1;
+            musicVolume = 1;
+            ambientVolume = 1;
+            effectsVolume = 1;
+            quality = 2;
+            terrainDistance = 500;
+            objectDistance = 250;
+            gameControlsOpacity = 200;
+            sensitivity = new Vector2(0.5F, 0.5F);
+            validated = true;
+        }
+    }
+
+    //Quality 
     public int quality = 2;
 
     //Distance
@@ -24,8 +40,6 @@ public class Settings : ScriptableObject
     //Controls
     public int gameControlsOpacity = 200;
     public Vector2 sensitivity = new Vector2(0.5F, 0.5F);
-    public float xSensitivity = .5F;
-    public float ySensitivity = .5F;
 
     //NotifyTray
     public bool showFps = false;

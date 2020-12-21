@@ -1,61 +1,39 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering;
+
+
 public class ApplySettings : MonoBehaviour
 {
     public Settings settings;
 
-    public RenderPipelineAsset low_Pipeline, med_Pipeline, high_Pipeline, ultra_Pipeline;
-
-    //------------------------//
-    //   - QUALITY - KEY -    //
-    //  1 = LOW
-    //  2 = MEDIUM
-    //  3 = HIGH
-    //  4 = ULTRA
-    //------------------------//
-
-
     private void Start()
     {
-        if (!settings.validated)
+        settings.Validate();
+        SetQuality(settings.quality);
+        SetFramerate(settings.quality);
+    }
+
+    //Handle Target FrameRate
+    private void SetFramerate(int quality) 
+    {
+        int fps = 60;
+        if(quality == 1) 
         {
-            settings = (Settings)ScriptableObject.CreateInstance("Settings");
-            settings.validated = true;
+            fps = 30;
         }
+        else if(quality == 2) 
+        {
+            fps = 45;
+        }
+        Application.targetFrameRate = fps;
+    }
+
+    private void SetQuality(int quality) 
+    {
         //Check if quality settings need to be changed.
-        if (QualitySettings.GetQualityLevel() != settings.quality)
+        if (QualitySettings.GetQualityLevel() != settings.quality - 1)
         {
             //Change quality settings.
-            QualitySettings.SetQualityLevel(settings.quality, true);
-        }
-        RenderPipelineAsset renderAsset = GetAsset(); //Get render pipeline asset that coresonds to stored settings.
-                                                      //Check if render pipeline asset needs to be changed.
-        if (GraphicsSettings.renderPipelineAsset != renderAsset)
-        {
-            //Change render pipeline asset.
-            GraphicsSettings.renderPipelineAsset = renderAsset;
-        }
-    }
-    
-
-    //Get RenderPipeline Asset
-    public RenderPipelineAsset GetAsset()
-    {
-        if(settings.quality == 4) 
-        {
-            return ultra_Pipeline;
-        }
-        else if (settings.quality == 3)
-        {
-            return high_Pipeline;
-        }
-        else if (settings.quality == 2)
-        {
-            return med_Pipeline;
-        }
-        else
-        {
-            return low_Pipeline;
+            QualitySettings.SetQualityLevel(settings.quality - 1, true);
         }
     }
 }

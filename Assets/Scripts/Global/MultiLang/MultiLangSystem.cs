@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -27,6 +28,7 @@ public class MultiLangSystem : MonoBehaviour
     {
         systemLanguage = GetSystemLanguage();
         PopulateLanguageDictionary();
+
     }
 
 
@@ -38,6 +40,7 @@ public class MultiLangSystem : MonoBehaviour
         {
             DebugMsg.Notify("Populating Language Dictionary.", 1);
             LangData[] temp = JsonHelper.FromJson<LangData>(File.ReadAllText(path));
+            //File.WriteAllText(Application.dataPath + "/Data/ls-lang2.txt", JsonUtility.ToJson(new HeadLang() { datas = temp})); // Creates Copy 
             for (int i = 0; i < temp.Length; i++)
             {
                 dictionary.Add(temp[i].key, temp[i]);
@@ -110,6 +113,11 @@ public class MultiLangSystem : MonoBehaviour
     }
 }
 
+[Serializable]
+public class HeadLang 
+{
+    public LangData[] datas;
+}
 
 
 [Serializable]
