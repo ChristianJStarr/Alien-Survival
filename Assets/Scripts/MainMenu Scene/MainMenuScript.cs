@@ -128,7 +128,6 @@ public class MainMenuScript : MonoBehaviour
         profileMenu.SetActive(false);
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
-        StartLoadTip();
     }
 
     //Log Out Function
@@ -146,8 +145,20 @@ public class MainMenuScript : MonoBehaviour
         profileMenu.SetActive(false);
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
-        loadMainText.text = "Logging Out Account";
-        StartLoadTip();
+
+        LangDataSingle data = MultiLangSystem.GetLangDataFromKey("loggingout");
+        if(data != null) 
+        {
+            loadMainText.text = data.text;
+            if(data.fontSize != 0) 
+            {
+                loadMainText.fontSize = data.fontSize;
+            }
+        }
+        else 
+        {
+            loadMainText.text = "Logging Out Account";
+        }
         StartCoroutine(LogOutRoutine());
     }
 
@@ -188,39 +199,6 @@ public class MainMenuScript : MonoBehaviour
         yield return new WaitForSeconds(5f);
         easterEggBeam.transform.position = alienCenterMass.position + (Vector3.up * 9);
         easterEggBeam.SetActive(true);
-    }
-
-    //Get Load Screen Tip Text
-
-    private string[] loadingTips;
-    private int loadingTipIndex;
-
-    private void StartLoadTip() 
-    {
-        string json = (Resources.Load("loading-tips") as TextAsset).text;
-        loadingTips = JsonHelper.FromJson<string>(json);
-        loadingTipIndex = Random.Range(0, loadingTips.Length - 1);
-        loadTip.text = loadingTips[loadingTipIndex];
-        StartCoroutine(LoadTipWait());
-    }
-
-    private IEnumerator LoadTipWait()
-    {
-
-
-
-
-        yield return new WaitForSeconds(6);
-        if (loadingTipIndex + 1 >= loadingTips.Length) 
-        {
-            loadingTipIndex = 0;
-        }
-        else 
-        {
-            loadingTipIndex++;
-        }
-        loadTip.text = loadingTips[loadingTipIndex];
-        StartCoroutine(LoadTipWait());
     }
 
 }
