@@ -12,23 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49ab35ab9642eaa458ecb75766001878, type: 3}
   m_Name: GameSettings
   m_EditorClassIdentifier: 
-  uiVolume: 0.5
-  musicVolume: 0.5
-  ambientVolume: 0.5
-  effectsVolume: 0.5
-  autoQuality: 1
+  validated: 1
+  uiVolume: 1
+  musicVolume: 1
+  ambientVolume: 1
+  effectsVolume: 1
   quality: 2
-  shadow: 2
-  aliasing: 2
-  postpro: 2
-  terrainDistance: 1
-  objectDistance: 1
-  gameControlsOpacity: 129
-  xSensitivity: 0.50193363
-  ySensitivity: 0.16543268
+  terrainDistance: 200
+  objectDistance: 200
+  gameControlsOpacity: 158
+  sensitivity: {x: 0.1, y: 0.1}
   showFps: 1
   showPing: 1
   showConsole: 0
   showBattery: 1
   showTime: 1
+  firstPersonMode: 1
   chatBoxState: 3
