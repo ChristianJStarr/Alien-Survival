@@ -30,18 +30,34 @@ public class MainMenuProfile : MonoBehaviour
     private void UpdateProfile_Task() 
     {
         TimeSpan time = TimeSpan.FromHours(playerStats.playerHours);
-        int rat = Ratio(playerStats.playerKills, playerStats.playerDeaths);
-
+        
         ui_timeSurvived.text = time.Hours + "h " + time.Minutes + "m";
         ui_timeSurvived.text = string.Format("{0}h {1}m", time.Hours, time.Minutes);
         ui_kills.text = playerStats.playerKills.ToString();
         ui_deaths.text = playerStats.playerDeaths.ToString();
         ui_percentile.text = string.Format("{0}%", playerStats.playerPercentile);
-        ui_kdRatio.text = string.Format("{0}:{1}", playerStats.playerKills / rat, playerStats.playerDeaths / rat);
+        ui_kdRatio.text = GetRatio(playerStats.playerKills, playerStats.playerDeaths);
     }
 
-    static int Ratio(int a, int b)
+    private string GetRatio(int a, int b) 
     {
-        return b == 0 ? Math.Abs(a) : Ratio(b, a % b);
+        if(a != 0 && b != 0) 
+        {
+            while (a != 0 && b != 0)
+            {
+                if (a > b)
+                {
+                    a %= b;
+                }
+                else 
+                {
+                    b %= a;
+                }
+            }
+            int ratio = a == 0 ? b : a;
+            a /= ratio;
+            b /= ratio;
+        }
+        return string.Format("{0}:{1}", a, b);
     }
 }

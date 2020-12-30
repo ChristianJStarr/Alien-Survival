@@ -23,7 +23,6 @@ public class MainMenuAlienStore : MonoBehaviour
 
     public void UpdateStats() 
     {
-        statUpdater.UpdateText();
         pointCount.text = playerStats.playerCoins.ToString();
         foreach (AlienStoreSlide slide in storeItems)
         {

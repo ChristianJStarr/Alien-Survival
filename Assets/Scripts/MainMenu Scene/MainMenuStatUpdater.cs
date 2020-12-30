@@ -3,6 +3,10 @@ using TMPro;
 using System;
 public class MainMenuStatUpdater : MonoBehaviour
 {
+    #region Singleton
+    public static MainMenuStatUpdater Singleton;
+    #endregion
+
     public TextMeshProUGUI userName, userHours, userSp;
     public UI_ExpBar expBar;
     public PlayerStats playerStats;
@@ -14,14 +18,15 @@ public class MainMenuStatUpdater : MonoBehaviour
 
     private void Awake() 
     {
+        Singleton = this;
         LanguageChanged();
     }
-
     private void Start() 
     {
-        UpdateText();
+        UpdateMenu_Task();
     }
 
+    #region Multi-Lang System
     private void OnEnable()
     {
         MultiLangSystem.ChangedLanguage += LanguageChanged;
@@ -44,9 +49,16 @@ public class MainMenuStatUpdater : MonoBehaviour
             hours_survived = data2.text;
         }
     }
+    #endregion
 
-
-    public void UpdateText() 
+    public static void UpdateMenuStats() 
+    {
+        if(Singleton != null) 
+        {
+            Singleton.UpdateMenu_Task();
+        }
+    }
+    public void UpdateMenu_Task() 
     {
         if (playerStats) 
         {

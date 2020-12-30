@@ -297,14 +297,14 @@ public class WebServer : MonoBehaviour
     #endregion
 
     #region Server : Set Client Stats
-    public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
+    public void SetClientStats(int userId, string authKey, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, int kills, int deaths, Action<bool> onRequestFinished)
     {
-        StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
+        StartCoroutine(WebServerSetStatistics(userId, authKey, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, kills, deaths, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
     }
-    private IEnumerator WebServerSetStatistics(int userId, string authKey, string authToken, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, Action<bool> success = null)
+    private IEnumerator WebServerSetStatistics(int userId, string authKey, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, int kills, int deaths, Action<bool> success = null)
     {
         WWWForm form = new WWWForm();
         form.AddField("userId", userId);
@@ -315,6 +315,8 @@ public class WebServer : MonoBehaviour
         form.AddField("hours", hoursAdd.ToString());
         form.AddField("store", storeSet);
         form.AddField("notify", notifyData);
+        form.AddField("kills", kills);
+        form.AddField("deaths", deaths);
         form.AddField("action", "update");
         UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
         yield return web.SendWebRequest();
@@ -429,14 +431,14 @@ public class WebServer : MonoBehaviour
     #endregion
 
     #region Server : Set Client Stats
-    public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
+    public void SetClientStats(int userId, string authKey, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, int kills, int deaths, Action<bool> onRequestFinished)
     {
-        StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
+        StartCoroutine(WebServerSetStatistics(userId, authKey, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, kills, deaths, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
     }
-    private IEnumerator WebServerSetStatistics(int userId, string authKey, string authToken, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, Action<bool> success = null)
+    private IEnumerator WebServerSetStatistics(int userId, string authKey, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, int kills, int deaths, Action<bool> success = null)
     {
         WWWForm form = new WWWForm();
         form.AddField("userId", userId);
@@ -447,6 +449,8 @@ public class WebServer : MonoBehaviour
         form.AddField("hours", hoursAdd.ToString());
         form.AddField("store", storeSet);
         form.AddField("notify", notifyData);
+        form.AddField("kills", kills);
+        form.AddField("deaths", deaths);
         form.AddField("action", "update");
         UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
         yield return web.SendWebRequest();
@@ -544,7 +548,7 @@ public struct UserStatsData
 
     public static UserStatsData Generate(string webData) 
     {
-        string[] main_data = webData.Split('!');
+        string[] main_data = webData.Split('=');
         string s_exp = main_data[3] == "" ? "0" : main_data[3];
         string s_coins = main_data[4] == "" ? "0" : main_data[4];
         string s_hours = main_data[5] == "" ? "0" : main_data[5];

@@ -357,6 +357,16 @@ public class GameServer : NetworkedBehaviour
     }
 
 
+    public void PlayerKilledPlayer(ulong killer, ulong killed) 
+    {
+        playerInfoSystem.IncPlayerKills(killer);
+        playerInfoSystem.AddPlayerExp(killer, 200);
+        playerInfoSystem.AddPlayerCoins(killer, 50);
+        playerInfoSystem.AddPlayerExp(killed, 20);
+        string killer_name = playerInfoSystem.GetPlayerName(killer);
+        string killed_name = playerInfoSystem.GetPlayerName(killed);
+        chatSystem.PlayerKilled_AllMessage(killed_name, killer_name);
+    }
 
 
     #endregion

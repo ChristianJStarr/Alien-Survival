@@ -394,13 +394,23 @@ public class PlayerInfoSystem : MonoBehaviour
     {
         if (Confirm(clientId)) 
         {
-            DateTime lastRespawn = active[clientId].time;
+            PlayerInfo player = active[clientId];
+            DateTime lastRespawn = player.time;
             TimeSpan span = DateTime.Now - lastRespawn;
-            active[clientId].time = DateTime.Now;
-            active[clientId].hoursAdd += (float)span.TotalHours;
+            player.time = DateTime.Now;
+            player.hoursAdd += (float)span.TotalHours;
+            player.deaths++;
             return span;
         }
         return TimeSpan.FromSeconds(1);
+    }
+
+    public void IncPlayerKills(ulong clientId) 
+    {
+        if (Confirm(clientId)) 
+        {
+            active[clientId].kills++;   
+        }
     }
 
 
@@ -796,6 +806,8 @@ public class PlayerInfo
     [SerializeField] public int coinsAdd = 0;
     [SerializeField] public int expAdd = 0;
     [SerializeField] public float hoursAdd = 0;
+    [SerializeField] public int kills = 0;
+    [SerializeField] public int deaths = 0;
 
     //Data for InfoChecks
     [SerializeField] public DateTime time;

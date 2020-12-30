@@ -135,6 +135,7 @@ public class ServerConnect : MonoBehaviour
     #endregion
 
     #region Sever-Side
+    #region EditorOnly
 #if UNITY_EDITOR
     //------Start/Stop
 
@@ -319,11 +320,10 @@ public class ServerConnect : MonoBehaviour
     //Save Player Statistics
     private void SavePlayerStats(PlayerInfo savedInfo) 
     {
-        string serverAuthToken = "2alien2survival2";
         string notifyData = storedProperties.serverName + "," + savedInfo.hoursAdd + "," + savedInfo.expAdd + "," + savedInfo.coinsAdd;
         if(webServer != null) 
         {
-            webServer.StatSend(savedInfo.id, savedInfo.authKey, serverAuthToken, savedInfo.expAdd, savedInfo.coinsAdd, savedInfo.hoursAdd, notifyData, "", returnValue => 
+            webServer.SetClientStats(savedInfo.id, savedInfo.authKey, savedInfo.expAdd, savedInfo.coinsAdd, savedInfo.hoursAdd, notifyData, "", savedInfo.kills, savedInfo.deaths, returnValue => 
             {
                 if (returnValue) 
                 {
@@ -377,8 +377,11 @@ public class ServerConnect : MonoBehaviour
         return empty;
     }
 #endif
+    #endregion
+
+    #region ServerStandalone
 #if UNITY_SERVER
-    //------Start/Stop
+//------Start/Stop
 
     //Server: Start Server
     public void StartServer()
@@ -561,11 +564,10 @@ public class ServerConnect : MonoBehaviour
     //Save Player Statistics
     private void SavePlayerStats(PlayerInfo savedInfo) 
     {
-        string serverAuthToken = "2alien2survival2";
         string notifyData = storedProperties.serverName + "," + savedInfo.hoursAdd + "," + savedInfo.expAdd + "," + savedInfo.coinsAdd;
         if(webServer != null) 
         {
-            webServer.StatSend(savedInfo.id, savedInfo.authKey, serverAuthToken, savedInfo.expAdd, savedInfo.coinsAdd, savedInfo.hoursAdd, notifyData, "", returnValue => 
+            webServer.SetClientStats(savedInfo.id, savedInfo.authKey, savedInfo.expAdd, savedInfo.coinsAdd, savedInfo.hoursAdd, notifyData, "", savedInfo.kills, savedInfo.deaths, returnValue => 
             {
                 if (returnValue) 
                 {
@@ -620,8 +622,9 @@ public class ServerConnect : MonoBehaviour
     }
 
 #endif
-    #endregion
 
+    #endregion
+    #endregion
 }
 
 public class ServerProperties 

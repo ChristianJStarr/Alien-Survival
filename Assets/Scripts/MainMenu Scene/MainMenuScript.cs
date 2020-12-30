@@ -7,7 +7,6 @@ public class MainMenuScript : MonoBehaviour
 {
     public Animator alienAnimator; //Animator of Alien Model
     public WebServer webServer;
-    public MainMenuStatUpdater statUpdater;
     public Transform alienCenterMass;
     public PlayerStats playerStats; //Stored player data.
     public GameObject mainScreen, loadScreen, profileMenu, settingsMenu, onlineMenu, alienStore, connectError, requestingStats;
@@ -185,7 +184,8 @@ public class MainMenuScript : MonoBehaviour
                 StartCoroutine(TurnOffStatsAlert(statRequests < 2));
                 playerStats.Align(requestData);
                 statRequests = 0;
-                statUpdater.UpdateText();
+                MainMenuProfile.UpdateProfileMenu();
+                MainMenuStatUpdater.UpdateMenuStats();
             }
             else if(statRequests < 5)
             {

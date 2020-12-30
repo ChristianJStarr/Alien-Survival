@@ -10872,7 +10872,6 @@ GameObject:
   - component: {fileID: 804832991}
   - component: {fileID: 804832992}
   - component: {fileID: 804832994}
-  - component: {fileID: 804832995}
   - component: {fileID: 804832996}
   - component: {fileID: 804832998}
   - component: {fileID: 804832999}
@@ -11030,21 +11029,6 @@ MonoBehaviour:
   expBar: {fileID: 938075622}
   playerStats: {fileID: 11400000, guid: 0fa82ddbb9514ce4f8efb449490936da, type: 2}
   welcomeMessage: {fileID: 804832998}
---- !u!114 &804832995
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 804832986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87fb000afb8b2a043b9e915854a6f1a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  content: {fileID: 0}
-  slidePref: {fileID: 8519669063581259709, guid: 8f8ec362415828e4db5dac68b7cb7cd6,
-    type: 3}
 --- !u!114 &804832996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11148,13 +11132,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a6e48b6941b50542a4f61c7d5b28b10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ui_profileTitle: {fileID: 936478138}
   ui_timeSurvived: {fileID: 889096986}
   ui_kills: {fileID: 1174909617}
   ui_deaths: {fileID: 254370304}
   ui_kdRatio: {fileID: 1460403726}
   ui_percentile: {fileID: 1411895869}
-  registerButton: {fileID: 0}
   playerStats: {fileID: 11400000, guid: 0fa82ddbb9514ce4f8efb449490936da, type: 2}
 --- !u!1 &815405738
 GameObject:
