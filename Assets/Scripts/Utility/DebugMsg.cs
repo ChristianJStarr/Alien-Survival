@@ -6,7 +6,7 @@ using UnityEngine;
 public class DebugMsg : MonoBehaviour
 {
     private static bool debuggingOn = true;
-    private static int _logLevel = 2;
+    private static int _logLevel = 4;
     private static bool showTimings = true;
 
 

@@ -54,7 +54,6 @@ public class MultiLangText : MonoBehaviour
                     text.fontSize = langDatas.fontSize;
                 }
             }
-            else { Debug.Log("NULL"); }
         }
     }
 }

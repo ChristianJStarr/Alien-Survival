@@ -3,20 +3,17 @@ using TMPro;
 public class MainMenuServerSlide : MonoBehaviour
 {
     public TextMeshProUGUI slideName, slidePing, slideType, slideMode, slidePlayers;
-    public int serverPlayers, serverMaxPlayers;
-    public ushort serverPort;
-    public GameObject roomNotify;
-    public Server storedServer;
     private MainMenuAdsListener adListener;
+    public Server storedServer;
 
     //Update Values of this Slide
     public void RefreshValues(Server server) 
     {
-        slideName.text = server.name;
-        slidePing.text = server.ping + "ms";
-        slideType.text = server.description;
-        slideMode.text = server.mode;
-        slidePlayers.text = "(" + server.player + "/" + server.maxPlayer + ")";
+        slideName.text = server.server_name;
+        slidePing.text = server.server_ping + "ms";
+        slideType.text = server.server_description;
+        slideMode.text = server.server_mode;
+        slidePlayers.text = "(" + server.server_players + "/" + server.server_maxPlayers + ")";
         storedServer = server;
     }
 
@@ -28,6 +25,6 @@ public class MainMenuServerSlide : MonoBehaviour
         {
             adListener = FindObjectOfType<MainMenuAdsListener>();
         }
-        adListener.ShowAd(storedServer.serverIP, storedServer.serverPort);
+        adListener.ShowAd(storedServer.server_Ip, storedServer.server_Port);
     }
 }

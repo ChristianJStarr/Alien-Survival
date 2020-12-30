@@ -3,258 +3,255 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-/// <summary>
-/// Main Menu Server List Handler. 
-/// </summary>
+using UnityEngine.UI;
+
 public class MainMenuServerList : MonoBehaviour
 {
-
+#if !UNITY_SERVER
     public TMP_InputField searchField;
     public TMP_Dropdown sortDropdown;
-    private WebServer webServer;
+    public WebServer webServer;
     public TextMeshProUGUI serverCount;
     public Transform listContainer;
-    public GameObject serverItem;
-    public RectTransform refreshing;
-    private List<MainMenuServerSlide> slides;
-    private TouchScreenKeyboard mobileKeys;
+    public RectTransform serverCountParent;
+    public GameObject serverItem, noServersAlert, refreshIcon;
 
-    private string searchString = "";
+    public Image hideFull_Button, hideEmpty_Button;
+    public Color32 buttonToggleColor;
+    private Color32 buttonRegularColor;
+
+
+    private List<MainMenuServerSlide> server_slides = new List<MainMenuServerSlide>();
+    private Queue<MainMenuServerSlide> offline_slides = new Queue<MainMenuServerSlide>();
+
+    private string search_string = "";
     private int sortValue = 0;
-    private int pings = 0;
-    private bool isRefreshing = false;
-    private bool isDemoLoad = false;
 
-    private Vector2 refreshOriginal;
-    private Vector2 bottomTarget;
-    private RectTransform serverCountRect;
-    
-    
-    
+    private bool hideEmpty = false;
+    private bool hideFull = false;
+
+
     private void Start()
     {
-        serverCountRect = serverCount.GetComponent<RectTransform>();
-        refreshOriginal = serverCountRect.anchoredPosition;
+        buttonRegularColor = hideFull_Button.color;
         sortDropdown.onValueChanged.AddListener(delegate { SortUpdated(sortDropdown); });
-        slides = new List<MainMenuServerSlide>();
-        webServer = GetComponent<WebServer>();
-        serverCount.text = "SERVERS (0/0)";
-        GetServers();
+        Refresh();
     }
-    private void Update()
+
+    public void HideEmpty()
     {
-        if(mobileKeys != null && mobileKeys.status == TouchScreenKeyboard.Status.Done) 
+        hideEmpty = !hideEmpty;
+        if (hideEmpty)
         {
-            ToggleVisibility();
+            hideEmpty_Button.color = buttonToggleColor;
         }
+        else
+        {
+            hideEmpty_Button.color = buttonRegularColor;
+        }
+        ToggleVisibility();
+    }
 
-        if((pings > 0 || isRefreshing || isDemoLoad) && !refreshing.gameObject.activeSelf) 
+    public void HideFull()
+    {
+        hideFull = !hideFull;
+        if (hideFull)
         {
-            bottomTarget = new Vector3(-257, -29);
-        }
-        else if(!isDemoLoad && pings == 0 && !isRefreshing && refreshing.gameObject.activeSelf) 
-        {
-            bottomTarget = refreshOriginal;
-        }
-
-        if (refreshing.gameObject.activeSelf) 
-        {
-            refreshing.Rotate(new Vector3(0, 0, -5));
-        }
-
-        if(serverCountRect.anchoredPosition != bottomTarget) 
-        {
-            serverCountRect.anchoredPosition = Vector2.MoveTowards(serverCountRect.anchoredPosition, bottomTarget, 160 * Time.deltaTime);
-            if (refreshing.gameObject.activeSelf) 
-            {
-                refreshing.gameObject.SetActive(false);
-            }
+            hideFull_Button.color = buttonToggleColor;
         }
         else 
         {
-            if(bottomTarget != refreshOriginal) 
-            {
-                refreshing.gameObject.SetActive(true);
-            }
-        }
-
-    }
-
-
-    //Search Functions
-    public void SearchUpdated() 
-    {
-        if (searchField != null) 
-        {
-            searchString = searchField.text.ToLower();
-            if(searchString.Length == 0) 
-            {
-                ToggleVisibility();
-            }
-        }
-    }
-   
-    public void SearchSubmit() 
-    {
-        ToggleVisibility();
-    }
-
-    public void SearchSelected() 
-    {
-        mobileKeys = TouchScreenKeyboard.Open("", TouchScreenKeyboardType.Default, false, false, false, true);
-    }
-
-    //List Functions
-    public void GetServers() 
-    {
-        if (!isDemoLoad) 
-        {
-            isRefreshing = true;
-            isDemoLoad = true;
-            DebugMsg.Begin(5, "Requesting Server List.", 2);
-            StartCoroutine(DemoLoadDelay());
-            webServer.ServerListRequest(onRequestFinished =>
-            {
-                if (onRequestFinished != null)
-                {
-                    isRefreshing = false;
-                    UpdateList(onRequestFinished.servers);
-                }
-                else
-                {
-                    isRefreshing = false;
-                    serverCount.text = "SERVERS (0/0)";
-                    for (int i = 0; i < slides.Count; i++)
-                    {
-                        Destroy(slides[i].gameObject);
-                    }
-                    slides.Clear();
-                    DebugMsg.End(5, "Server List Request Done.", 2);
-                }
-               
-            });
-        }
-    }
-
-    private void UpdateList(Server[] servers) 
-    {
-        int ct = servers.Length;
-        serverCount.text = "SERVERS (" + ct + "/" + ct + ")";
-        for (int i = 0; i < slides.Count; i++)
-        {
-            Destroy(slides[i].gameObject);
-        }
-        slides.Clear();
-        foreach (Server server in servers)
-        {
-            Validate(server);
+            hideFull_Button.color = buttonRegularColor;
         }
         ToggleVisibility();
-        DebugMsg.End(5, "Server List Request Done.", 2);
     }
 
-    private void ToggleVisibility() 
+
+
+    //Refresh Server List
+    public void Refresh()
     {
-        bool searching = searchString.Length > 0;
-        int activeCount = 0;
-        foreach (MainMenuServerSlide slide in slides)
+        refreshIcon.SetActive(true);
+        webServer.ServerListRequest(requestData =>
         {
-            if (searching) 
+            if (requestData.successful && requestData.servers.list != null)
             {
-                if (slide.storedServer.name.ToLower().Contains(searchString) || slide.storedServer.mode.ToLower().Contains(searchString) || slide.storedServer.map.ToLower().Contains(searchString))
+                noServersAlert.SetActive(false);
+                StartCoroutine(Refresh_Task(requestData.servers.list));
+            }
+            else
+            {
+                for (int i = server_slides.Count - 1; i >= 0; i--)
                 {
-                    slide.gameObject.SetActive(true);
-                    activeCount++;
-                }
-                else
-                {
+                    MainMenuServerSlide slide = server_slides[i];
                     slide.gameObject.SetActive(false);
+                    offline_slides.Enqueue(slide);
+                    server_slides.RemoveAt(i);
                 }
+                ChangeCountText(0, 0);
+                noServersAlert.SetActive(true);
+                refreshIcon.SetActive(false);
             }
-            else 
+        });
+    }
+    private IEnumerator Refresh_Task(Server[] servers)
+    {
+        int server_count = servers.Length;
+        ChangeCountText(0, 0);
+        for (int i = server_slides.Count - 1; i >= 0; i--)
+        {
+            MainMenuServerSlide slide = server_slides[i];
+            slide.gameObject.SetActive(false);
+            offline_slides.Enqueue(slide);
+            server_slides.RemoveAt(i);
+        }
+        int online_inc = 0;
+        for (int i = 0; i < server_count; i++)
+        {
+            bool offline = false;
+            int count = 0;
+            WaitForSeconds wait = new WaitForSeconds(0.05F);
+            Ping ping = new Ping(servers[i].server_Ip);
+            while (!ping.isDone)
             {
-                slide.gameObject.SetActive(true);
-                activeCount++;
+                if (count >= 10)
+                {
+                    offline = true;
+                    break;
+                }
+                count++;
+                yield return wait;
+            }
+            if (!offline)
+            {
+                online_inc++;
+                MainMenuServerSlide slide = null;
+                if (offline_slides.Count > 0)
+                {
+                    slide = offline_slides.Dequeue();
+                    slide.gameObject.SetActive(true);
+                }
+                else
+                {
+                    slide = Instantiate(serverItem, listContainer).GetComponent<MainMenuServerSlide>();
+                }
+                slide.RefreshValues(servers[i]);
+                server_slides.Add(slide);
+                ChangeCountText(online_inc, online_inc);
             }
         }
-        serverCount.text = "SERVERS (" + activeCount + "/" + slides.Count + ")";
-        SortSlides();
+        if (online_inc == 0)
+        {
+            ChangeCountText(0,0);
+            noServersAlert.SetActive(true);
+        }
+
+        ToggleVisibility();
+        yield return new WaitForSeconds(1);
+        refreshIcon.SetActive(false);
     }
 
-
+    //Search
+    public void SearchUpdated()
+    {
+        search_string = searchField.text.ToLower();
+        if (search_string.Length == 0)
+        {
+            ToggleVisibility();
+        }
+    }
+    public void SearchSubmit()
+    {
+        ToggleVisibility();
+    }
+    
     //Sort Functions
     private void SortSlides()
     {
         //Player Count High / Low
-        if (sortValue == 0) 
+        if (sortValue == 0)
         {
-            slides = slides.OrderByDescending(o => o.storedServer.player).ToList();
+            server_slides = server_slides.OrderByDescending(o => o.storedServer.server_players).ToList();
         }
         //Player Count Low / High
-        else if (sortValue == 1) 
+        else if (sortValue == 1)
         {
-            slides = slides.OrderBy(o => o.storedServer.player).ToList();
+            server_slides = server_slides.OrderBy(o => o.storedServer.server_players).ToList();
         }
         //Ping Count High / Low
-        else if (sortValue == 2) 
+        else if (sortValue == 2)
         {
-            slides = slides.OrderByDescending(o => o.storedServer.ping).ToList();
+            server_slides = server_slides.OrderByDescending(o => o.storedServer.server_ping).ToList();
         }
         //Ping Count Low / High
-        else if (sortValue == 3) 
+        else if (sortValue == 3)
         {
-            slides = slides.OrderBy(o => o.storedServer.ping).ToList();
+            server_slides = server_slides.OrderBy(o => o.storedServer.server_ping).ToList();
         }
-        for (int i = 0; i < slides.Count; i++)
+        for (int i = 0; i < server_slides.Count; i++)
         {
-            slides[i].gameObject.transform.SetSiblingIndex(i);
+            server_slides[i].gameObject.transform.SetSiblingIndex(i);
         }
     }
-
-    public void SortUpdated(TMP_Dropdown change) 
+    public void SortUpdated(TMP_Dropdown change)
     {
         sortValue = change.value;
         ToggleVisibility();
     }
 
-    private void Validate(Server server) 
+
+    private void ToggleVisibility()
     {
-        StartCoroutine(StartPing(server));
-    }
-   
-    private IEnumerator StartPing(Server server) 
-    {
-        pings++;
-        bool offline = false;
-        int count = 0;
-        WaitForSeconds f = new WaitForSeconds(0.05F);
-        Ping ping = new Ping(server.serverIP);
-        while (!ping.isDone ) 
+        bool searching = search_string.Length > 0;
+        int activeCount = 0;
+        int server_count = server_slides.Count;
+        for (int i = 0; i < server_count; i++)
         {
-            if (count >= 10) 
+            MainMenuServerSlide slide = server_slides[i];
+            if (slide)
             {
-                offline = true;
-                break;
+                bool showSlide = true;
+
+                if (searching && (slide.storedServer.server_name.ToLower().Contains(search_string) || slide.storedServer.server_mode.ToLower().Contains(search_string) || slide.storedServer.server_map.ToLower().Contains(search_string)))
+                {
+                    showSlide = true;
+                }
+                else if (searching) 
+                {
+                    showSlide = false;
+                }
+
+                if (hideFull && slide.storedServer.server_players == slide.storedServer.server_maxPlayers) 
+                {
+                    showSlide = false;
+                }
+                if (hideEmpty && slide.storedServer.server_players == 0)
+                {
+                    showSlide = false;
+                }
+
+
+                if (showSlide) 
+                {
+                    slide.gameObject.SetActive(true);
+                    activeCount++;
+                }
+                else 
+                {
+                    slide.gameObject.SetActive(false);
+                }
             }
-            count++;
-            yield return f;
         }
-        if(!offline) 
-        {
-            
-            server.ping = ping.time;
-            MainMenuServerSlide slide = Instantiate(serverItem, listContainer).GetComponent<MainMenuServerSlide>();
-            slide.RefreshValues(server);
-            slides.Add(slide);
-            ToggleVisibility();
-        }
-        pings--;
+        ChangeCountText(activeCount, server_count);
+        SortSlides();
     }
 
-    private IEnumerator DemoLoadDelay() 
+    private void ChangeCountText(int current, int max) 
     {
-        yield return new WaitForSeconds(4f);
-        isDemoLoad = false;
+        serverCount.text = string.Format("SERVERS ({0}/{1})", current, max);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(serverCountParent);
     }
+
+
+#endif
 }
-        

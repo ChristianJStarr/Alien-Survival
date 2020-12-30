@@ -9,4 +9,4 @@
 	"maxEnemies":100,
 	"maxFriendly":1,
 	"autoSaveInterval":5
-	}
+}

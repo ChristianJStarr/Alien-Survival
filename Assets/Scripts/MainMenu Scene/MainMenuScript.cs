@@ -2,25 +2,21 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class MainMenuScript : MonoBehaviour
 {
     public Animator alienAnimator; //Animator of Alien Model
+    public WebServer webServer;
+    public MainMenuStatUpdater statUpdater;
     public Transform alienCenterMass;
     public PlayerStats playerStats; //Stored player data.
-    public GameObject mainScreen; //Main Screen.
-    public GameObject loadScreen; //Loading Screen.
-    public GameObject profileMenu; //Profile Screen.
-    public GameObject settingsMenu; //Settings Screen.
-    public GameObject onlineMenu; //Server Screen.
-    public GameObject alienStore; // Alien Store
-    public Slider loadSlider; //Loading Screen slider.
+    public GameObject mainScreen, loadScreen, profileMenu, settingsMenu, onlineMenu, alienStore, connectError, requestingStats;
     public Camera cam; //Scene Camera.
     public GameObject easterEggBeam;
     public TextMeshProUGUI loadTip, loadMainText;
     private TouchPhase touchPhase = TouchPhase.Ended;//Touch Phase
     public bool enableEasterEgg = false;
+    private int statRequests = 0;
 
     public void TestEgg() 
     {
@@ -28,7 +24,12 @@ public class MainMenuScript : MonoBehaviour
         StartCoroutine(EasterEggStart());
     }
 
-    void Update()
+    private void Start() 
+    {
+        RequestStats();
+    }
+
+    private void Update()
     {
         if (enableEasterEgg) 
         {
@@ -54,19 +55,6 @@ public class MainMenuScript : MonoBehaviour
                     }
                 }
             }
-        }
-    }
-
-    //Toggle the Loading Screen
-    public void LoadingScreen(bool value) 
-    {
-        if (value) 
-        {
-            LoadGame();
-        }
-        else 
-        {
-           CloseMenu();
         }
     }
 
@@ -99,6 +87,7 @@ public class MainMenuScript : MonoBehaviour
         loadScreen.SetActive(false);
         settingsMenu.SetActive(false);
         alienStore.SetActive(false);
+        connectError.SetActive(false);
         mainScreen.SetActive(true);
     }
 
@@ -117,6 +106,7 @@ public class MainMenuScript : MonoBehaviour
         loadScreen.SetActive(false);
         settingsMenu.SetActive(false);
         alienStore.SetActive(false);
+        connectError.SetActive(false);
         mainScreen.SetActive(false);
     }
 
@@ -145,7 +135,6 @@ public class MainMenuScript : MonoBehaviour
         profileMenu.SetActive(false);
         settingsMenu.SetActive(false);
         loadScreen.SetActive(true);
-
         LangDataSingle data = MultiLangSystem.GetLangDataFromKey("loggingout");
         if(data != null) 
         {
@@ -159,7 +148,21 @@ public class MainMenuScript : MonoBehaviour
         {
             loadMainText.text = "Logging Out Account";
         }
-        StartCoroutine(LogOutRoutine());
+        SceneManager.LoadSceneAsync(0);
+    }
+
+    //Connecting Failed
+    public void ConnectingFailed() 
+    {
+        loadScreen.SetActive(false);
+        onlineMenu.SetActive(true);
+        connectError.SetActive(true);
+    }
+
+    //Clost Connection Error Msg
+    public void CloseConnectError() 
+    {
+        connectError.SetActive(false);
     }
 
     //Register Guest Account
@@ -167,30 +170,39 @@ public class MainMenuScript : MonoBehaviour
     {
         //TODO: Make this shit work. 
     }
-    
-    //Log Out Routine
-    private IEnumerator LogOutRoutine()
+
+    //Request Player Stats
+    public void RequestStats()
     {
-        int loadProgress = 0;
-        int lastLoadProgress = 0;
-        AsyncOperation op = SceneManager.LoadSceneAsync(0);
-        op.allowSceneActivation = false;
-        while (!op.isDone)
+        statRequests++;
+        int userId = PlayerPrefs.GetInt("userId");
+        string authKey = PlayerPrefs.GetString("authKey");
+        requestingStats.SetActive(true);
+        webServer.StatRequest(userId, authKey, requestData =>
         {
-            if (op.progress < 0.9f)
+            if (requestData.successful) 
             {
-                loadProgress = (int)(op.progress * 100f);
+                requestingStats.SetActive(false);
+                playerStats.Align(requestData);
+                statRequests = 0;
+                statUpdater.UpdateText();
             }
-            else
+            else if(statRequests < 5)
             {
-                loadProgress = 100;
-                op.allowSceneActivation = true;
+                StartCoroutine(DelayStatRequest());
             }
-            if (lastLoadProgress != loadProgress) { lastLoadProgress = loadProgress; loadSlider.value = loadProgress; }
-            yield return null;
-        }
-        loadProgress = 100;
-        loadSlider.value = loadProgress;
+            else 
+            {
+                LogOut();
+            }
+        });
+    }
+
+    //Delayed Stat Request
+    private IEnumerator DelayStatRequest() 
+    {
+        yield return new WaitForSeconds(5);
+        RequestStats();
     }
     
     //Easter Egg Start

@@ -3,8 +3,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 
-
-
 public class WebServer : MonoBehaviour
 {
     // Web Server Host URL
@@ -16,204 +14,166 @@ public class WebServer : MonoBehaviour
     //Stats
     public PlayerStats playerStats;
 
+    //Token
+    private string client_verifyToken = "3c893731ab7cdd266b0affdbb0535bfe";
+    
+    #region Client : Login Request
+    public void LoginRequest(string user_token, string user_authkey, Action<LoginRequestData> returnData)
+    {
+        StartCoroutine(WebServerCredential(user_token, user_authkey, null, returnValue =>
+        {
+           returnData(returnValue);
+        }));
+    }
+    public void SignupRequest(string user_token, string user_authkey, string user_name, Action<LoginRequestData> returnData)
+    {
+        StartCoroutine(WebServerCredential(user_token, user_authkey, user_name, returnValue =>
+        {
+            returnData(returnValue);
+        }));
+    }
+    private IEnumerator WebServerCredential(string user_token, string user_authkey, string user_name, Action<LoginRequestData> returnData)
+    {
+        LoginRequestData requestData = new LoginRequestData();
+        WWWForm form = new WWWForm();
+        form.AddField("verify", client_verifyToken);
+        if(user_name != null) 
+        {
+            form.AddField("username", user_name);
+        }
+        form.AddField("token", user_token);
+        form.AddField("authKey", user_authkey);
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + loginFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            string[] data = web.downloadHandler.text.Split(',');
+            if (user_name == null) { user_name = data[1]; }
+            int user_id = Convert.ToInt32(data[2]);
+            requestData.credentials = new UserCredentialData();
+            requestData.credentials.Set(user_name, user_token, user_authkey, user_id);
+            requestData.successful = true;
+        }
+        else if(web.downloadHandler.text == "SIGNUP")
+        {
+            requestData.needsToSignup = true;
+            requestData.successful = false;
+        }
+        else if (web.downloadHandler.text == "WRONG")
+        {
+            requestData.successful = false;
+            requestData.errorCode = 1;
+        }
+        else if (web.downloadHandler.text == "INVALID")
+        {
+            requestData.successful = false;
+            requestData.errorCode = 2;
+        }
+        else if(web.downloadHandler.text == "EXISTS") 
+        {
+            requestData.successful = false;
+            requestData.errorCode = 3;
+        }
+        else
+        {
+            requestData.successful = false;
+            requestData.errorCode = 4;
+        }
+        returnData(requestData);
+    }
+#endregion
 
-    public void LoginRequest(string username, string password, Action<string> onRequestFinished)
+    #region Client : Stat Request
+    public void StatRequest(int userId, string authKey, Action<StatRequestData> returnData)
     {
-        DebugMsg.Begin(7, "Login Request Started.", 1);
-        StartCoroutine(WebServerCredential(true, username, password, returnValue =>
-       {
-           onRequestFinished(returnValue);
-       }));
-        DebugMsg.End(7, "Login Request Finished.", 1);
-    }
-    public void SignupRequest(string username, string password, string authKey, Action<string> onRequestFinished)
-    {
-        DebugMsg.Begin(8, "Signup Request Started.", 1);
-        StartCoroutine(WebServerCredential(false, username, password, returnValue =>
+        StartCoroutine(WebServerStatistics(userId, authKey, requestData =>
         {
-            onRequestFinished(returnValue);
-        }, authKey));
-        DebugMsg.End(8, "Signup Request Finished.", 1);
-    }
-    public void StatRequest(int userId, string authKey, Action<bool> onRequestFinished)
-    {
-        DebugMsg.Begin(9, "Stat Request Started.", 1);
-        StartCoroutine(WebServerStatistics(userId, authKey, returnValue =>
-       {
-           onRequestFinished(returnValue);
-       }));
-        DebugMsg.End(9, "Stat Request Finished.", 1);
-    }
-    public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
-    {
-        DebugMsg.Begin(10, "Send Send Started.", 3);
-        StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
-        {
-            onRequestFinished(returnValue);
+            returnData(requestData);
         }));
-        DebugMsg.End(10, "Stat Send Finished.", 3);
     }
-    public void ServerListRequest(Action<ServerList> onRequestFinished)
+    private IEnumerator WebServerStatistics(int userId, string authKey, Action<StatRequestData> returnData)
     {
-        DebugMsg.Begin(11, "Server List Request Started.", 2);
-        StartCoroutine(WebServerMaster(null, returnValue =>
+        if (userId != 0 && authKey.Length > 0)
         {
-            onRequestFinished(returnValue);
-        }));
-        DebugMsg.End(11, "Server List Request Finished.", 2);
+            StatRequestData requestData = new StatRequestData();
+            WWWForm form = new WWWForm();
+            form.AddField("userId", userId);
+            form.AddField("authKey", authKey);
+            form.AddField("action", "request");
+            form.AddField("verify", client_verifyToken);
+            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
+            yield return web.SendWebRequest();
+            string webData = web.downloadHandler.text;
+            if (webData.StartsWith("TRUE"))
+            {
+                requestData.successful = true;
+                requestData.stats = UserStatsData.Generate(webData);
+            }
+            else
+            {
+                requestData.successful = false;
+                if (webData == "WRONG")
+                {
+                    requestData.errorCode = 1;
+                }
+                else if (webData == "NONE")
+                {
+                    requestData.errorCode = 2;
+                }
+            }
+            returnData(requestData);
+        }
     }
-    public void ServerListSend(Server server, Action<bool> onRequestFinished)
-    {
-        DebugMsg.Begin(12, "Server List Send Started.", 3);
-        StartCoroutine(WebServerMaster(server, null, returnValue =>
-        {
-            onRequestFinished(returnValue);
+#endregion
 
-        }));
-        DebugMsg.End(12, "Server List Send Finished.", 3);
-    }
-    public void ServerListUpdateRecent(string serverName, string serverIp, Action<bool> onRequestFinished)
+    #region Client : Server List Request
+    public void ServerListRequest(Action<ListRequestData> returnData)
     {
-        DebugMsg.Begin(13, "Server List Update Recent Started.", 4);
-        StartCoroutine(WebServerMasterRecent(serverName, serverIp, returnValue =>
+        StartCoroutine(WebServerListRequest(requestData =>
         {
-            onRequestFinished(returnValue);
+            returnData(requestData);
         }));
-        DebugMsg.End(13, "Server List Update Recent Finished.", 4);
     }
-    public void ServerListPlayerCount(string name, int count, Action<bool> onRequestFinished)
+    private IEnumerator WebServerListRequest(Action<ListRequestData> returnData)
     {
-        DebugMsg.Begin(14, "Server List Update Player Count Started.", 2);
-        StartCoroutine(WebServerMasterCount(name, count, returnValue =>
-         {
-             onRequestFinished(returnValue);
-         }));
-        DebugMsg.End(14, "Server List Update Player Count Started.", 2);
+        ListRequestData requestData = new ListRequestData();
+        WWWForm form = new WWWForm();
+        form.AddField("action", "request");
+        form.AddField("verify", client_verifyToken);
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
+        yield return web.SendWebRequest();
+        string webData = web.downloadHandler.text;
+        if (!webData.StartsWith("NONE") && webData.Length > 0)
+        {
+            requestData.successful = true;
+            requestData.servers = ServerListData.Generate(JsonHelper.FromJson<Server>("{ \"server\": " + webData + "}"));
+        }
+        else if (webData.StartsWith("NONE"))
+        {
+            requestData.successful = true;
+        }
+        else
+        {
+            requestData.successful = false;
+            requestData.errorCode = 1;
+        }
+        returnData(requestData);
     }
+#endregion
 
+    #region Client : Store Purchase
     public void AlienStorePurchase(int userId, string authKey, int itemId)
     {
-        DebugMsg.Begin(15, "Store Purchase Started.", 1);
         StartCoroutine(WebServerStore(userId, authKey, itemId));
-        DebugMsg.End(15, "Store Purchase Finished.", 1);
     }
-
-    private IEnumerator WebServerStore(int userId, string authKey, int itemId) 
+    private IEnumerator WebServerStore(int userId, string authKey, int itemId)
     {
         WWWForm form = new WWWForm();
         form.AddField("userId", userId);
         form.AddField("authKey", authKey);
         form.AddField("itemId", itemId);
         form.AddField("action", "purchase");
-        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
-        yield return web.SendWebRequest();
-        if (web.downloadHandler.text.StartsWith("TRUE"))
-        {
-            DebugMsg.Notify("Purchased Item: " + itemId, 3);
-            string[] floatData = web.downloadHandler.text.Split('!');
-            string storeData = floatData[1];
-            string notifyData = floatData[2];
-            string exp = floatData[3];
-            string coins = floatData[4];
-            string hours = floatData[5];
-            if (hours == "") { hours = "0.01"; }
-            if (exp == "") { exp = "0"; }
-            if (coins == "") { coins = "0"; }
-            playerStats.playerExp = Convert.ToInt32(exp);
-            playerStats.playerCoins = Convert.ToInt32(coins);
-            playerStats.playerHours = float.Parse(hours);
-            playerStats.notifyData = notifyData;
-            playerStats.storeData = storeData;
-        }
-        else
-        {
-            DebugMsg.Notify("AlienStore Purchase Failed. Message: " + web.downloadHandler.text, 1);
-        }
-    }
-
-    private IEnumerator WebServerCredential(bool login, string username, string password, Action<string> success=null, string authKey=null) 
-    {
-        if (login) 
-        {
-            WWWForm form = new WWWForm();
-            form.AddField("username", username);
-            form.AddField("password", password);
-            form.AddField("action", "login");
-            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + loginFile, form);
-            yield return web.SendWebRequest();
-            if (web.downloadHandler.text.StartsWith("TRUE"))
-            {
-                string[] data = web.downloadHandler.text.Split(',');
-                string newAuthKey = data[1];
-                int userId = Convert.ToInt32(data[2]);
-                PlayerPrefs.SetString("authKey", newAuthKey);
-                PlayerPrefs.SetInt("userId", userId);
-                PlayerPrefs.SetString("username", username);
-                PlayerPrefs.SetString("password", password);
-                PlayerPrefs.Save();
-                success("TRUE");
-
-            }
-            else if (web.downloadHandler.text == "Wrong")
-            {
-                Debug.Log("Network - Web - Login: Wrong Password");
-                success("WRONG");
-            }
-            else if (web.downloadHandler.text == "No User")
-            {
-                Debug.Log("Network - Web - Login: No User with that Username");
-                success("NOUSER");
-            }
-            else 
-            {
-                Debug.Log("Network - Web - Login: " + web.downloadHandler.text);
-                success("ERROR");
-            }
-        }
-        else if(!string.IsNullOrEmpty(authKey))
-        {
-            WWWForm form = new WWWForm();
-            form.AddField("username", username);
-            form.AddField("password", password);
-            form.AddField("authKey", authKey);
-            form.AddField("action", "signup");
-            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + loginFile, form);
-            yield return web.SendWebRequest();
-            if (web.downloadHandler.text.StartsWith("TRUE"))
-            {
-                string[] data = web.downloadHandler.text.Split(',');
-                int userId = Convert.ToInt32(data[1]);
-                PlayerPrefs.SetString("username", username);
-                PlayerPrefs.SetString("password", password);
-                PlayerPrefs.SetString("authKey", authKey);
-                PlayerPrefs.SetInt("userId", userId);
-                PlayerPrefs.Save();
-                success("TRUE");
-            }
-            else if (web.downloadHandler.text == "Taken")
-            {
-                Debug.Log("Network - Web - Signup: Username Taken");
-                success("TAKEN");
-            }
-            else 
-            {
-                Debug.Log("Network - Web - Signup: Error " + web.downloadHandler.text);
-                success("ERROR");
-            }
-        }
-        else 
-        {
-            Debug.Log("Network - Web - Signup: No Authkey provided");
-            yield return new WaitForSeconds(.1F);
-            success("ERROR");
-        }
-    }
-
-    private IEnumerator WebServerStatistics(int userId, string authKey, Action<bool> success = null)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("userId", userId);
-        form.AddField("authKey", authKey);
+        form.AddField("verify", client_verifyToken);
         UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
         yield return web.SendWebRequest();
         if (web.downloadHandler.text.StartsWith("TRUE"))
@@ -232,125 +192,95 @@ public class WebServer : MonoBehaviour
             playerStats.playerHours = float.Parse(hours);
             playerStats.notifyData = notifyData;
             playerStats.storeData = storeData;
-            DebugMsg.Notify("Statistics Request Successful.", 2);
-            success(true);
-        }
-        else
-        {
-            DebugMsg.Notify("Statistics Request Failed. Message: " + web.downloadHandler.text, 1);
-            success(false);
         }
     }
+    #endregion
 
-    private IEnumerator WebServerSetStatistics(int userId, string authKey, string authToken, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, Action<bool> success = null) 
+    #region Server : ALL
+#if UNITY_EDITOR
+        private string server_verifyToken = "c06276de863dc56c405e8d986b7269af";
+    #region Server : Set Server List
+    public void ServerListSet(Server server, Action<bool> onRequestFinished)
+    {
+        Debug.Log("Setting Server List");
+        StartCoroutine(WebServerListSet(server, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
+    }
+    private IEnumerator WebServerListSet(Server server, Action<bool> success)
     {
         WWWForm form = new WWWForm();
-        form.AddField("userId", userId);
-        form.AddField("authKey", authKey);
-        form.AddField("authToken", authToken);
-        form.AddField("exp", expAdd);
-        form.AddField("coins", coinsAdd);
-        form.AddField("hours", hoursAdd.ToString());
-        form.AddField("store", storeSet);
-        form.AddField("notify", notifyData);
-        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
-
+        form.AddField("server_name", server.server_name);
+        form.AddField("server_description", server.server_description);
+        form.AddField("server_map", server.server_map);
+        form.AddField("server_mode", server.server_mode);
+        form.AddField("server_Ip", server.server_Ip);
+        form.AddField("server_Port", server.server_Port);
+        form.AddField("server_players", server.server_players);
+        form.AddField("server_maxPlayers", server.server_maxPlayers);
+        form.AddField("verify", server_verifyToken);
+        form.AddField("action", "update");
+        form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
         yield return web.SendWebRequest();
-        
         if (web.downloadHandler.text.StartsWith("TRUE"))
         {
-            DebugMsg.Notify("Successfully Set Player Statistics: " + web.downloadHandler.text, 2);
+            Debug.Log("ServerList Success");
             success(true);
         }
         else
         {
-            DebugMsg.Notify("Failed Setting Player Statistics: " + web.downloadHandler.text, 1);
+            Debug.Log("ServerList Failed");
+            Debug.Log(web.downloadHandler.text);
             success(false);
         }
     }
+    #endregion
 
-    private IEnumerator WebServerMaster(Server server, Action<ServerList> serverSuccess=null, Action<bool> success = null)
+    #region Server : Set Server Count
+    public void ServerListPlayerCount(string name, int count, Action<bool> onRequestFinished)
     {
-
-        if (server == null)
+        StartCoroutine(WebServerMasterCount(name, count, returnValue =>
         {
-            WWWForm form = new WWWForm();
-            form.AddField("action", "request");
-            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
-            yield return web.SendWebRequest();
-
-            if (web.downloadHandler.text.StartsWith("TRUE"))
-            {
-                string[] data = web.downloadHandler.text.Split('`');
-                ServerList serverList = new ServerList();
-                string json = "{ \"server\": " + data[1] + "}";
-                serverList.servers = JsonHelper.FromJson<Server>(json);
-                serverSuccess(serverList);
-            }
-            else if (web.downloadHandler.text.StartsWith("NONE")) 
-            {
-                //Server List Empty.
-            }
-            else
-            {
-                DebugMsg.Notify("Master Server Error: " + web.downloadHandler.text, 1);
-                serverSuccess(null);
-            }
+            onRequestFinished(returnValue);
+        }));
+    }
+    private IEnumerator WebServerMasterCount(string name, int count, Action<bool> success = null)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("verify", server_verifyToken);
+        form.AddField("server_name", name);
+        form.AddField("server_players", count);
+        form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
+        form.AddField("action", "count");
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            success(true);
         }
         else
         {
-            WWWForm form = new WWWForm();
-            form.AddField("name", server.name);
-            form.AddField("description", server.description);
-            form.AddField("map", server.map);
-            form.AddField("mode", server.mode);
-            form.AddField("serverIP", server.serverIP);
-            form.AddField("serverPort", server.serverPort);
-            form.AddField("player", server.player);
-            form.AddField("maxPlayer", server.maxPlayer);
-            form.AddField("action", "update");
-            form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
-            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
-            yield return web.SendWebRequest();
-            if (web.downloadHandler.text.StartsWith("TRUE"))
-            {                
-                success(true);
-            }
-            else
-            {
-                DebugMsg.Notify("Master Server Send Error: " + web.downloadHandler.text, 1);
-                success(false);
-            }
+            success(false);
         }
     }
+    #endregion
 
-    private IEnumerator WebServerMasterCount(string name,int count, Action<bool> success = null)
+    #region Server : Set Server Recent
+    public void ServerListUpdateRecent(string serverIp, ushort serverPort, Action<bool> onRequestFinished)
     {
-            WWWForm form = new WWWForm();
-            form.AddField("name", name);
-            form.AddField("player", count);
-            form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
-            form.AddField("action", "playerCount");
-
-            UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
-            yield return web.SendWebRequest();
-
-            if (web.downloadHandler.text.StartsWith("TRUE"))
-            {
-                success(true);
-            }
-            else
-            {
-                Debug.Log("Network - Web - Master Server Error: " + web.downloadHandler.text);
-                success(false);
-            }
+        StartCoroutine(WebServerMasterRecent(serverIp, serverPort, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
     }
-
-    private IEnumerator WebServerMasterRecent(string serverName, string serverIp, Action<bool> success = null)
+    private IEnumerator WebServerMasterRecent(string serverIp, ushort serverPort, Action<bool> success = null)
     {
         WWWForm form = new WWWForm();
-        //form.AddField("name", serverName);
-        form.AddField("serverIp", serverIp);
+        form.AddField("verify", server_verifyToken);
+        form.AddField("server_Ip", serverIp);
+        form.AddField("server_Port", serverPort);
         form.AddField("action", "recent");
         form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
         UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
@@ -361,31 +291,270 @@ public class WebServer : MonoBehaviour
         }
         else
         {
-            DebugMsg.Notify("Master Server Send Error: " + web.downloadHandler.text, 1);
             success(false);
         }
     }
+    #endregion
 
+    #region Server : Set Client Stats
+    public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
+    {
+        StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
+    }
+    private IEnumerator WebServerSetStatistics(int userId, string authKey, string authToken, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, Action<bool> success = null)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("userId", userId);
+        form.AddField("authKey", authKey);
+        form.AddField("verify", server_verifyToken);
+        form.AddField("exp", expAdd);
+        form.AddField("coins", coinsAdd);
+        form.AddField("hours", hoursAdd.ToString());
+        form.AddField("store", storeSet);
+        form.AddField("notify", notifyData);
+        form.AddField("action", "update");
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            success(true);
+        }
+        else
+        {
+            success(false);
+        }
+    }
+    #endregion
+#endif
+#if UNITY_SERVER
+        private string server_verifyToken = "c06276de863dc56c405e8d986b7269af";
+    #region Server : Set Server List
+    public void ServerListSet(Server server, Action<bool> onRequestFinished)
+    {
+        Debug.Log("Setting Server List");
+        StartCoroutine(WebServerListSet(server, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
+    }
+    private IEnumerator WebServerListSet(Server server, Action<bool> success)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("server_name", server.server_name);
+        form.AddField("server_description", server.server_description);
+        form.AddField("server_map", server.server_map);
+        form.AddField("server_mode", server.server_mode);
+        form.AddField("server_Ip", server.server_Ip);
+        form.AddField("server_Port", server.server_Port);
+        form.AddField("server_players", server.server_players);
+        form.AddField("server_maxPlayers", server.server_maxPlayers);
+        form.AddField("verify", server_verifyToken);
+        form.AddField("action", "update");
+        form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            Debug.Log("ServerList Success");
+            success(true);
+        }
+        else
+        {
+            Debug.Log("ServerList Failed");
+            Debug.Log(web.downloadHandler.text);
+            success(false);
+        }
+    }
+    #endregion
+
+    #region Server : Set Server Count
+    public void ServerListPlayerCount(string name, int count, Action<bool> onRequestFinished)
+    {
+        StartCoroutine(WebServerMasterCount(name, count, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
+    }
+    private IEnumerator WebServerMasterCount(string name, int count, Action<bool> success = null)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("verify", server_verifyToken);
+        form.AddField("server_name", name);
+        form.AddField("server_players", count);
+        form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
+        form.AddField("action", "count");
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            success(true);
+        }
+        else
+        {
+            success(false);
+        }
+    }
+    #endregion
+
+    #region Server : Set Server Recent
+    public void ServerListUpdateRecent(string serverIp, ushort serverPort, Action<bool> onRequestFinished)
+    {
+        StartCoroutine(WebServerMasterRecent(serverIp, serverPort, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
+    }
+    private IEnumerator WebServerMasterRecent(string serverIp, ushort serverPort, Action<bool> success = null)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("verify", server_verifyToken);
+        form.AddField("server_Ip", serverIp);
+        form.AddField("server_Port", serverPort);
+        form.AddField("action", "recent");
+        form.AddField("recent", TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, "Pacific Standard Time").ToString());
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + serversFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            success(true);
+        }
+        else
+        {
+            success(false);
+        }
+    }
+    #endregion
+
+    #region Server : Set Client Stats
+    public void StatSend(int userId, string authKey, string authToken, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, Action<bool> onRequestFinished)
+    {
+        StartCoroutine(WebServerSetStatistics(userId, authKey, authToken, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, returnValue =>
+        {
+            onRequestFinished(returnValue);
+        }));
+    }
+    private IEnumerator WebServerSetStatistics(int userId, string authKey, string authToken, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, Action<bool> success = null)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("userId", userId);
+        form.AddField("authKey", authKey);
+        form.AddField("verify", server_verifyToken);
+        form.AddField("exp", expAdd);
+        form.AddField("coins", coinsAdd);
+        form.AddField("hours", hoursAdd.ToString());
+        form.AddField("store", storeSet);
+        form.AddField("notify", notifyData);
+        form.AddField("action", "update");
+        UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
+        yield return web.SendWebRequest();
+        if (web.downloadHandler.text.StartsWith("TRUE"))
+        {
+            success(true);
+        }
+        else
+        {
+            success(false);
+        }
+    }
+    #endregion
+#endif
+    #endregion
+}
+
+[Serializable]
+public struct Server
+{
+    public string server_name;
+    public string server_description;
+    public string server_map;
+    public string server_mode;
+    public string server_Ip;
+    public ushort server_Port;
+    public int server_players;
+    public int server_maxPlayers;
+    public int server_ping;
+
+}
+
+//WebServer - List Request
+public struct ListRequestData 
+{
+    public bool successful;
+    public int errorCode;
+    public ServerListData servers;
+}
+public struct ServerListData 
+{
+    public Server[] list;
+    public static ServerListData Generate(Server[] temp)
+    {
+        return new ServerListData()
+        {
+            list = temp
+        };
+    }
+}
+
+
+//WebServer - Login Request
+public struct LoginRequestData
+{
+    public bool successful;
+    public bool needsToSignup;
+    public int errorCode;
+    public UserCredentialData credentials;
+}
+public struct UserCredentialData 
+{
+    public string user_name;
+    public string user_token;
+    public string user_authkey;
+    public int user_id;
     
-
+    public void Set(string name, string token, string authkey, int id) 
+    {
+        user_name = name;
+        user_token = token;
+        user_authkey = authkey;
+        user_id = id;
+    }
 }
 
-[Serializable]
-public class ServerList
+
+//WebServer - Stats Request
+public struct StatRequestData 
 {
-    public Server[] servers;
+    public bool successful;
+    public int errorCode;
+    public UserStatsData stats;
 }
-
-[Serializable]
-public class Server
+public struct UserStatsData 
 {
-    public string name = "Server Name";
-    public string description = "Server Description";
-    public string map = "Default Map";
-    public string mode = "Game Mode";
-    public string serverIP = "0.0.0.0";
-    public ushort serverPort = 44444;
-    public int player = 0;
-    public int maxPlayer = 0;
-    public int ping = 0;
-}
+    public string store_data;
+    public string notify_data;
+    public int exp;
+    public int coins;
+    public float hours;
+
+    public static UserStatsData Generate(string webData) 
+    {
+        string[] main_data = webData.Split('!');
+        string s_exp = main_data[3];
+        string s_coins = main_data[4];
+        string s_hours = main_data[5];
+        if (s_hours == "") { s_hours = "0.01"; }
+        if (s_exp == "") { s_exp = "0"; }
+        if (s_coins == "") { s_coins = "0"; }
+        return new UserStatsData()
+        {
+            store_data = main_data[1],
+            notify_data = main_data[2],
+            exp = Convert.ToInt32(s_exp),
+            coins = Convert.ToInt32(s_coins),
+            hours = float.Parse(s_hours)
+        };
+    }
+} 

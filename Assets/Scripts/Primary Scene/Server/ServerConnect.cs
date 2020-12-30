@@ -10,7 +10,6 @@ using UnityEngine.SceneManagement;
 
 public class ServerConnect : MonoBehaviour
 {
-
     #region Singleton
 
     public static ServerConnect singleton;
@@ -26,55 +25,58 @@ public class ServerConnect : MonoBehaviour
     private GameServer gameServer; //Game Server
     public WebServer webServer; //Web Server
     private MainMenuScript mainMenu; //Main Menu
+    private ServerProperties storedProperties; //Stored Server Properties
+
+    private string last_ipAddress;
+    private ushort last_port;
+
+    #region Debug Auto-Connect
+#if UNITY_EDITOR
     [Space]
     [Space]
     [Tooltip("Auto-Connect On Scene Load")]
     public bool autoConnect = true;
     public string autoConnectIp = "10.0.0.211";
     public ushort autoConnectPort = 5055;
-
-
-    private ServerProperties storedProperties; //Stored Server Properties
-
+#endif
+    #endregion
 
     private void Start()
     {
-        DontDestroyOnLoad(gameObject);
-        networkManager = NetworkingManager.Singleton;
-        if (networkManager == null) return;
-
-
-        #if UNITY_SERVER
-        if(networkManager != null)
+        if(NetworkingManager.Singleton != null) 
         {
-            StartServer();    
-        }
-        #endif
-        
-        #if UNITY_EDITOR
-        string[] data = Application.dataPath.Split('/');
-        if (data[data.Length - 2].Contains("clone"))
-        {
-            Application.targetFrameRate = 20;
+            DontDestroyOnLoad(gameObject);
+            networkManager = NetworkingManager.Singleton;
+            #region Server Start
+#if UNITY_SERVER
             StartServer();
+#endif
+#if UNITY_EDITOR
+            string[] data = Application.dataPath.Split('/');
+            if (data[data.Length - 2].Contains("clone"))
+            {
+                StartServer();
+            }
+#endif
+            #endregion
+            #region Auto-Connect
+#if UNITY_EDITOR
+            if (autoConnect) 
+            {
+                networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
+                ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = autoConnectIp;
+                ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)autoConnectPort;
+                networkManager.OnClientConnectedCallback += PlayerConnected_Player;
+                networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
+                networkManager.StartClient();
+            }
+#endif
+            #endregion
         }
-        else if (autoConnect == true) 
-        {
-            networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
-            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = autoConnectIp;
-            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)autoConnectPort;
-            networkManager.OnClientConnectedCallback += PlayerConnected_Player;
-            networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
-            networkManager.StartClient();
-        }
-        #endif
     }
 
-    //-----------------------------------------------------------------//
-    //                           Client Side                           //
-    //-----------------------------------------------------------------//
+    #region Client-Side
 
-    
     //------Connecting
 
     //Client: Connect to Server
@@ -84,22 +86,20 @@ public class ServerConnect : MonoBehaviour
         {
             mainMenu = FindObjectOfType<MainMenuScript>();
         }
-        mainMenu.LoadingScreen(true);
-        DebugMsg.Notify("Connecting to Server.", 1);
-        StartCoroutine(ConnectionWait(ip, port));
+        if (mainMenu != null)
+        {
+            mainMenu.LoadGame();
+            DebugMsg.Notify("Connecting to Server.", 1);
+            last_ipAddress = ip;
+            last_port = port;
+            networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
+            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = ip;
+            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)port;
+            networkManager.OnClientConnectedCallback += PlayerConnected_Player;
+            networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
+            networkManager.StartClient();
+        }
     }
-    //Connection Wait
-    private IEnumerator ConnectionWait(string ip, ushort port)
-    {
-        yield return new WaitForSeconds(0f);
-        networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
-        ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = ip;
-        ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)port;
-        networkManager.OnClientConnectedCallback += PlayerConnected_Player;
-        networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
-        networkManager.StartClient();
-    }
-
     
     //-----Callbacks
     
@@ -112,73 +112,36 @@ public class ServerConnect : MonoBehaviour
     private void PlayerDisconnected_Player(ulong id)
     {
         DebugMsg.Notify("Disconnected from Server.", 1);
-
-        if (SceneManager.GetActiveScene().name != "MainMenu")
+        if (SceneManager.GetActiveScene().buildIndex != 1)
         {
-            StartCoroutine(LoadMainMenu());
+            SceneManager.LoadScene(1);
         }
         else
         {
             if (mainMenu == null)
             {
-                mainMenu = FindObjectOfType<MainMenuScript>();
+                mainMenu = FindObjectOfType<MainMenuScript>();   
             }
-            mainMenu.LoadingScreen(false);
-        }
-
-    }
-
-
-    //-----Return to Main Menu
-
-    //Load Main Menu
-    private IEnumerator LoadMainMenu()
-    {
-        yield return null;
-        bool singleCall = true;
-        DebugMsg.Notify("Starting to Load Main Menu.", 4);
-        AsyncOperation op = SceneManager.LoadSceneAsync(1);
-        op.allowSceneActivation = false;
-        while (!op.isDone)
-        {
-            if (op.progress >= 0.9f && singleCall)
+            if (mainMenu != null)
             {
-                singleCall = false;
-                DebugMsg.Notify("Requesting Disconnect Stats.", 3);
-                LoadMainMenuStage(op);
+                mainMenu.ConnectingFailed();
             }
-            yield return null;
         }
     }
-    //Loading Async
-    private void LoadMainMenuStage(AsyncOperation op) 
+    public void RetryConnection() 
     {
-        webServer.StatRequest(PlayerPrefs.GetInt("userId"), PlayerPrefs.GetString("authKey"), onRequestFinished =>
-        {
-            if (onRequestFinished)
-            {
-                DebugMsg.Notify("Successfully Requested Stats.", 2);
-                op.allowSceneActivation = true;
-            }
-            else
-            {
-                DebugMsg.Notify("Failed Requesting Stats.", 1);
-                op.allowSceneActivation = true;
-            }
-        });
+        ConnectToServer(last_ipAddress, last_port);
     }
-   
+    #endregion
 
-    //-----------------------------------------------------------------//
-    //                           Server Side                           //
-    //-----------------------------------------------------------------//
-
+    #region Sever-Side
 
     //------Start/Stop
 
     //Server: Start Server
     public void StartServer()
     {
+        Application.targetFrameRate = 20;
         gameServer = GameServer.singleton;
         storedProperties = new ServerProperties();
         if (GetServerSettings()) 
@@ -288,22 +251,22 @@ public class ServerConnect : MonoBehaviour
     {
         Server server = new Server
         {
-            name = storedProperties.serverName,
-            description = storedProperties.serverDescription,
-            map = storedProperties.serverMap,
-            mode = storedProperties.serverMode,
-            player = 0,
-            maxPlayer = storedProperties.serverMaxPlayer,
-            serverIP = storedProperties.publicIP,
-            serverPort = storedProperties.serverPort
+            server_name = storedProperties.serverName,
+            server_description = storedProperties.serverDescription,
+            server_map = storedProperties.serverMap,
+            server_mode = storedProperties.serverMode,
+            server_players = 0,
+            server_maxPlayers = storedProperties.serverMaxPlayer,
+            server_Ip = storedProperties.publicIP,
+            server_Port = storedProperties.serverPort
         };
         if (!value)
         {
-            server.serverIP = "REMOVE";
+            server.server_Ip = "REMOVE";
         }
         if (webServer != null)
         {
-            webServer.ServerListSend(server, returnValue =>
+            webServer.ServerListSet(server, returnValue =>
             {
                 if (returnValue)
                 {
@@ -319,7 +282,7 @@ public class ServerConnect : MonoBehaviour
         yield return new WaitForSeconds(480);
         if(webServer != null) 
         {
-            webServer.ServerListUpdateRecent(storedProperties.serverName, storedProperties.publicIP, onRequestFinished => 
+            webServer.ServerListUpdateRecent(storedProperties.publicIP, storedProperties.serverPort, onRequestFinished => 
             {
                 if (onRequestFinished) 
                 {
@@ -413,6 +376,9 @@ public class ServerConnect : MonoBehaviour
         if (sp.serverMaxPlayer == 0) { empty = true; }
         return empty;
     }
+
+    #endregion
+
 }
 
 public class ServerProperties 
@@ -447,5 +413,4 @@ public class ServerProperties
     public int wo_respawnTrees = 60;
     public int wo_respawnRocks = 60;
     public int wo_respawnLoot = 60;
-
 }

@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -61,7 +60,6 @@ public class MultiLangSystem : MonoBehaviour
         string path = Application.dataPath + language_DataPath;
         if (File.Exists(path))
         {
-            DebugMsg.Notify("Populating Language Dictionary.", 1);
             LangData[] temp = JsonHelper.FromJson<LangData>(File.ReadAllText(path));
             if(temp != null && temp.Length > 0) 
             {
@@ -123,7 +121,6 @@ public class MultiLangSystem : MonoBehaviour
     }
     private LangDataSingle GetLangDataFromKey_Task(string key) 
     {
-        DebugMsg.Notify("Getting LangData. " + key, 1);
         int sysLanguage = GetSystemLanguage();
         if (dictionary.ContainsKey(key))
         {

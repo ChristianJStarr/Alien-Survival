@@ -6,7 +6,7 @@ public class MainMenuStatUpdater : MonoBehaviour
     public TextMeshProUGUI userName, userHours, userSp;
     public UI_ExpBar expBar;
     public PlayerStats playerStats;
-
+    public MainMenuWelcomeMessage welcomeMessage;
 
     string hours_survived = "HOURS SURVIVED";
     string level = "LEVEL";
@@ -52,6 +52,9 @@ public class MainMenuStatUpdater : MonoBehaviour
         userHours.text = Math.Round(playerStats.playerHours,2) + " " + hours_survived;
         userSp.text = playerStats.playerCoins.ToString();
         expBar.SetExp(playerStats.playerExp, level);
-        
+        if(playerStats.notifyData.Length > 0) 
+        {
+            welcomeMessage.ShowNotify();
+        }
     }
 }
