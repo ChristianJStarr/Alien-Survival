@@ -68,6 +68,8 @@ public class GameServer : NetworkedBehaviour
     }
 
     #region Start Functions
+    #region EDITOR
+#if UNITY_EDITOR
     //-----------------------------------------------------------------//
     // (S) SERVER           START FUNCTIONS                            //
     //-----------------------------------------------------------------//
@@ -189,8 +191,134 @@ public class GameServer : NetworkedBehaviour
     {
         return playerInfoSystem.GetPlayerLocation(clientId);
     }
+#endif
     #endregion
+    #region STANDALONE
+#if UNITY_SERVER
+        //-----------------------------------------------------------------//
+    // (S) SERVER           START FUNCTIONS                            //
+    //-----------------------------------------------------------------//
 
+    //Start the Game Server
+    private void StartGameServer()
+    {
+        DebugMsg.Begin(1, "Starting Game Server.", 1);
+
+        //Store properties
+        storedProperties = ServerConnect.singleton.GetServerProperties();
+        if (storedProperties == null)
+        {
+            DebugMsg.End(1, "Failed to Retrieve Server Properties", 1);
+            return;
+        }
+        else
+        {
+            DebugMsg.Notify("Loaded Server Properties.", 1);
+        }
+
+        //Start Player Info System
+        if (playerInfoSystem == null || !playerInfoSystem.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start Player Info System", 1);
+            return;
+        }
+        else
+        {
+            DebugMsg.Notify("Started Player Info System.", 1);
+        }
+
+        //Start World AI System
+        if (worldAISystem == null || !worldAISystem.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start World AI System", 1);
+            return;
+        }
+        else
+        {
+            DebugMsg.Notify("Started World AI System.", 1);
+        }
+
+        //Start World Object System
+        if (worldObjectSystem == null || !worldObjectSystem.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start World Object System", 1);
+            return;
+        }
+        else
+        {
+            DebugMsg.Notify("Started World Object System.", 1);
+        }
+
+        //Start Player Command System
+        if(playerCommandSystem == null || !playerCommandSystem.StartSystem()) 
+        {
+            DebugMsg.End(1, "Failed to Start Player Command System", 1);
+            return;
+        }
+        else 
+        {
+            DebugMsg.Notify("Started Player Command System.", 1);
+        }
+
+        //Start World Snapshot System
+        if(worldSnapshotSystem == null || !worldSnapshotSystem.StartSystem()) 
+        {
+            DebugMsg.End(1, "Failed to Start World Snapshot System", 1);
+            return;
+        }
+        else 
+        {
+            DebugMsg.Notify("Started World Snapshot System.", 1);
+        }
+
+        //Start Escape Pod Syste,
+        if (escapePodSystem == null || !escapePodSystem.StartSystem())
+        {
+            DebugMsg.End(1, "Failed to Start World Snapshot System", 1);
+            return;
+        }
+        else
+        {
+            DebugMsg.Notify("Started World Snapshot System.", 1);
+        }
+
+
+        //Start Loops
+        StartCoroutine(AutoSaveLoop());
+        DebugMsg.End(1, "Game Server has Started.", 1);
+    }
+
+    //Stop the Game Server
+    public void StopGameServer()
+    {
+        DebugMsg.Begin(2, "Stopping Game Server.", 1);
+
+        NetworkingManager.Singleton.StopServer();
+
+        playerInfoSystem.StopSystem();
+        worldAISystem.StopSystem();
+        worldObjectSystem.StopSystem();
+        playerCommandSystem.StopSystem();
+        worldSnapshotSystem.StopSystem();
+
+        DebugMsg.End(2, "Finsihed Stopping Game Server.", 1);
+
+    }
+
+    //Create New Player
+    public bool CreatePlayer(PlayerInfo playerInfo)
+    {
+        return playerInfoSystem.CreatePlayer(playerInfo);
+    }
+
+    //Get Player Location
+    public Vector3 GetPlayerLocation(ulong clientId)
+    {
+        return playerInfoSystem.GetPlayerLocation(clientId);
+    }
+#endif
+    #endregion
+    #endregion
     #region ServerSide Callbacks
     //-----------------------------------------------------------------//
     // (S)  SERVER          SIDE CALLBACKS                             //
@@ -239,7 +367,7 @@ public class GameServer : NetworkedBehaviour
         chatSystem.PlayerDisconnected_AllMessage(name);
         playerObjectSystem.UnRegisterControlObject(clientId);
     }
-    #endregion
+#endregion
 
     #region ServerSide Tasks
     //-----------------------------------------------------------------//
@@ -369,550 +497,550 @@ public class GameServer : NetworkedBehaviour
     }
 
 
-    #endregion
+#endregion
 
     #region ServerSide Tasks: UI
-    //-----------------------------------------------------------------//
-    // (S)  SERVER         Tasks : User Interface                      //
-    //-----------------------------------------------------------------//
+        //-----------------------------------------------------------------//
+        // (S)  SERVER         Tasks : User Interface                      //
+        //-----------------------------------------------------------------//
 
 
-    //-----Player Inventory
-    //Show
-    private void Server_UIShowPlayerInventory(ulong clientId, int uiType, UIData uiData)
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        //-----Player Inventory
+        //Show
+        private void Server_UIShowPlayerInventory(ulong clientId, int uiType, UIData uiData)
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitStream writeStream = PooledBitStream.Get())
             {
-                writer.WriteInt32Packed(uiType);
-                //Write UI Data
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteInt32Packed(uiType);
+                    //Write UI Data
 
 
-                InvokeClientRpcOnClientPerformance(Server_UIShowPlayerInventoryRpc, clientId, writeStream);
+                    InvokeClientRpcOnClientPerformance(Server_UIShowPlayerInventoryRpc, clientId, writeStream);
+                }
             }
         }
-    }
-    [ClientRPC]
-    private void Server_UIShowPlayerInventoryRpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        [ClientRPC]
+        private void Server_UIShowPlayerInventoryRpc(ulong clientId, Stream stream)
         {
-            int uiType = reader.ReadInt32Packed();
-            UIData data = null;
-            playerInfoManager.ShowInventoryScreen(uiType, data);
-        }
-    }
-    //Hide
-    public void Server_UIClosePlayerInventory(ulong clientId)
-    {
-        InvokeClientRpcOnClient(Server_UIClosePlayerInventoryRpc, clientId);
-    }
-    [ClientRPC]
-    private void Server_UIClosePlayerInventoryRpc()
-    {
-        playerInfoManager.HideInventoryScreen();
-    }
-
-
-    //-----Player Death Screen
-    //Show
-    public void Server_UIShowDeathScreen(ulong clientId, TimeSpan span)
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
-
-                writer.WriteDoublePacked(span.TotalHours);
-                InvokeClientRpcOnClientPerformance(Server_UIShowDeathScreenRpc, clientId, writeStream);
+                int uiType = reader.ReadInt32Packed();
+                UIData data = null;
+                playerInfoManager.ShowInventoryScreen(uiType, data);
             }
         }
-    }
-    [ClientRPC]
-    private void Server_UIShowDeathScreenRpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        //Hide
+        public void Server_UIClosePlayerInventory(ulong clientId)
         {
-            playerUIManager.ShowDeathScreen(reader.ReadDoublePacked());
+            InvokeClientRpcOnClient(Server_UIClosePlayerInventoryRpc, clientId);
         }
-    }
-    //Hide
-    public void Server_UIHideDeathScreen(ulong clientId)
-    {
-        InvokeClientRpcOnClient(Server_UIHideDeathScreenRpc, clientId);
-    }
-    [ClientRPC]
-    private void Server_UIHideDeathScreenRpc()
-    {
-        playerUIManager.HideDeathScreen();
-    }
+        [ClientRPC]
+        private void Server_UIClosePlayerInventoryRpc()
+        {
+            playerInfoManager.HideInventoryScreen();
+        }
+
+
+        //-----Player Death Screen
+        //Show
+        public void Server_UIShowDeathScreen(ulong clientId, TimeSpan span)
+        {
+            using (PooledBitStream writeStream = PooledBitStream.Get())
+            {
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+
+                    writer.WriteDoublePacked(span.TotalHours);
+                    InvokeClientRpcOnClientPerformance(Server_UIShowDeathScreenRpc, clientId, writeStream);
+                }
+            }
+        }
+        [ClientRPC]
+        private void Server_UIShowDeathScreenRpc(ulong clientId, Stream stream)
+        {
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
+            {
+                playerUIManager.ShowDeathScreen(reader.ReadDoublePacked());
+            }
+        }
+        //Hide
+        public void Server_UIHideDeathScreen(ulong clientId)
+        {
+            InvokeClientRpcOnClient(Server_UIHideDeathScreenRpc, clientId);
+        }
+        [ClientRPC]
+        private void Server_UIHideDeathScreenRpc()
+        {
+            playerUIManager.HideDeathScreen();
+        }
     #endregion
 
     #region Snapshotting Lockstepping
-    //-----------------------------------------------------------------//
-    // (C)<->(S)         Snapshotting                                  //
-    //-----------------------------------------------------------------//
+        //-----------------------------------------------------------------//
+        // (C)<->(S)         Snapshotting                                  //
+        //-----------------------------------------------------------------//
 
-    //Send Player Command to Server
-    public void ClientSendPlayerCommand(Stream stream)
-    {
-        InvokeServerRpcPerformance(Server_AuthenticatePlayerCommand, stream, "PlayerCommand");
-    }
-    
-    //Authenticate Player Command
-    [ServerRPC(RequireOwnership = false)]
-    private void Server_AuthenticatePlayerCommand(ulong _clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        //Send Player Command to Server
+        public void ClientSendPlayerCommand(Stream stream)
         {
-            #region Debug
-            DebugCommandSize_AvgCount++;
-            DebugCommandSize_AvgTotal += (int) stream.Length;
-            DebugCommandSize = DebugCommandSize_AvgTotal / DebugCommandSize_AvgCount;
-            if(DebugCommandSize_AvgCount > 15) 
-            {
-                DebugCommandSize_AvgCount = 0;
-                DebugCommandSize_AvgTotal = 0;
-            }
-            #endregion
-            PlayerCommand command = new PlayerCommand() { clientId = _clientId };
-            command.networkTime = reader.ReadSinglePacked();
-            command.move = reader.ReadVector2Packed();
-            command.look = reader.ReadVector2Packed();
-            command.correction = reader.ReadBool();
-            if (command.correction) 
-            {
-                command.correction_position = reader.ReadVector3Packed();
-            }
-            command.jump = reader.ReadBool();
-            command.crouch = reader.ReadBool();
-            command.use = reader.ReadBool();
-            command.reload = reader.ReadBool();
-            command.aim = reader.ReadBool();
-            command.selectedSlot = reader.ReadInt16Packed();
-            playerCommandSystem.ExecuteCommand(command);
+            InvokeServerRpcPerformance(Server_AuthenticatePlayerCommand, stream, "PlayerCommand");
         }
-    }
-
-    //Send World Snapshot to Clients
-    public void ServerSendSnapshot(ulong clientId, Snapshot snapshot, bool full = false)
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+    
+        //Authenticate Player Command
+        [ServerRPC(RequireOwnership = false)]
+        private void Server_AuthenticatePlayerCommand(ulong _clientId, Stream stream)
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
-                writer.WriteInt32Packed(snapshot.snapshotId);
-                writer.WriteSinglePacked(snapshot.networkTime);
-
-                //Players
-                if (snapshot.players != null)
+    #region Debug
+                DebugCommandSize_AvgCount++;
+                DebugCommandSize_AvgTotal += (int) stream.Length;
+                DebugCommandSize = DebugCommandSize_AvgTotal / DebugCommandSize_AvgCount;
+                if(DebugCommandSize_AvgCount > 15) 
                 {
-                    writer.WriteInt32Packed(snapshot.players.Length);
-                    for (int e = 0; e < snapshot.players.Length; e++)
+                    DebugCommandSize_AvgCount = 0;
+                    DebugCommandSize_AvgTotal = 0;
+                }
+    #endregion
+                PlayerCommand command = new PlayerCommand() { clientId = _clientId };
+                command.networkTime = reader.ReadSinglePacked();
+                command.move = reader.ReadVector2Packed();
+                command.look = reader.ReadVector2Packed();
+                command.correction = reader.ReadBool();
+                if (command.correction) 
+                {
+                    command.correction_position = reader.ReadVector3Packed();
+                }
+                command.jump = reader.ReadBool();
+                command.crouch = reader.ReadBool();
+                command.use = reader.ReadBool();
+                command.reload = reader.ReadBool();
+                command.aim = reader.ReadBool();
+                command.selectedSlot = reader.ReadInt16Packed();
+                playerCommandSystem.ExecuteCommand(command);
+            }
+        }
+
+        //Send World Snapshot to Clients
+        public void ServerSendSnapshot(ulong clientId, Snapshot snapshot, bool full = false)
+        {
+            using (PooledBitStream writeStream = PooledBitStream.Get())
+            {
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteInt32Packed(snapshot.snapshotId);
+                    writer.WriteSinglePacked(snapshot.networkTime);
+
+                    //Players
+                    if (snapshot.players != null)
                     {
-                        writer.WriteUInt64Packed(snapshot.players[e].networkId);
-                        writer.WriteVector3Packed(snapshot.players[e].location);
-                        writer.WriteVector2Packed(snapshot.players[e].rotation);
-                        writer.WriteInt16Packed((short)snapshot.players[e].holdId);
+                        writer.WriteInt32Packed(snapshot.players.Length);
+                        for (int e = 0; e < snapshot.players.Length; e++)
+                        {
+                            writer.WriteUInt64Packed(snapshot.players[e].networkId);
+                            writer.WriteVector3Packed(snapshot.players[e].location);
+                            writer.WriteVector2Packed(snapshot.players[e].rotation);
+                            writer.WriteInt16Packed((short)snapshot.players[e].holdId);
+                        }
+                    }
+                    else
+                    {
+                        writer.WriteInt32Packed(0);
+                    }
+
+                    //AI
+                    if (snapshot.ai != null)
+                    {
+                        writer.WriteInt32Packed(snapshot.ai.Length);
+                        for (int e = 0; e < snapshot.ai.Length; e++)
+                        {
+                            writer.WriteUInt64Packed(snapshot.ai[e].networkId);
+                            writer.WriteVector3Packed(snapshot.ai[e].location);
+                            writer.WriteVector2Packed(snapshot.ai[e].rotation);
+                            writer.WriteInt16Packed((short)snapshot.ai[e].holdId);
+                        }
+                    }
+                    else
+                    {
+                        writer.WriteInt32Packed(0);
+                    }
+
+                    //World Objects
+                    if (snapshot.worldObjects != null)
+                    {
+                        writer.WriteInt32Packed(snapshot.worldObjects.Length);
+                        for (int e = 0; e < snapshot.worldObjects.Length; e++)
+                        {
+                            writer.WriteInt32Packed(snapshot.worldObjects[e].spawnId);
+                            writer.WriteInt32Packed(snapshot.worldObjects[e].objectId);
+                        }
+                    }
+                    else
+                    {
+                        writer.WriteInt32Packed(0);
+                    }
+
+
+
+                    DebugSnapshotSize = writeStream.Length;
+
+                    if (full)
+                    {
+                        InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, writeStream, "Snapshot_Full");
+                    }
+                    else
+                    {
+                        InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, writeStream, "Snapshot_Mini");
                     }
                 }
-                else
+            }
+        }
+    
+        //Handle Incoming World Snapshot
+        [ClientRPC]
+        private void Client_RecieveWorldSnapshot(ulong clientId, Stream stream)
+        {
+            if (debugClientId) 
+            {
+                debugClientId = false;
+                DebugMenu.UpdateConnect(clientId, PlayerPrefs.GetString("username"));
+            }
+
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
+            {
+                Snapshot snapshot = new Snapshot()
                 {
-                    writer.WriteInt32Packed(0);
+                    snapshotId = reader.ReadInt32Packed(),
+                    networkTime = reader.ReadSinglePacked()
+                };
+                //Players
+                int playerLength = reader.ReadInt32Packed();
+                if (playerLength > 0)
+                {
+                    Snapshot_Player[] s_players = new Snapshot_Player[playerLength];
+                    for (int i = 0; i < playerLength; i++)
+                    {
+                        s_players[i] = new Snapshot_Player()
+                        {
+                            networkId = reader.ReadUInt64Packed(),
+                            location = reader.ReadVector3Packed(),
+                            rotation = reader.ReadVector2Packed(),
+                            holdId = reader.ReadInt16Packed()
+                        };
+                    }
+                    snapshot.players = s_players;
                 }
 
                 //AI
-                if (snapshot.ai != null)
+                int aiLength = reader.ReadInt32Packed();
+                if (aiLength > 0)
                 {
-                    writer.WriteInt32Packed(snapshot.ai.Length);
-                    for (int e = 0; e < snapshot.ai.Length; e++)
+                    Snapshot_AI[] s_ai = new Snapshot_AI[aiLength];
+                    for (int i = 0; i < aiLength; i++)
                     {
-                        writer.WriteUInt64Packed(snapshot.ai[e].networkId);
-                        writer.WriteVector3Packed(snapshot.ai[e].location);
-                        writer.WriteVector2Packed(snapshot.ai[e].rotation);
-                        writer.WriteInt16Packed((short)snapshot.ai[e].holdId);
+                        s_ai[i] = new Snapshot_AI()
+                        {
+                            networkId = reader.ReadUInt64Packed(),
+                            location = reader.ReadVector3Packed(),
+                            rotation = reader.ReadVector2Packed(),
+                            holdId = reader.ReadInt16Packed()
+                        };
                     }
-                }
-                else
-                {
-                    writer.WriteInt32Packed(0);
+                    snapshot.ai = s_ai;
                 }
 
-                //World Objects
-                if (snapshot.worldObjects != null)
+                //World Object
+                int worldObjectLength = reader.ReadInt32Packed();
+                if(worldObjectLength > 0) 
                 {
-                    writer.WriteInt32Packed(snapshot.worldObjects.Length);
-                    for (int e = 0; e < snapshot.worldObjects.Length; e++)
+                    Snapshot_WorldObject[] s_worldObjects = new Snapshot_WorldObject[worldObjectLength];
+                    for (int i = 0; i < worldObjectLength; i++)
                     {
-                        writer.WriteInt32Packed(snapshot.worldObjects[e].spawnId);
-                        writer.WriteInt32Packed(snapshot.worldObjects[e].objectId);
+                        s_worldObjects[i] = new Snapshot_WorldObject()
+                        {
+                            spawnId = reader.ReadInt32Packed(),
+                            objectId = reader.ReadInt32Packed()
+                        };
                     }
-                }
-                else
-                {
-                    writer.WriteInt32Packed(0);
+                    snapshot.worldObjects = s_worldObjects;
                 }
 
-
-
-                DebugSnapshotSize = writeStream.Length;
-
-                if (full)
+                //Process This Snapshot
+                snapshotManager.ProcessSnapshot(snapshot);
+                if (networkingManager != null)
                 {
-                    InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, writeStream, "Snapshot_Full");
-                }
-                else
-                {
-                    InvokeClientRpcOnClientPerformance(Client_RecieveWorldSnapshot, clientId, writeStream, "Snapshot_Mini");
+                    networkPing = Mathf.Clamp((int)(networkingManager.NetworkTime - snapshot.networkTime) * 1000, 1, 999);
                 }
             }
         }
-    }
-    
-    //Handle Incoming World Snapshot
-    [ClientRPC]
-    private void Client_RecieveWorldSnapshot(ulong clientId, Stream stream)
-    {
-        if (debugClientId) 
-        {
-            debugClientId = false;
-            DebugMenu.UpdateConnect(clientId, PlayerPrefs.GetString("username"));
-        }
-
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            Snapshot snapshot = new Snapshot()
-            {
-                snapshotId = reader.ReadInt32Packed(),
-                networkTime = reader.ReadSinglePacked()
-            };
-            //Players
-            int playerLength = reader.ReadInt32Packed();
-            if (playerLength > 0)
-            {
-                Snapshot_Player[] s_players = new Snapshot_Player[playerLength];
-                for (int i = 0; i < playerLength; i++)
-                {
-                    s_players[i] = new Snapshot_Player()
-                    {
-                        networkId = reader.ReadUInt64Packed(),
-                        location = reader.ReadVector3Packed(),
-                        rotation = reader.ReadVector2Packed(),
-                        holdId = reader.ReadInt16Packed()
-                    };
-                }
-                snapshot.players = s_players;
-            }
-
-            //AI
-            int aiLength = reader.ReadInt32Packed();
-            if (aiLength > 0)
-            {
-                Snapshot_AI[] s_ai = new Snapshot_AI[aiLength];
-                for (int i = 0; i < aiLength; i++)
-                {
-                    s_ai[i] = new Snapshot_AI()
-                    {
-                        networkId = reader.ReadUInt64Packed(),
-                        location = reader.ReadVector3Packed(),
-                        rotation = reader.ReadVector2Packed(),
-                        holdId = reader.ReadInt16Packed()
-                    };
-                }
-                snapshot.ai = s_ai;
-            }
-
-            //World Object
-            int worldObjectLength = reader.ReadInt32Packed();
-            if(worldObjectLength > 0) 
-            {
-                Snapshot_WorldObject[] s_worldObjects = new Snapshot_WorldObject[worldObjectLength];
-                for (int i = 0; i < worldObjectLength; i++)
-                {
-                    s_worldObjects[i] = new Snapshot_WorldObject()
-                    {
-                        spawnId = reader.ReadInt32Packed(),
-                        objectId = reader.ReadInt32Packed()
-                    };
-                }
-                snapshot.worldObjects = s_worldObjects;
-            }
-
-            //Process This Snapshot
-            snapshotManager.ProcessSnapshot(snapshot);
-            if (networkingManager != null)
-            {
-                networkPing = Mathf.Clamp((int)(networkingManager.NetworkTime - snapshot.networkTime) * 1000, 1, 999);
-            }
-        }
-    }
     #endregion
 
     #region ClientSide Requests
-    //-----------------------------------------------------------------//
-    // (C)->(S)          Player Requests : Commands                    //
-    //-----------------------------------------------------------------//
+        //-----------------------------------------------------------------//
+        // (C)->(S)          Player Requests : Commands                    //
+        //-----------------------------------------------------------------//
 
 
-    //--Request Player Name 
-    public void GetNameByClientId(ulong clientId, Action<string> callback)
-        {
-            DebugMsg.Notify("Requesting Name of Client Id", 2);
-            StartCoroutine(GetNameByClientId_Wait(clientId, returnValue => { callback(returnValue); }));
-        }
-    private IEnumerator GetNameByClientId_Wait(ulong clientId, Action<string> callback)
-    {
-        RpcResponse<string> response = InvokeServerRpc(GetNameByClientId_Rpc, clientId);
-        while (!response.IsDone) { yield return null; }
-        callback(response.Value);
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private string GetNameByClientId_Rpc(ulong clientId)
-    {
-        return playerInfoSystem.GetPlayerName(clientId);
-    }
-
-
-    //--Request to Move Item
-    public void MovePlayerItemBySlot(string authKey, int oldSlot, int newSlot)
-    {
-        DebugMsg.Notify("Requesting to Modify Inventory.", 2);
-        using (PooledBitStream writeStream = PooledBitStream.Get())
-        {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+        //--Request Player Name 
+        public void GetNameByClientId(ulong clientId, Action<string> callback)
             {
-                writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(oldSlot);
-                writer.WriteInt32Packed(newSlot);
-                InvokeServerRpcPerformance(MovePlayerItemBySlot_Rpc, writeStream);
+                DebugMsg.Notify("Requesting Name of Client Id", 2);
+                StartCoroutine(GetNameByClientId_Wait(clientId, returnValue => { callback(returnValue); }));
+            }
+        private IEnumerator GetNameByClientId_Wait(ulong clientId, Action<string> callback)
+        {
+            RpcResponse<string> response = InvokeServerRpc(GetNameByClientId_Rpc, clientId);
+            while (!response.IsDone) { yield return null; }
+            callback(response.Value);
+        }
+        [ServerRPC(RequireOwnership = false)]
+        private string GetNameByClientId_Rpc(ulong clientId)
+        {
+            return playerInfoSystem.GetPlayerName(clientId);
+        }
+
+
+        //--Request to Move Item
+        public void MovePlayerItemBySlot(string authKey, int oldSlot, int newSlot)
+        {
+            DebugMsg.Notify("Requesting to Modify Inventory.", 2);
+            using (PooledBitStream writeStream = PooledBitStream.Get())
+            {
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(authKey);
+                    writer.WriteInt32Packed(oldSlot);
+                    writer.WriteInt32Packed(newSlot);
+                    InvokeServerRpcPerformance(MovePlayerItemBySlot_Rpc, writeStream);
+                }
+            }
+
+        }
+        [ServerRPC(RequireOwnership = false)]
+        private void MovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
+        {
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
+            {
+                playerInfoSystem.Inventory_MoveItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
             }
         }
-
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void MovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            playerInfoSystem.Inventory_MoveItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
-        }
-    }
 
      
-    //--Request to Remove Item
-    public void ClientRemoveItemBySlot(string authKey, int slot)
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        //--Request to Remove Item
+        public void ClientRemoveItemBySlot(string authKey, int slot)
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitStream writeStream = PooledBitStream.Get())
             {
-                writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(slot);
-                InvokeServerRpcPerformance(RemovePlayerItemBySlot_Rpc, writeStream);
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(authKey);
+                    writer.WriteInt32Packed(slot);
+                    InvokeServerRpcPerformance(RemovePlayerItemBySlot_Rpc, writeStream);
+                }
             }
         }
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void RemovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        [ServerRPC(RequireOwnership = false)]
+        private void RemovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
         {
-            string authKey = reader.ReadStringPacked().ToString();
-            int slot = reader.ReadInt32Packed();
-            Item item = playerInfoSystem.Inventory_GetDropItem(clientId, slot);
-            if(item != null && playerInfoSystem.Inventory_RemoveItem(clientId, authKey, slot)) 
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
-                Debug.Log("Spawning Dropped Item: " + item.itemId);
-                //Spawn (item)
-            } 
+                string authKey = reader.ReadStringPacked().ToString();
+                int slot = reader.ReadInt32Packed();
+                Item item = playerInfoSystem.Inventory_GetDropItem(clientId, slot);
+                if(item != null && playerInfoSystem.Inventory_RemoveItem(clientId, authKey, slot)) 
+                {
+                    Debug.Log("Spawning Dropped Item: " + item.itemId);
+                    //Spawn (item)
+                } 
+            }
         }
-    }
 
     
-    //--Request to Split Item
-    public void ClientSplitItemBySlot(string authKey, int slot, int amount)
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        //--Request to Split Item
+        public void ClientSplitItemBySlot(string authKey, int slot, int amount)
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitStream writeStream = PooledBitStream.Get())
             {
-                writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(slot);
-                writer.WriteInt32Packed(amount);
-                InvokeServerRpcPerformance(SplitItemBySlot_Rpc, writeStream);
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(authKey);
+                    writer.WriteInt32Packed(slot);
+                    writer.WriteInt32Packed(amount);
+                    InvokeServerRpcPerformance(SplitItemBySlot_Rpc, writeStream);
+                }
             }
         }
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void SplitItemBySlot_Rpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        [ServerRPC(RequireOwnership = false)]
+        private void SplitItemBySlot_Rpc(ulong clientId, Stream stream)
         {
-            playerInfoSystem.Inventory_SplitItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
+            {
+                playerInfoSystem.Inventory_SplitItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
+            }
         }
-    }
 
     
-    //--Request to Craft Item
-    public void CraftItemById(string authKey, int itemId, int amount)
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        //--Request to Craft Item
+        public void CraftItemById(string authKey, int itemId, int amount)
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitStream writeStream = PooledBitStream.Get())
             {
-                writer.WriteStringPacked(authKey);
-                writer.WriteInt32Packed(itemId);
-                writer.WriteInt32Packed(amount);
-                InvokeServerRpcPerformance(CraftItemById_Rpc, writeStream);
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(authKey);
+                    writer.WriteInt32Packed(itemId);
+                    writer.WriteInt32Packed(amount);
+                    InvokeServerRpcPerformance(CraftItemById_Rpc, writeStream);
+                }
             }
-        }
         
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void CraftItemById_Rpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            playerInfoSystem.Inventory_CraftItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
         }
-    }
-
-
-    //--Request to Disconnect
-    public void RequestToDisconnect(string authKey) 
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        [ServerRPC(RequireOwnership = false)]
+        private void CraftItemById_Rpc(ulong clientId, Stream stream)
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
-                writer.WriteStringPacked(authKey);
-                InvokeServerRpcPerformance(RequestToDisconnect_Rpc, writeStream);
+                playerInfoSystem.Inventory_CraftItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
             }
         }
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToDisconnect_Rpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
-        {
-            string authKey = reader.ReadStringPacked().ToString();
-            if (playerInfoSystem.Confirm(clientId, authKey))
-            {
-                NetworkingManager.Singleton.DisconnectClient(clientId);
-            }
-        }
-    }
 
 
-    //--Request to Respawn
-    public void RequestToRespawn(string authKey) 
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        //--Request to Disconnect
+        public void RequestToDisconnect(string authKey) 
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitStream writeStream = PooledBitStream.Get())
             {
-                writer.WriteStringPacked(authKey);
-                InvokeServerRpcPerformance(RequestToRespawn_Rpc, writeStream);
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(authKey);
+                    InvokeServerRpcPerformance(RequestToDisconnect_Rpc, writeStream);
+                }
             }
         }
-    }
-    [ServerRPC(RequireOwnership = false)]
-    private void RequestToRespawn_Rpc(ulong clientId, Stream stream) 
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        [ServerRPC(RequireOwnership = false)]
+        private void RequestToDisconnect_Rpc(ulong clientId, Stream stream)
         {
-            string authKey = reader.ReadStringPacked().ToString();
-            if (playerInfoSystem.Confirm(clientId, authKey))
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
-                Server_RespawnPlayer(clientId);
+                string authKey = reader.ReadStringPacked().ToString();
+                if (playerInfoSystem.Confirm(clientId, authKey))
+                {
+                    NetworkingManager.Singleton.DisconnectClient(clientId);
+                }
             }
         }
-    }
+
+
+        //--Request to Respawn
+        public void RequestToRespawn(string authKey) 
+        {
+            using (PooledBitStream writeStream = PooledBitStream.Get())
+            {
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(authKey);
+                    InvokeServerRpcPerformance(RequestToRespawn_Rpc, writeStream);
+                }
+            }
+        }
+        [ServerRPC(RequireOwnership = false)]
+        private void RequestToRespawn_Rpc(ulong clientId, Stream stream) 
+        {
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
+            {
+                string authKey = reader.ReadStringPacked().ToString();
+                if (playerInfoSystem.Confirm(clientId, authKey))
+                {
+                    Server_RespawnPlayer(clientId);
+                }
+            }
+        }
     
     
-    //--Request Ping
-    public int GetPlayerPing()
-    {
-        return networkPing;
-    }
+        //--Request Ping
+        public int GetPlayerPing()
+        {
+            return networkPing;
+        }
     #endregion
 
     #region Game Chat
-    //-----------------------------------------------------------------//
-    //         Chat System                                             //
-    //-----------------------------------------------------------------//
+        //-----------------------------------------------------------------//
+        //         Chat System                                             //
+        //-----------------------------------------------------------------//
 
-    //Chat - Send ALL
-    public void Chat_SendToAll(string message) 
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        //Chat - Send ALL
+        public void Chat_SendToAll(string message) 
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitStream writeStream = PooledBitStream.Get())
             {
-                writer.WriteStringPacked(message);
-               InvokeClientRpcOnEveryonePerformance(ChatSendTo_Rpc, writeStream);
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(message);
+                   InvokeClientRpcOnEveryonePerformance(ChatSendTo_Rpc, writeStream);
+                }
             }
         }
-    }
 
-    //Chat - Send Specific
-    public void Chat_SendToSpecific(string message, ulong clientId) 
-    {
-        using (PooledBitStream writeStream = PooledBitStream.Get())
+        //Chat - Send Specific
+        public void Chat_SendToSpecific(string message, ulong clientId) 
         {
-            using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+            using (PooledBitStream writeStream = PooledBitStream.Get())
             {
-                writer.WriteStringPacked(message);
-                InvokeClientRpcOnClientPerformance(ChatSendTo_Rpc, clientId, writeStream);
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(message);
+                    InvokeClientRpcOnClientPerformance(ChatSendTo_Rpc, clientId, writeStream);
+                }
             }
         }
-    }
-    [ClientRPC]
-    private void ChatSendTo_Rpc(ulong clientId, Stream stream)
-    {
-        using (PooledBitReader reader = PooledBitReader.Get(stream))
+        [ClientRPC]
+        private void ChatSendTo_Rpc(ulong clientId, Stream stream)
         {
-            ChatManager.singleton.Incoming(reader.ReadStringPacked().ToString());
+            using (PooledBitReader reader = PooledBitReader.Get(stream))
+            {
+                ChatManager.singleton.Incoming(reader.ReadStringPacked().ToString());
+            }
         }
-    }
     #endregion
 
     #region PlayerInfo Pipeline
-    //-----------------------------------------------------------------//
-    // (S)->(C)        PlayerInfo Pipeline                             //
-    //-----------------------------------------------------------------//
+        //-----------------------------------------------------------------//
+        // (S)->(C)        PlayerInfo Pipeline                             //
+        //-----------------------------------------------------------------//
 
-    public void ServerSendPlayerInfo(ulong clientId, Stream stream) 
-    {
-        InvokeClientRpcOnClientPerformance(ServerSendPlayerInfo_Rpc, clientId, stream, "PlayerInfo");
-    }
-    [ClientRPC]
-    private void ServerSendPlayerInfo_Rpc(ulong clientId, Stream stream) 
-    {
-        playerInfoManager.IntakeStream(stream);
-    }
+        public void ServerSendPlayerInfo(ulong clientId, Stream stream) 
+        {
+            InvokeClientRpcOnClientPerformance(ServerSendPlayerInfo_Rpc, clientId, stream, "PlayerInfo");
+        }
+        [ClientRPC]
+        private void ServerSendPlayerInfo_Rpc(ulong clientId, Stream stream) 
+        {
+            playerInfoManager.IntakeStream(stream);
+        }
     #endregion
 
     #region ServerLoops
-    //-----------------------------------------------------------------//
-    //                          LOOPS                                  //
-    //-----------------------------------------------------------------//
+        //-----------------------------------------------------------------//
+        //                          LOOPS                                  //
+        //-----------------------------------------------------------------//
 
-    //Auto Save Loop
-    private IEnumerator AutoSaveLoop()
-    {
-        int interval = storedProperties.autoSaveInterval;
-        if (interval < 5)
+        //Auto Save Loop
+        private IEnumerator AutoSaveLoop()
         {
-            interval = 5;
+            int interval = storedProperties.autoSaveInterval;
+            if (interval < 5)
+            {
+                interval = 5;
+            }
+            while (true)
+            {
+                yield return new WaitForSeconds(interval * 60f);
+                playerInfoSystem.AutoSave();
+            }
         }
-        while (true)
-        {
-            yield return new WaitForSeconds(interval * 60f);
-            playerInfoSystem.AutoSave();
-        }
-    }
     #endregion
 }
 //1156 06/20/20
@@ -925,3 +1053,4 @@ public class GameServer : NetworkedBehaviour
 //1229 11/30/20
 //893  12/12/20
 //917  12/13/20
+//1055 12/30/20
