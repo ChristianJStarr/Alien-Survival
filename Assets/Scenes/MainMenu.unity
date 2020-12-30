@@ -11026,7 +11026,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   userName: {fileID: 480814025}
   userHours: {fileID: 358673101}
-  userSp: {fileID: 0}
+  userSp: {fileID: 1596397762}
   expBar: {fileID: 938075622}
   playerStats: {fileID: 11400000, guid: 0fa82ddbb9514ce4f8efb449490936da, type: 2}
   welcomeMessage: {fileID: 804832998}
@@ -12681,7 +12681,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.18039216, g: 0.18039216, b: 0.18039216, a: 0.69411767}
+  m_Color: {r: 0.101960786, g: 0.101960786, b: 0.101960786, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

@@ -182,7 +182,7 @@ public class MainMenuScript : MonoBehaviour
         {
             if (requestData.successful) 
             {
-                requestingStats.SetActive(false);
+                StartCoroutine(TurnOffStatsAlert(statRequests < 2));
                 playerStats.Align(requestData);
                 statRequests = 0;
                 statUpdater.UpdateText();
@@ -213,4 +213,13 @@ public class MainMenuScript : MonoBehaviour
         easterEggBeam.SetActive(true);
     }
 
+    //Turn off Stats Alert with Delay
+    private IEnumerator TurnOffStatsAlert(bool delay) 
+    {
+        if (delay) 
+        {
+            yield return new WaitForSeconds(1);
+        }
+        requestingStats.SetActive(false);
+    }
 }

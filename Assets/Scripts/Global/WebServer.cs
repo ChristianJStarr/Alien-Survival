@@ -537,24 +537,31 @@ public struct UserStatsData
     public string notify_data;
     public int exp;
     public int coins;
+    public int kills;
+    public int deaths;
     public float hours;
+    public float percentile;
 
     public static UserStatsData Generate(string webData) 
     {
         string[] main_data = webData.Split('!');
-        string s_exp = main_data[3];
-        string s_coins = main_data[4];
-        string s_hours = main_data[5];
-        if (s_hours == "") { s_hours = "0.01"; }
-        if (s_exp == "") { s_exp = "0"; }
-        if (s_coins == "") { s_coins = "0"; }
+        string s_exp = main_data[3] == "" ? "0" : main_data[3];
+        string s_coins = main_data[4] == "" ? "0" : main_data[4];
+        string s_hours = main_data[5] == "" ? "0" : main_data[5];
+        string s_kills = main_data[6] == "" ? "0" : main_data[6];
+        string s_deaths = main_data[7] == "" ? "0" : main_data[7];
+        string s_percentile = main_data[8] == "" ? "0" : main_data[8];
+
         return new UserStatsData()
         {
             store_data = main_data[1],
             notify_data = main_data[2],
             exp = Convert.ToInt32(s_exp),
             coins = Convert.ToInt32(s_coins),
-            hours = float.Parse(s_hours)
+            kills = Convert.ToInt32(s_kills),
+            deaths = Convert.ToInt32(s_deaths),
+            hours = float.Parse(s_hours),
+            percentile = float.Parse(s_percentile)
         };
     }
 } 

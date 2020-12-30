@@ -48,13 +48,16 @@ public class MainMenuStatUpdater : MonoBehaviour
 
     public void UpdateText() 
     {
-        userName.text = PlayerPrefs.GetString("username");
-        userHours.text = Math.Round(playerStats.playerHours,2) + " " + hours_survived;
-        userSp.text = playerStats.playerCoins.ToString();
-        expBar.SetExp(playerStats.playerExp, level);
-        if(playerStats.notifyData.Length > 0) 
+        if (playerStats) 
         {
-            welcomeMessage.ShowNotify();
+            userName.text = PlayerPrefs.GetString("username");
+            userHours.text = Math.Round(playerStats.playerHours, 2) + " " + hours_survived;
+            userSp.text = playerStats.playerCoins.ToString();
+            expBar.SetExp(playerStats.playerExp, level);
+            if (playerStats.notifyData.Length > 0)
+            {
+                welcomeMessage.ShowNotify();
+            }
         }
     }
 }
