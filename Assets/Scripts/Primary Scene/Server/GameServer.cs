@@ -8,7 +8,6 @@ using UnityEngine;
 
 public class GameServer : NetworkedBehaviour
 {
-
     #region Singleton
 
     public static GameServer singleton;
@@ -38,11 +37,10 @@ public class GameServer : NetworkedBehaviour
     public PlayerConnectManager playerConnectManager;
     public WorldParticleManager worldParticleManager;
     public LocalSoundManager localSoundManager;
+    
     private NetworkingManager networkingManager;
-
     private ServerProperties storedProperties;//Properties
     private int networkPing; //Client Side Ping
-
 
     #region Debug Statistics
     //----ServerDebug
@@ -54,7 +52,6 @@ public class GameServer : NetworkedBehaviour
     private int DebugCommandSize_AvgTotal = 0;
     private bool debugClientId = true;
     #endregion
-
 
     private void Start()
     {
@@ -68,8 +65,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     #region Start Functions
-    #region EDITOR
-#if UNITY_EDITOR
+#if (UNITY_SERVER || UNITY_EDITOR)
     //-----------------------------------------------------------------//
     // (S) SERVER           START FUNCTIONS                            //
     //-----------------------------------------------------------------//
@@ -193,132 +189,7 @@ public class GameServer : NetworkedBehaviour
     }
 #endif
     #endregion
-    #region STANDALONE
-#if UNITY_SERVER
-        //-----------------------------------------------------------------//
-    // (S) SERVER           START FUNCTIONS                            //
-    //-----------------------------------------------------------------//
 
-    //Start the Game Server
-    private void StartGameServer()
-    {
-        DebugMsg.Begin(1, "Starting Game Server.", 1);
-
-        //Store properties
-        storedProperties = ServerConnect.singleton.GetServerProperties();
-        if (storedProperties == null)
-        {
-            DebugMsg.End(1, "Failed to Retrieve Server Properties", 1);
-            return;
-        }
-        else
-        {
-            DebugMsg.Notify("Loaded Server Properties.", 1);
-        }
-
-        //Start Player Info System
-        if (playerInfoSystem == null || !playerInfoSystem.StartSystem())
-        {
-            DebugMsg.End(1, "Failed to Start Player Info System", 1);
-            return;
-        }
-        else
-        {
-            DebugMsg.Notify("Started Player Info System.", 1);
-        }
-
-        //Start World AI System
-        if (worldAISystem == null || !worldAISystem.StartSystem())
-        {
-            DebugMsg.End(1, "Failed to Start World AI System", 1);
-            return;
-        }
-        else
-        {
-            DebugMsg.Notify("Started World AI System.", 1);
-        }
-
-        //Start World Object System
-        if (worldObjectSystem == null || !worldObjectSystem.StartSystem())
-        {
-            DebugMsg.End(1, "Failed to Start World Object System", 1);
-            return;
-        }
-        else
-        {
-            DebugMsg.Notify("Started World Object System.", 1);
-        }
-
-        //Start Player Command System
-        if(playerCommandSystem == null || !playerCommandSystem.StartSystem()) 
-        {
-            DebugMsg.End(1, "Failed to Start Player Command System", 1);
-            return;
-        }
-        else 
-        {
-            DebugMsg.Notify("Started Player Command System.", 1);
-        }
-
-        //Start World Snapshot System
-        if(worldSnapshotSystem == null || !worldSnapshotSystem.StartSystem()) 
-        {
-            DebugMsg.End(1, "Failed to Start World Snapshot System", 1);
-            return;
-        }
-        else 
-        {
-            DebugMsg.Notify("Started World Snapshot System.", 1);
-        }
-
-        //Start Escape Pod Syste,
-        if (escapePodSystem == null || !escapePodSystem.StartSystem())
-        {
-            DebugMsg.End(1, "Failed to Start World Snapshot System", 1);
-            return;
-        }
-        else
-        {
-            DebugMsg.Notify("Started World Snapshot System.", 1);
-        }
-
-
-        //Start Loops
-        StartCoroutine(AutoSaveLoop());
-        DebugMsg.End(1, "Game Server has Started.", 1);
-    }
-
-    //Stop the Game Server
-    public void StopGameServer()
-    {
-        DebugMsg.Begin(2, "Stopping Game Server.", 1);
-
-        NetworkingManager.Singleton.StopServer();
-
-        playerInfoSystem.StopSystem();
-        worldAISystem.StopSystem();
-        worldObjectSystem.StopSystem();
-        playerCommandSystem.StopSystem();
-        worldSnapshotSystem.StopSystem();
-
-        DebugMsg.End(2, "Finsihed Stopping Game Server.", 1);
-
-    }
-
-    //Create New Player
-    public bool CreatePlayer(PlayerInfo playerInfo)
-    {
-        return playerInfoSystem.CreatePlayer(playerInfo);
-    }
-
-    //Get Player Location
-    public Vector3 GetPlayerLocation(ulong clientId)
-    {
-        return playerInfoSystem.GetPlayerLocation(clientId);
-    }
-#endif
-    #endregion
-    #endregion
     #region ServerSide Callbacks
     //-----------------------------------------------------------------//
     // (S)  SERVER          SIDE CALLBACKS                             //
@@ -1053,4 +924,4 @@ public class GameServer : NetworkedBehaviour
 //1229 11/30/20
 //893  12/12/20
 //917  12/13/20
-//1055 12/30/20
+//927 12/30/20
