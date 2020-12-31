@@ -62,7 +62,6 @@ public class WorldSnapshotManager : NetworkedBehaviour
     {
         Singleton = this;
     }
-
     void Start()
     {
         if (IsServer)
@@ -72,13 +71,12 @@ public class WorldSnapshotManager : NetworkedBehaviour
         }
         holdableManager = HoldableManager.Singleton;
     }
-
     private void FixedUpdate()
     {
         UpdateTask_LerpAllObjects(); //Lerp All Objects to their Move & Look Targets
     }
 
-
+    //Get Local Player Object (Client Called)
     public PlayerControlObject GetLocalPlayerObject() 
     {
         PlayerControlObject instance = null;

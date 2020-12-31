@@ -1625,7 +1625,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.37254897, g: 0.93333334, b: 0.46368894, a: 0.5882353}
+  m_Color: {r: 0.24554999, g: 0.5849056, b: 0.30013165, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3954,7 +3954,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 224.02058, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &311978472
@@ -10983,7 +10983,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   alienAnimator: {fileID: 1286200829}
   webServer: {fileID: 804832997}
-  statUpdater: {fileID: 804832994}
   alienCenterMass: {fileID: 1722199815}
   playerStats: {fileID: 11400000, guid: 0fa82ddbb9514ce4f8efb449490936da, type: 2}
   mainScreen: {fileID: 1658349266}
@@ -13365,7 +13364,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   webServer: {fileID: 1011803583}
-  autoConnect: 0
+  autoConnect: 1
   autoConnectIp: 10.0.0.211
   autoConnectPort: 5055
 --- !u!1 &1033284987
@@ -21716,7 +21715,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 23.2, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 60.000008}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1596397761

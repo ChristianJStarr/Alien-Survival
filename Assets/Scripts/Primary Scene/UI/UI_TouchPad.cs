@@ -7,12 +7,10 @@ using UnityStandardAssets.CrossPlatformInput;
 public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     public bool acceleration = true;
-    public string horizontalAxisName = "TouchHorizontal"; // The name given to the horizontal axis for the cross platform input
-    public string verticalAxisName = "TouchVertical"; // The name given to the vertical axis for the cross platform input
-    private Vector2 sensitivity;
-    public Settings settings;
-    CrossPlatformInputManager.VirtualAxis m_HorizontalVirtualAxis; // Reference to the joystick in the cross platform input
-    CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis; // Reference to the joystick in the cross platform input
+    public string horizontalAxisName = "TouchHorizontal";
+    public string verticalAxisName = "TouchVertical";
+    CrossPlatformInputManager.VirtualAxis m_HorizontalVirtualAxis;
+    CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis;
     bool m_Dragging;
     int m_Id = -1;
     private float tune = 2;
@@ -20,20 +18,15 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private bool reset = true;
     private Vector3 m_Center;
     private Image m_Image;
-    Vector3 m_PreviousMouse;
-
-
+    Vector2 m_PreviousMouse;
 
 
     void OnEnable()
     {
         CreateVirtualAxes();
-        SettingsMenu.ChangedSettings += Change;
     }
-
     void OnDisable()
     {
-        SettingsMenu.ChangedSettings -= Change;
 
         if (CrossPlatformInputManager.AxisExists(horizontalAxisName))
             CrossPlatformInputManager.UnRegisterVirtualAxis(horizontalAxisName);
@@ -45,15 +38,12 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     void Start()
     {
 #if !UNITY_SERVER
-
-        sensitivity = settings.sensitivity;
         m_Image = GetComponent<Image>();
         m_Center = m_Image.transform.position;
 #else
         enabled = false;
 #endif
     }
-
     void Update()
     {
         if (!m_Dragging)
@@ -62,21 +52,8 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
         if (Input.touchCount >= m_Id + 1 && m_Id != -1)
         {
-#if !UNITY_EDITOR
-            MobileDragUpdate();
-#else
-            EditorUpdate();
-#endif
+            UpdateVirtualAxes(ApplyAcceleration(GetPointer()));
         }
-    }
-
-
-
-    //Change touch sensitivity. Standard Settings Change() function.
-    public void Change()
-    {
-        //Change touch sensitivity.
-        sensitivity = settings.sensitivity;
     }
 
     //Create the Virtual Axes
@@ -89,7 +66,7 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     }
 
     //Update the Virtual Axes
-    void UpdateVirtualAxes(Vector3 value)
+    void UpdateVirtualAxes(Vector2 value)
     {
         m_HorizontalVirtualAxis.Update(value.x);
         m_VerticalVirtualAxis.Update(value.y);
@@ -111,10 +88,14 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         reset = true;
     }
 
-    //Mobile DRAG 
-    private void MobileDragUpdate()
+    //Get Current Pointer
+    private Vector2 GetPointer() 
     {
-        Vector2 pointerDelta;
+#if UNITY_EDITOR
+        Vector2 pointerDelta = new Vector2(Input.mousePosition.x - m_PreviousMouse.x, Input.mousePosition.y - m_PreviousMouse.y);
+        m_PreviousMouse = Input.mousePosition;
+        return pointerDelta;
+#else
         m_Center = m_PreviousTouchPos;
         m_PreviousTouchPos = Input.touches[m_Id].position;
         if (reset)
@@ -122,46 +103,24 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             m_Center = Input.touches[m_Id].position;
             reset = false;
         }
-        tune = 12; // mobileTune // DPI?
-        pointerDelta = new Vector2(Input.touches[m_Id].position.x - m_Center.x, Input.touches[m_Id].position.y - m_Center.y);
-        //Apply Sensitivity
-        //Apply Speed
-        if (acceleration)
-        {
-            Vector2 pointerAbsolute = new Vector2(Mathf.Abs(pointerDelta.x), Mathf.Abs(pointerDelta.y));
-            pointerDelta *= pointerAbsolute;
-            pointerDelta *= tune;
-            pointerDelta.x = Mathf.Clamp(pointerDelta.x, -20, 20);
-            pointerDelta.y = Mathf.Clamp(pointerDelta.y, -20, 20);
-        }
-        //Update Axies
-        UpdateVirtualAxes(new Vector3(pointerDelta.x, pointerDelta.y, 0));
+        return new Vector2(Input.touches[m_Id].position.x - m_Center.x, Input.touches[m_Id].position.y - m_Center.y);
+#endif
     }
 
-    //Editor DRAG
-    private void EditorUpdate()
+    //Apply Acceleration to Vector
+    private Vector2 ApplyAcceleration(Vector2 input) 
     {
-        Vector2 pointerDelta;
-        //Get Distance Traveled
-        pointerDelta.x = Input.mousePosition.x - m_PreviousMouse.x;
-        pointerDelta.y = Input.mousePosition.y - m_PreviousMouse.y;
-        tune = .2F;
-        //Apply Sensitivity
-        Vector2 touchAxis = pointerDelta;
-        //Apply Speed
-        if (acceleration)
+        if (acceleration) 
         {
-            Vector2 pointerAbsolute = new Vector2(Mathf.Abs(pointerDelta.x), Mathf.Abs(pointerDelta.y));
-            pointerDelta *= pointerAbsolute;
-            pointerDelta *= tune;
-            pointerDelta.x = Mathf.Clamp(pointerDelta.x, -20, 20);
-            pointerDelta.y = Mathf.Clamp(pointerDelta.y, -20, 20);
+            input *= input;
         }
-        //Update Previous
-        m_PreviousMouse = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f);
-
-        //Update Axies
-        UpdateVirtualAxes(new Vector3(pointerDelta.x, pointerDelta.y, 0));
-        DebugMenu.UpdateTouch(touchAxis, sensitivity, pointerDelta);
+        return input;
     }
 }
+
+
+// 26 - 26 - 26 TopBkg
+// 12 - 12 - 12 Standard Btn
+// 173 - 80 - 74 Alien Red
+// 63 - 149 - 77 Exp bar
+// 58 - 58 - 58 - 130 Trans Grey

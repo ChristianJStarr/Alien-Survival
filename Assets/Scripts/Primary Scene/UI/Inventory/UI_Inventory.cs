@@ -10,6 +10,7 @@ public class UI_Inventory : MonoBehaviour
     public static UI_Inventory Singleton;
     private void Awake() { Singleton = this; }
     #endregion
+
     public UI_Tooltip ui_tooltip;
     public GameObject inventoryUI, inventoryBkg, bounds, bounds2, bounds3, hotBarButtons, tint, tint2, playerViewCamera, storageCrateSlotContainer;
     public ControlsManager controls;
@@ -19,28 +20,16 @@ public class UI_Inventory : MonoBehaviour
     public UI_ItemSlot[] itemSlots, armorSlots, storageCrateSlots;
     public bool invOpen = false;
     public UI_CraftingMenu craftingMenu;
-
-    //Inventory UI Slide Menus
-    private Vector2 leftTarget = new Vector3(-354F, -41.99303F);
-    private Vector2 rightTarget = new Vector3(-618, -41.99601F);
-
     public InventorySlideModule[] rightSlideMenus;
     public RectTransform leftSlideMenus;
 
     private int activeSlideMenu = 100;
-    private bool rightMove = false;
-    private bool leftMove = false;
     private bool leftActive = false;
     private bool rightActive = false;
-
-
     private bool checkingHover = false;
-    //Extra UI Data
     private UIData storedUIData;
-
     public Sprite closeIcon;
     private Sprite normalIcon;
-
 
     //Configuration
     private float c_SlideLerpSpeed = 0.5F; //Seconds

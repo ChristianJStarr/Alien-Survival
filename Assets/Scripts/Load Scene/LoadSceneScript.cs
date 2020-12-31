@@ -18,6 +18,7 @@ public class LoadSceneScript : MonoBehaviour
     private SignInWithApple signInWithApple;
     private string privacyPolicyUrl = "https://aliensurvival.com/privacy-app.php";
     private string termsConditionsUrl = "https://aliensurvival.com/terms-app.php";
+    private string userGuidlinesUrl = "https://aliensurvival.com/user-guidlines.php";
     private bool loadingLevel = false;
 
     private string userLoginToken;
@@ -78,6 +79,33 @@ public class LoadSceneScript : MonoBehaviour
         {
             signInWithApple = GetComponent<SignInWithApple>();
             signInWithApple.Login();
+        }
+    }
+
+    //Open Terms of Use
+    public void OpenTerms() 
+    {
+        if(termsConditionsUrl.Length > 0) 
+        {
+            Application.OpenURL(termsConditionsUrl);
+        }
+    }
+    
+    //Open Privacy Policy
+    public void OpenPrivacy() 
+    {
+        if(privacyPolicyUrl.Length > 0) 
+        {
+            Application.OpenURL(privacyPolicyUrl);
+        }
+    }
+    
+    //User Guidlines
+    public void OpenGuidlines() 
+    { 
+        if(userGuidlinesUrl.Length > 0) 
+        {
+            Application.OpenURL(userGuidlinesUrl);
         }
     }
 

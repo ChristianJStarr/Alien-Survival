@@ -1,23 +1,22 @@
 ﻿using MLAPI;
 using System.Collections;
 using UnityEngine;
-using UnityStandardAssets.CrossPlatformInput;
 
 public class PlayerCameraManager : MonoBehaviour
 {
+#if !UNITY_SERVER
     public GameObject playerCamera;
     public GameObject playerViewCamera;
     public Settings settings;
-    private bool firstPersonMode = true;
     private Vector3 fp_localTarget = new Vector3(0, 0.167F, -0.02F);
     private Vector3 tp_localTarget = new Vector3(0.191F, 0.545F, -1.149F);
+    private Transform cameraMovementAnchor;
+    private bool firstPersonMode = true;
 
     //Configuration
     private float c_CameraLerpSpeed = 0.5F;
-
-    private Transform cameraMovementAnchor;
-
-    #region OnSettingsChanged
+    
+#region OnSettingsChanged
     private void OnEnable() 
     {
         SettingsMenu.ChangedSettings += Change;
@@ -30,35 +29,7 @@ public class PlayerCameraManager : MonoBehaviour
     {
         ChangeCamera(settings.firstPersonMode);
     }
-    #endregion
-
-
-
-    Vector2 touchInput;
-
-    private void Update() 
-    {
-        touchInput = new Vector2(CrossPlatformInputManager.GetAxis("MouseX"), CrossPlatformInputManager.GetAxis("MouseY"));
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endregion
 
     private void Start()
     {
@@ -70,7 +41,6 @@ public class PlayerCameraManager : MonoBehaviour
             }
         }
     }
-
     private IEnumerator WaitForPlayer() 
     {
         WaitForSeconds wait = new WaitForSeconds(1F);
@@ -80,7 +50,6 @@ public class PlayerCameraManager : MonoBehaviour
             if (SpawnCameras()) break;
         }
     }
-
     private bool SpawnCameras() 
     {
         PlayerControlObject playerObject = WorldSnapshotManager.Singleton.GetLocalPlayerObject();
@@ -101,13 +70,15 @@ public class PlayerCameraManager : MonoBehaviour
             }
             cameraMovementAnchor = playerMount.mainCameraSpawnAnchor;
             Instantiate(playerCamera, playerMount.mainCameraSpawnAnchor);
-            Instantiate(playerViewCamera, playerMount.viewCameraSpawnAnchor);
             playerMount.deathCam.enabled = true;
             playerMount.camerasSpawned = true;
+            if(UI_Inventory.Singleton != null)
+            {
+                UI_Inventory.Singleton.playerViewCamera = Instantiate(playerViewCamera, playerMount.viewCameraSpawnAnchor);
+            }
         }
         return true;
     }
-
     private void ChangeCamera(bool firstPerson)
     {
         if (firstPersonMode != firstPerson)
@@ -116,7 +87,6 @@ public class PlayerCameraManager : MonoBehaviour
             StartCoroutine(CameraLerp(c_CameraLerpSpeed));
         }
     }
-
     private IEnumerator CameraLerp(float duration)
     {
         float time = 0;
@@ -138,4 +108,5 @@ public class PlayerCameraManager : MonoBehaviour
         }
         cameraMovementAnchor.localPosition = targetPosition;
     }
+#endif
 }
