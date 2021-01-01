@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerInteractSystem : MonoBehaviour
 {
+#if (UNITY_SERVER || UNITY_EDITOR)
     private bool systemEnabled = false;
     public bool StartSystem()
     {
@@ -219,5 +220,5 @@ public class PlayerInteractSystem : MonoBehaviour
     }
 
 
-
+#endif
 }

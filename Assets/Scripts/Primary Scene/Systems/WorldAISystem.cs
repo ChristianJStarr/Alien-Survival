@@ -1,8 +1,5 @@
 ﻿using MLAPI;
-using MLAPI.Connection;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -10,6 +7,7 @@ using UnityEngine.AI;
 
 public class WorldAISystem : MonoBehaviour
 {
+#if (UNITY_SERVER || UNITY_EDITOR)
     private bool systemEnabled;// Is this System Enabled
 
     public static WorldAISystem Singleton;
@@ -136,14 +134,6 @@ public class WorldAISystem : MonoBehaviour
             }
         }
     }
-
-
-
-
-
-
-
-
 
 
     //-------------------AI Backend--------------------
@@ -433,6 +423,7 @@ public class WorldAISystem : MonoBehaviour
             Destroy(friendly);
         }
     }
+#endif
 }
 
 
@@ -482,7 +473,6 @@ public struct EnemyStateChange : IJobFor
         
     }
 }
-
 
 public enum AI_State 
 {

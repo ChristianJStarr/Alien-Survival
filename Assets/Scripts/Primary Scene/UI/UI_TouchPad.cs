@@ -6,19 +6,24 @@ using UnityStandardAssets.CrossPlatformInput;
 [RequireComponent(typeof(Image))]
 public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    public bool acceleration = true;
     public string horizontalAxisName = "TouchHorizontal";
     public string verticalAxisName = "TouchVertical";
-    CrossPlatformInputManager.VirtualAxis m_HorizontalVirtualAxis;
-    CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis;
-    bool m_Dragging;
-    int m_Id = -1;
-    private float tune = 2;
-    Vector2 m_PreviousTouchPos;
-    private bool reset = true;
-    private Vector3 m_Center;
+
+    private CrossPlatformInputManager.VirtualAxis m_HorizontalVirtualAxis;
+    private CrossPlatformInputManager.VirtualAxis m_VerticalVirtualAxis;
     private Image m_Image;
-    Vector2 m_PreviousMouse;
+    private Vector3 m_Center;
+    private Vector2 m_Previous;
+    private float tune = 2;
+    private int m_Id = -1;
+    private bool m_Dragging = false;
+    private bool reset = true;
+
+    //Configuration
+    private bool C_useAcceleration = true;
+    private int C_maxInputMovement = 40;
+    private float C_linearity = 2.08F;
+    private float C_intersection = 10.86F; 
 
 
     void OnEnable()
@@ -91,36 +96,34 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     //Get Current Pointer
     private Vector2 GetPointer() 
     {
-#if UNITY_EDITOR
-        Vector2 pointerDelta = new Vector2(Input.mousePosition.x - m_PreviousMouse.x, Input.mousePosition.y - m_PreviousMouse.y);
-        m_PreviousMouse = Input.mousePosition;
-        return pointerDelta;
-#else
-        m_Center = m_PreviousTouchPos;
-        m_PreviousTouchPos = Input.touches[m_Id].position;
+        Vector2 pointerDelta;
+#if !UNITY_EDITOR
+        m_Center = m_Previous;
+        m_Previous = Input.touches[m_Id].position;
         if (reset)
         {
             m_Center = Input.touches[m_Id].position;
             reset = false;
         }
-        return new Vector2(Input.touches[m_Id].position.x - m_Center.x, Input.touches[m_Id].position.y - m_Center.y);
+        pointerDelta = new Vector2(Input.touches[m_Id].position.x - m_Center.x, Input.touches[m_Id].position.y - m_Center.y);   
+#else
+        pointerDelta = new Vector2(Input.mousePosition.x - m_Previous.x, Input.mousePosition.y - m_Previous.y);
+        m_Previous = Input.mousePosition;
 #endif
+        return pointerDelta;
     }
 
-    //Apply Acceleration to Vector
+    //Apply Acceleration to Vector 
     private Vector2 ApplyAcceleration(Vector2 input) 
     {
-        if (acceleration) 
+        if (C_useAcceleration) 
         {
-            input *= input;
+            // (1/(int+lin))*  x*(Abs(x)+lin)
+            input.x = (1F / (C_intersection + C_linearity)) * input.x * (Mathf.Abs(input.x) * C_linearity);
+            input.y = (1F / (C_intersection + C_linearity)) * input.y * (Mathf.Abs(input.y) * C_linearity);
+            input.x = Mathf.Clamp(input.x, -C_maxInputMovement, C_maxInputMovement);
+            input.y = Mathf.Clamp(input.y, -C_maxInputMovement, C_maxInputMovement);
         }
         return input;
     }
 }
-
-
-// 26 - 26 - 26 TopBkg
-// 12 - 12 - 12 Standard Btn
-// 173 - 80 - 74 Alien Red
-// 63 - 149 - 77 Exp bar
-// 58 - 58 - 58 - 130 Trans Grey

@@ -18,7 +18,8 @@ public class GameServer : NetworkedBehaviour
     }
 
     #endregion
-
+#if (UNITY_SERVER || UNITY_EDITOR)
+    private ServerProperties storedProperties;//Properties
     [Header("Systems")]
     public PlayerInfoSystem playerInfoSystem;
     public WorldAISystem worldAISystem;
@@ -28,7 +29,7 @@ public class GameServer : NetworkedBehaviour
     public PlayerObjectSystem playerObjectSystem;
     public WorldSnapshotSystem worldSnapshotSystem;
     public EscapePodSystem escapePodSystem;
-
+#endif
     [Header("Managers")]
     public PlayerInfoManager playerInfoManager;
     public PlayerUIManager playerUIManager;
@@ -39,7 +40,6 @@ public class GameServer : NetworkedBehaviour
     public LocalSoundManager localSoundManager;
     
     private NetworkingManager networkingManager;
-    private ServerProperties storedProperties;//Properties
     private int networkPing; //Client Side Ping
 
     #region Debug Statistics
@@ -55,13 +55,13 @@ public class GameServer : NetworkedBehaviour
 
     private void Start()
     {
-        playerInfoManager = PlayerInfoManager.singleton;
-        playerUIManager = PlayerUIManager.Singleton;
         networkingManager = NetworkingManager.Singleton;
-        if (IsServer)
+#if (UNITY_SERVER || UNITY_EDITOR)
+        if (IsServer && networkingManager != null)
         {
             StartGameServer();
         }
+#endif
     }
 
     #region Start Functions
@@ -190,6 +190,8 @@ public class GameServer : NetworkedBehaviour
 #endif
     #endregion
 
+#if (UNITY_SERVER || UNITY_EDITOR)
+    
     #region ServerSide Callbacks
     //-----------------------------------------------------------------//
     // (S)  SERVER          SIDE CALLBACKS                             //
@@ -448,13 +450,12 @@ public class GameServer : NetworkedBehaviour
         }
     #endregion
 
-    #region Snapshotting Lockstepping
-        //-----------------------------------------------------------------//
-        // (C)<->(S)         Snapshotting                                  //
-        //-----------------------------------------------------------------//
+#endif
 
-        //Send Player Command to Server
-        public void ClientSendPlayerCommand(Stream stream)
+    #region Snapshotting Lockstepping
+
+    //Send Player Command to Server
+    public void ClientSendPlayerCommand(Stream stream)
         {
             InvokeServerRpcPerformance(Server_AuthenticatePlayerCommand, stream, "PlayerCommand");
         }
@@ -463,7 +464,8 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void Server_AuthenticatePlayerCommand(ulong _clientId, Stream stream)
         {
-            using (PooledBitReader reader = PooledBitReader.Get(stream))
+#if (UNITY_SERVER || UNITY_EDITOR)
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
     #region Debug
                 DebugCommandSize_AvgCount++;
@@ -492,7 +494,8 @@ public class GameServer : NetworkedBehaviour
                 command.selectedSlot = reader.ReadInt16Packed();
                 playerCommandSystem.ExecuteCommand(command);
             }
-        }
+#endif
+    }
 
         //Send World Snapshot to Clients
         public void ServerSendSnapshot(ulong clientId, Snapshot snapshot, bool full = false)
@@ -649,11 +652,6 @@ public class GameServer : NetworkedBehaviour
     #endregion
 
     #region ClientSide Requests
-        //-----------------------------------------------------------------//
-        // (C)->(S)          Player Requests : Commands                    //
-        //-----------------------------------------------------------------//
-
-
         //--Request Player Name 
         public void GetNameByClientId(ulong clientId, Action<string> callback)
             {
@@ -669,7 +667,10 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private string GetNameByClientId_Rpc(ulong clientId)
         {
-            return playerInfoSystem.GetPlayerName(clientId);
+#if (UNITY_SERVER || UNITY_EDITOR)
+        return playerInfoSystem.GetPlayerName(clientId);
+#endif  
+            return null;
         }
 
 
@@ -692,10 +693,12 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void MovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
         {
+#if (UNITY_SERVER || UNITY_EDITOR)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 playerInfoSystem.Inventory_MoveItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
             }
+#endif
         }
 
      
@@ -715,7 +718,8 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void RemovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
         {
-            using (PooledBitReader reader = PooledBitReader.Get(stream))
+#if (UNITY_SERVER || UNITY_EDITOR)
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 string authKey = reader.ReadStringPacked().ToString();
                 int slot = reader.ReadInt32Packed();
@@ -726,7 +730,8 @@ public class GameServer : NetworkedBehaviour
                     //Spawn (item)
                 } 
             }
-        }
+#endif
+    }
 
     
         //--Request to Split Item
@@ -746,10 +751,12 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void SplitItemBySlot_Rpc(ulong clientId, Stream stream)
         {
-            using (PooledBitReader reader = PooledBitReader.Get(stream))
+#if (UNITY_SERVER || UNITY_EDITOR)
+        using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 playerInfoSystem.Inventory_SplitItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
             }
+#endif
         }
 
     
@@ -771,11 +778,13 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void CraftItemById_Rpc(ulong clientId, Stream stream)
         {
+#if (UNITY_SERVER || UNITY_EDITOR)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 playerInfoSystem.Inventory_CraftItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
             }
-        }
+#endif
+    }
 
 
         //--Request to Disconnect
@@ -793,6 +802,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void RequestToDisconnect_Rpc(ulong clientId, Stream stream)
         {
+#if (UNITY_SERVER || UNITY_EDITOR)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 string authKey = reader.ReadStringPacked().ToString();
@@ -801,7 +811,8 @@ public class GameServer : NetworkedBehaviour
                     NetworkingManager.Singleton.DisconnectClient(clientId);
                 }
             }
-        }
+#endif
+    }
 
 
         //--Request to Respawn
@@ -819,6 +830,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void RequestToRespawn_Rpc(ulong clientId, Stream stream) 
         {
+#if (UNITY_SERVER || UNITY_EDITOR)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 string authKey = reader.ReadStringPacked().ToString();
@@ -827,7 +839,8 @@ public class GameServer : NetworkedBehaviour
                     Server_RespawnPlayer(clientId);
                 }
             }
-        }
+#endif
+    }
     
     
         //--Request Ping
@@ -838,10 +851,7 @@ public class GameServer : NetworkedBehaviour
     #endregion
 
     #region Game Chat
-        //-----------------------------------------------------------------//
-        //         Chat System                                             //
-        //-----------------------------------------------------------------//
-
+#if (UNITY_SERVER || UNITY_EDITOR)
         //Chat - Send ALL
         public void Chat_SendToAll(string message) 
         {
@@ -867,7 +877,8 @@ public class GameServer : NetworkedBehaviour
                 }
             }
         }
-        [ClientRPC]
+#endif
+    [ClientRPC]
         private void ChatSendTo_Rpc(ulong clientId, Stream stream)
         {
             using (PooledBitReader reader = PooledBitReader.Get(stream))
@@ -878,10 +889,6 @@ public class GameServer : NetworkedBehaviour
     #endregion
 
     #region PlayerInfo Pipeline
-        //-----------------------------------------------------------------//
-        // (S)->(C)        PlayerInfo Pipeline                             //
-        //-----------------------------------------------------------------//
-
         public void ServerSendPlayerInfo(ulong clientId, Stream stream) 
         {
             InvokeClientRpcOnClientPerformance(ServerSendPlayerInfo_Rpc, clientId, stream, "PlayerInfo");
@@ -893,13 +900,15 @@ public class GameServer : NetworkedBehaviour
         }
     #endregion
 
-    #region ServerLoops
-        //-----------------------------------------------------------------//
-        //                          LOOPS                                  //
-        //-----------------------------------------------------------------//
+#if (UNITY_SERVER || UNITY_EDITOR)
 
-        //Auto Save Loop
-        private IEnumerator AutoSaveLoop()
+    #region ServerLoops
+    //-----------------------------------------------------------------//
+    //                          LOOPS                                  //
+    //-----------------------------------------------------------------//
+
+    //Auto Save Loop
+    private IEnumerator AutoSaveLoop()
         {
             int interval = storedProperties.autoSaveInterval;
             if (interval < 5)
@@ -913,6 +922,8 @@ public class GameServer : NetworkedBehaviour
             }
         }
     #endregion
+
+#endif
 }
 //1156 06/20/20
 //1692 06/25/20

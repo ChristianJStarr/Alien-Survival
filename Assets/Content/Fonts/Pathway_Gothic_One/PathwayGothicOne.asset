@@ -159,9 +159,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
   m_Name: PathwayGothicOne
   m_EditorClassIdentifier: 
-  hashCode: -1923150377
+  hashCode: -417143112
   material: {fileID: -4042778444821107851}
-  materialHashCode: -119962217
+  materialHashCode: -642276968
   m_Version: 1.1.0
   m_SourceFontFileGUID: c2be755103ad3f54b983fe38f2e63e16
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: c2be755103ad3f54b983fe38f2e63e16,

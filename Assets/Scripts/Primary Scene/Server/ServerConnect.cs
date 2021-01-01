@@ -50,18 +50,14 @@ public class ServerConnect : MonoBehaviour
             #region Server Start
 #if UNITY_SERVER
             StartServer();
-#endif
-#if UNITY_EDITOR
+            return;
+#elif UNITY_EDITOR
             string[] data = Application.dataPath.Split('/');
             if (data[data.Length - 2].Contains("clone"))
             {
                 StartServer();
             }
-#endif
-            #endregion
-            #region Auto-Connect
-#if UNITY_EDITOR
-            if (autoConnect) 
+            else if (autoConnect)
             {
                 networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
                 ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = autoConnectIp;
@@ -97,7 +93,6 @@ public class ServerConnect : MonoBehaviour
             ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)port;
             networkManager.OnClientConnectedCallback += PlayerConnected_Player;
             networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
-            networkManager.StartClient();
         }
     }
     

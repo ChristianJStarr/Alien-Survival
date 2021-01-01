@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class WorldObjectSystem : MonoBehaviour
 {
+#if (UNITY_SERVER || UNITY_EDITOR)
     private bool systemEnabled = false;
     
     //NetworkingManager
@@ -373,6 +374,7 @@ public class WorldObjectSystem : MonoBehaviour
             if (currentLoot < 0) { currentLoot = 0; }
         }
     }
+#endif
 }
 
 

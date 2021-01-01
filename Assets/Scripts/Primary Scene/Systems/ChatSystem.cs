@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ChatSystem : MonoBehaviour
 {
-
+#if (UNITY_SERVER || UNITY_EDITOR)
     //ALL - Player has Connected
     public void PlayerConnected_AllMessage(string name) 
     {
@@ -47,6 +47,7 @@ public class ChatSystem : MonoBehaviour
     {
         return "<color=#" + hex + ">" + message + "</color>";
     }
+#endif
 }
 
 

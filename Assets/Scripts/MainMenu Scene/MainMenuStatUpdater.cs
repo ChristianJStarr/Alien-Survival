@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using TMPro;
 using System;
+using System.Collections;
+
 public class MainMenuStatUpdater : MonoBehaviour
 {
     #region Singleton
@@ -70,6 +72,20 @@ public class MainMenuStatUpdater : MonoBehaviour
             {
                 welcomeMessage.ShowNotify();
             }
+            StartCoroutine(UIUpdateFix());
         }
+    }
+    public IEnumerator UIUpdateFix()
+    {
+        WaitForSeconds wait = new WaitForSeconds(0.25F);
+        string text = playerStats.playerCoins.ToString();
+        yield return wait;
+        userSp.text = text + " ";
+        yield return wait;
+        userSp.text = text;
+        yield return wait;
+        userSp.text = text + " ";
+        yield return wait;
+        userSp.text = text;
     }
 }

@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class PlayerObjectSystem : MonoBehaviour
 {
+#if (UNITY_SERVER || UNITY_EDITOR)
     #region Singleton
     public static PlayerObjectSystem Singleton;
     private void Awake() { Singleton = this; }
@@ -285,7 +286,7 @@ public class PlayerObjectSystem : MonoBehaviour
 
 
 
-
+#endif
 }
 
 public struct GetNearbyClientsJob : IJobFor 

@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class WorldSnapshotSystem : MonoBehaviour
 {
+#if (UNITY_SERVER || UNITY_EDITOR)
     private bool systemEnabled = false;
 
     private GameServer gameServer; //Game Server
@@ -220,6 +221,7 @@ public class WorldSnapshotSystem : MonoBehaviour
         //Send Snapshot
         return fullSnapshot;
     }
+#endif
 }
 
 public class QuickAccess_Snapshot

@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class PlayerCommandSystem : MonoBehaviour
 {
+#if (UNITY_SERVER || UNITY_EDITOR)
     private bool systemEnabled = false;
 
     public PlayerInfoSystem playerInfoSystem;
@@ -152,5 +153,6 @@ public class PlayerCommandSystem : MonoBehaviour
         }
 
     }
+#endif
 }
 

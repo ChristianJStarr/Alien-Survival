@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class EscapePodSystem : MonoBehaviour
 {
+#if (UNITY_SERVER || UNITY_EDITOR)
     private bool systemEnabled = false;
 
     public PlayerObjectSystem playerObjectSystem;
@@ -180,4 +181,5 @@ public class EscapePodSystem : MonoBehaviour
             return Vector3.zero;
         }
     }
+#endif
 }
