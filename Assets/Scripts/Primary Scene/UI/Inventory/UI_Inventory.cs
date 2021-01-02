@@ -361,11 +361,11 @@ public class UI_Inventory : MonoBehaviour
 
             if (state)
             {
-                target = new Vector2(507, -38);
+                target = new Vector2(498.5F, 505);
             }
             else
             {
-                target = new Vector2(-354.1534F, -38);
+                target = new Vector2(-353.2F, 505);
             }
             float time = 0;
             Vector2 startPosition = leftSlideMenus.anchoredPosition;

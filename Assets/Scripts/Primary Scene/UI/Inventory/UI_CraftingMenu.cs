@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UI_CraftingMenu : MonoBehaviour
+public class UI_CraftingMenu : InventorySlideModule
 {
     #region Singleton
     public static UI_CraftingMenu Singleton;

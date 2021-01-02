@@ -55,6 +55,9 @@ public class AIControlObject : NetworkedBehaviour
 
     public override void NetworkStart()
     {
+#if UNITY_SERVER
+            WorldAISystem.Register(this);
+#elif UNITY_EDITOR
         if (IsServer)
         {
             WorldAISystem.Register(this);
@@ -62,12 +65,17 @@ public class AIControlObject : NetworkedBehaviour
         else 
         {
             WorldSnapshotManager.RegisterObject(this);
-            Destroy(agent);
         }
+#else
+        WorldSnapshotManager.RegisterObject(this);
+#endif
     }
 
     public void OnDestroy()
     {
+#if UNITY_SERVER
+            WorldAISystem.Remove(NetworkId);    
+#elif UNITY_EDITOR
         if (IsServer)
         {
             WorldAISystem.Remove(NetworkId);
@@ -76,6 +84,9 @@ public class AIControlObject : NetworkedBehaviour
         {
             WorldSnapshotManager.RemoveObject(NetworkId);
         }
+#else
+        WorldSnapshotManager.RemoveObject(NetworkId);
+#endif
     }
 
     public void Animate(Vector2 animateAxis) 

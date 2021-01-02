@@ -297,26 +297,25 @@ public class WebServer : MonoBehaviour
     #endregion
 
     #region Server : Set Client Stats
-    public void SetClientStats(int userId, string authKey, int expAdd, int coinsAdd, float hoursAdd, string notifyData, string storeSet, int kills, int deaths, Action<bool> onRequestFinished)
+    public void SetClientStats(WebStatsData data, Action<bool> onRequestFinished)
     {
-        StartCoroutine(WebServerSetStatistics(userId, authKey, expAdd, coinsAdd, notifyData, hoursAdd, storeSet, kills, deaths, returnValue =>
+        StartCoroutine(WebServerSetStatistics(data, returnValue =>
         {
             onRequestFinished(returnValue);
         }));
     }
-    private IEnumerator WebServerSetStatistics(int userId, string authKey, int expAdd, int coinsAdd, string notifyData, float hoursAdd, string storeSet, int kills, int deaths, Action<bool> success = null)
+    private IEnumerator WebServerSetStatistics(WebStatsData data, Action<bool> success = null)
     {
         WWWForm form = new WWWForm();
-        form.AddField("userId", userId);
-        form.AddField("authKey", authKey);
+        form.AddField("userId", data.id);
+        form.AddField("authKey", data.authKey);
         form.AddField("verify", server_verifyToken);
-        form.AddField("exp", expAdd);
-        form.AddField("coins", coinsAdd);
-        form.AddField("hours", hoursAdd.ToString());
-        form.AddField("store", storeSet);
-        form.AddField("notify", notifyData);
-        form.AddField("kills", kills);
-        form.AddField("deaths", deaths);
+        form.AddField("exp", data.exp);
+        form.AddField("coins", data.coins);
+        form.AddField("hours", data.hours.ToString());
+        form.AddField("notify", data.notify);
+        form.AddField("kills", data.kills);
+        form.AddField("deaths", data.deaths);
         form.AddField("action", "update");
         UnityWebRequest web = UnityWebRequest.Post(Host + "/" + statsFile, form);
         yield return web.SendWebRequest();
@@ -435,3 +434,30 @@ public struct UserStatsData
         };
     }
 } 
+
+
+//WebServer - Stat Set
+public struct WebStatsData 
+{
+    public int id;
+    public string authKey;
+    public int coins;
+    public int exp;
+    public float hours;
+    public int kills;
+    public int deaths;
+    public string notify;
+
+    public WebStatsData(int id, string authKey, int coins, int exp, float hours, int kills, int deaths)
+    {
+        this.id = id;
+        this.authKey = authKey;
+        this.coins = coins;
+        this.exp = exp;
+        this.hours = hours;
+        this.kills = kills;
+        this.deaths = deaths;
+        this.notify = "";
+    }
+
+}

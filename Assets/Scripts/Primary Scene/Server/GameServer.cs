@@ -251,7 +251,7 @@ public class GameServer : NetworkedBehaviour
     public bool MovePlayerToActive(ulong clientId, int userId, string authKey) => playerInfoSystem.MovePlayerToActive(clientId, userId, authKey);
 
     //Move Player To Inactive List
-    public PlayerInfo Server_MovePlayerToInactive(ulong clientId) => playerInfoSystem.MovePlayerToInactive(clientId);
+    public WebStatsData Server_MovePlayerToInactive(ulong clientId) => playerInfoSystem.MovePlayerToInactive(clientId);
 
     //Handle Player Death (called from player info system when health reaches 0)
     public void Server_PlayerDeath(ulong clientId, Inventory inventory, string username) 

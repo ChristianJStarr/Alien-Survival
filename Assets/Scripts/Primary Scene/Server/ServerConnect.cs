@@ -182,10 +182,10 @@ public class ServerConnect : MonoBehaviour
     //Callback: Player Disconnected
     private void PlayerDisconnected_Server(ulong clientId)
     {
-        PlayerInfo savedInfo = gameServer.Server_MovePlayerToInactive(clientId);
-        if (savedInfo != null)
+        WebStatsData stats = gameServer.Server_MovePlayerToInactive(clientId);
+        if (stats.id != 0)
         {
-            SavePlayerStats(savedInfo);
+            SavePlayerStats(stats);
         }
         UpdatePlayerCount();
         gameServer.PlayerDisconnected(clientId);
@@ -313,12 +313,13 @@ public class ServerConnect : MonoBehaviour
     //-----Settings Data
 
     //Save Player Statistics
-    private void SavePlayerStats(PlayerInfo savedInfo) 
+    private void SavePlayerStats(WebStatsData stats) 
     {
-        string notifyData = storedProperties.serverName + "," + savedInfo.hoursAdd + "," + savedInfo.expAdd + "," + savedInfo.coinsAdd;
         if(webServer != null) 
         {
-            webServer.SetClientStats(savedInfo.id, savedInfo.authKey, savedInfo.expAdd, savedInfo.coinsAdd, savedInfo.hoursAdd, notifyData, "", savedInfo.kills, savedInfo.deaths, returnValue => 
+            string notifyData = storedProperties.serverName + "," + stats.hours + "," + stats.exp + "," + stats.coins;
+            stats.notify = notifyData;
+            webServer.SetClientStats(stats, returnValue => 
             {
                 if (returnValue) 
                 {

@@ -76,22 +76,37 @@ public class PlayerControlObject : NetworkedBehaviour
         };
     }
 
+
+
+
     //Start Called on Spawn
     public override void NetworkStart()
     {
+#if UNITY_SERVER
+
+#elif UNITY_EDITOR
         if (IsClient)
         {
             WorldSnapshotManager.RegisterObject(this);
         }
+#else
+        WorldSnapshotManager.RegisterObject(this);
+#endif
     }
 
     //Destroy
     public void OnDestroy()
     {
+#if UNITY_SERVER
+
+#elif UNITY_EDITOR
         if (IsClient)
         {
             WorldSnapshotManager.RemoveObject(NetworkId);
         }
+#else
+        WorldSnapshotManager.RemoveObject(NetworkId);
+#endif
     }
 
     private void FixedUpdate()

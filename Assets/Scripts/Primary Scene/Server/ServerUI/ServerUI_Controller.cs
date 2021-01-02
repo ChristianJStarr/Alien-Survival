@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ServerUI_Controller : MonoBehaviour
 {
-
+#if (UNITY_EDITOR || UNITY_SERVER)
     public TextMeshProUGUI statusText, snapshotText, commandText;
 
     private bool isRunning = false;
@@ -78,4 +78,5 @@ public class ServerUI_Controller : MonoBehaviour
         if(commandSize > 1000) { size = commandSize / 1000 + "kb"; }
         commandText.text = "Commands: " + commandsPer + "/s Size: " + size;
     }
+#endif
 }

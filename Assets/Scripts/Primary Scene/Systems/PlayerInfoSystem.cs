@@ -79,21 +79,29 @@ public class PlayerInfoSystem : MonoBehaviour
         }
         return false;
     }
-    public PlayerInfo MovePlayerToInactive(ulong clientId)
+    public WebStatsData MovePlayerToInactive(ulong clientId)
     {
-        PlayerInfo returnedInfo = null;
+        WebStatsData stats = new WebStatsData();
         if (active.ContainsKey(clientId))
         {
-            
-            returnedInfo = active[clientId];
-            active[clientId].hoursAdd = 0;
-            active[clientId].expAdd = 0;
-            active[clientId].coinsAdd = 0;
-            inactive.Add(active[clientId]);
+            PlayerInfo info = active[clientId];
+            stats.id = info.id;
+            stats.authKey = info.authKey;
+            stats.coins = info.coinsAdd;
+            stats.exp = info.expAdd;
+            stats.hours = info.hoursAdd;
+            stats.kills = info.kills;
+            stats.deaths = info.deaths;
+            info.hoursAdd = 0;
+            info.expAdd = 0;
+            info.coinsAdd = 0;
+            info.deaths = 0;
+            info.kills = 0;
+            inactive.Add(info);
             active.Remove(clientId);
             activeIds.Remove(clientId);
         }
-        return returnedInfo;
+        return stats;
     }
     public void SaveAllInfo() 
     {
