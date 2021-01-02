@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ServerUI_Controller : MonoBehaviour
 {
-#if (UNITY_EDITOR || UNITY_SERVER)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     public TextMeshProUGUI statusText, snapshotText, commandText;
 
     private bool isRunning = false;

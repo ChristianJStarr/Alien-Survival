@@ -30,17 +30,6 @@ public class ServerConnect : MonoBehaviour
     private string last_ipAddress;
     private ushort last_port;
 
-    #region Debug Auto-Connect
-#if UNITY_EDITOR
-    [Space]
-    [Space]
-    [Tooltip("Auto-Connect On Scene Load")]
-    public bool autoConnect = true;
-    public string autoConnectIp = "10.0.0.211";
-    public ushort autoConnectPort = 5055;
-#endif
-    #endregion
-
     private void Start()
     {
         if(NetworkingManager.Singleton != null) 
@@ -51,23 +40,14 @@ public class ServerConnect : MonoBehaviour
 #if UNITY_SERVER
             StartServer();
             return;
-#elif UNITY_EDITOR
+#elif (UNITY_EDITOR && !UNITY_CLOUD_BUILD)
             string[] data = Application.dataPath.Split('/');
             if (data[data.Length - 2].Contains("clone"))
             {
                 StartServer();
             }
-            else if (autoConnect)
-            {
-                networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
-                ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = autoConnectIp;
-                ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)autoConnectPort;
-                networkManager.OnClientConnectedCallback += PlayerConnected_Player;
-                networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
-                networkManager.StartClient();
-            }
 #endif
-            #endregion
+#endregion
         }
     }
 
@@ -131,7 +111,7 @@ public class ServerConnect : MonoBehaviour
 
     #region Sever-Side
 
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
 //------Start/Stop
 
     //Server: Start Server

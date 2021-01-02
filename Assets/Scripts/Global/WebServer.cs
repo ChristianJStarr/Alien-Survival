@@ -197,7 +197,7 @@ public class WebServer : MonoBehaviour
     #endregion
 
     #region Server : ALL
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
         private string server_verifyToken = "c06276de863dc56c405e8d986b7269af";
     #region Server : Set Server List
     public void ServerListSet(Server server, Action<bool> onRequestFinished)

@@ -122,11 +122,10 @@ public class UI_Inventory : MonoBehaviour
     //Update Crafting Menu
     private void UpdateCraftingMenu()
     {
-        if (craftingMenu == null)
+        if(UI_CraftingMenu.Singleton != null) 
         {
-            craftingMenu = UI_CraftingMenu.Singleton;
+            UI_CraftingMenu.Singleton.UpdateSlide();
         }
-        craftingMenu.GetResources();
     }
 
     //Assign Slot Numbers To Slots

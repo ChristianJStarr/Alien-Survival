@@ -18,7 +18,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     #endregion
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     private ServerProperties storedProperties;//Properties
     [Header("Systems")]
     public PlayerInfoSystem playerInfoSystem;
@@ -56,7 +56,7 @@ public class GameServer : NetworkedBehaviour
     private void Start()
     {
         networkingManager = NetworkingManager.Singleton;
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
         if (IsServer && networkingManager != null)
         {
             StartGameServer();
@@ -65,7 +65,7 @@ public class GameServer : NetworkedBehaviour
     }
 
     #region Start Functions
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     //-----------------------------------------------------------------//
     // (S) SERVER           START FUNCTIONS                            //
     //-----------------------------------------------------------------//
@@ -190,7 +190,7 @@ public class GameServer : NetworkedBehaviour
 #endif
     #endregion
 
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     
     #region ServerSide Callbacks
     //-----------------------------------------------------------------//
@@ -464,7 +464,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void Server_AuthenticatePlayerCommand(ulong _clientId, Stream stream)
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
         using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
     #region Debug
@@ -667,15 +667,16 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private string GetNameByClientId_Rpc(ulong clientId)
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
         return playerInfoSystem.GetPlayerName(clientId);
-#endif  
-            return null;
-        }
+#else
+        return null;
+#endif
+    }
 
 
-        //--Request to Move Item
-        public void MovePlayerItemBySlot(string authKey, int oldSlot, int newSlot)
+    //--Request to Move Item
+    public void MovePlayerItemBySlot(string authKey, int oldSlot, int newSlot)
         {
             DebugMsg.Notify("Requesting to Modify Inventory.", 2);
             using (PooledBitStream writeStream = PooledBitStream.Get())
@@ -693,7 +694,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void MovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 playerInfoSystem.Inventory_MoveItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
@@ -718,7 +719,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void RemovePlayerItemBySlot_Rpc(ulong clientId, Stream stream)
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
         using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 string authKey = reader.ReadStringPacked().ToString();
@@ -751,7 +752,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void SplitItemBySlot_Rpc(ulong clientId, Stream stream)
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
         using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 playerInfoSystem.Inventory_SplitItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
@@ -778,7 +779,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void CraftItemById_Rpc(ulong clientId, Stream stream)
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 playerInfoSystem.Inventory_CraftItem(clientId, reader.ReadStringPacked().ToString(), reader.ReadInt32Packed(), reader.ReadInt32Packed());
@@ -802,7 +803,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void RequestToDisconnect_Rpc(ulong clientId, Stream stream)
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 string authKey = reader.ReadStringPacked().ToString();
@@ -830,7 +831,7 @@ public class GameServer : NetworkedBehaviour
         [ServerRPC(RequireOwnership = false)]
         private void RequestToRespawn_Rpc(ulong clientId, Stream stream) 
         {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
             using (PooledBitReader reader = PooledBitReader.Get(stream))
             {
                 string authKey = reader.ReadStringPacked().ToString();
@@ -851,7 +852,7 @@ public class GameServer : NetworkedBehaviour
     #endregion
 
     #region Game Chat
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
         //Chat - Send ALL
         public void Chat_SendToAll(string message) 
         {
@@ -900,7 +901,7 @@ public class GameServer : NetworkedBehaviour
         }
     #endregion
 
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
 
     #region ServerLoops
     //-----------------------------------------------------------------//

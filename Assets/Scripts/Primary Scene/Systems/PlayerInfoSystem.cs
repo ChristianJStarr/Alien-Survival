@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class PlayerInfoSystem : MonoBehaviour
 {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     private string savedPlayerInfoPath;
     private bool systemEnabled = false;
     private GameServer gameServer;

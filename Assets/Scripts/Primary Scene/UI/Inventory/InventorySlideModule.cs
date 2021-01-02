@@ -15,4 +15,11 @@ public class InventorySlideModule : MonoBehaviour
     public bool needsUIData;
     public UIData storedUIData;
 
+
+
+    public void UpdateSlide(UIData storedData = null) 
+    {
+    
+    }
+
 }

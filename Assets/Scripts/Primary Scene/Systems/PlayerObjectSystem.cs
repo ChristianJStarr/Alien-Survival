@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class PlayerObjectSystem : MonoBehaviour
 {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     #region Singleton
     public static PlayerObjectSystem Singleton;
     private void Awake() { Singleton = this; }

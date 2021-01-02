@@ -46,7 +46,7 @@ public class UI_CraftingMenu : InventorySlideModule
     }
 
     //Get Resources
-    public void GetResources()
+    public void UpdateSlide()
     {
         Inventory inventory = PlayerInfoManager.singleton.storedPlayerInfo.inventory;
         blueprints = inventory.blueprints;

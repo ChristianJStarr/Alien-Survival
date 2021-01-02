@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ChatSystem : MonoBehaviour
 {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     //ALL - Player has Connected
     public void PlayerConnected_AllMessage(string name) 
     {

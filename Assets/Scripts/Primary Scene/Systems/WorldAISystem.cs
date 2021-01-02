@@ -7,7 +7,7 @@ using UnityEngine.AI;
 
 public class WorldAISystem : MonoBehaviour
 {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     private bool systemEnabled;// Is this System Enabled
 
     public static WorldAISystem Singleton;

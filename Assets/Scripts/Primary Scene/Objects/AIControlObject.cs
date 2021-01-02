@@ -55,17 +55,8 @@ public class AIControlObject : NetworkedBehaviour
 
     public override void NetworkStart()
     {
-#if UNITY_SERVER
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
             WorldAISystem.Register(this);
-#elif UNITY_EDITOR
-        if (IsServer)
-        {
-            WorldAISystem.Register(this);
-        }
-        else 
-        {
-            WorldSnapshotManager.RegisterObject(this);
-        }
 #else
         WorldSnapshotManager.RegisterObject(this);
 #endif
@@ -73,17 +64,8 @@ public class AIControlObject : NetworkedBehaviour
 
     public void OnDestroy()
     {
-#if UNITY_SERVER
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
             WorldAISystem.Remove(NetworkId);    
-#elif UNITY_EDITOR
-        if (IsServer)
-        {
-            WorldAISystem.Remove(NetworkId);
-        }
-        else 
-        {
-            WorldSnapshotManager.RemoveObject(NetworkId);
-        }
 #else
         WorldSnapshotManager.RemoveObject(NetworkId);
 #endif

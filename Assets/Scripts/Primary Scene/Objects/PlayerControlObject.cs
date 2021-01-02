@@ -82,7 +82,7 @@ public class PlayerControlObject : NetworkedBehaviour
     //Start Called on Spawn
     public override void NetworkStart()
     {
-#if UNITY_SERVER
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
 
 #elif UNITY_EDITOR
         if (IsClient)
@@ -97,7 +97,7 @@ public class PlayerControlObject : NetworkedBehaviour
     //Destroy
     public void OnDestroy()
     {
-#if UNITY_SERVER
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
 
 #elif UNITY_EDITOR
         if (IsClient)

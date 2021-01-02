@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class WorldObjectSystem : MonoBehaviour
 {
-#if (UNITY_SERVER || UNITY_EDITOR)
+#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
     private bool systemEnabled = false;
     
     //NetworkingManager
