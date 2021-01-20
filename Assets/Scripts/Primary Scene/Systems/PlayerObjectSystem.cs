@@ -5,6 +5,8 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
+//Baseline Functions working as of 1/20/2021
+
 public class PlayerObjectSystem : MonoBehaviour
 {
 #if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
@@ -17,7 +19,6 @@ public class PlayerObjectSystem : MonoBehaviour
     //Player Object Dictionary   ClientID Key
     private Dictionary<ulong, PlayerControlObject> players = new Dictionary<ulong, PlayerControlObject>();
 
-
     //--------JOBS-----------------------------------
     private bool useJobs = false;
     private NativeArray<Vector3> positions_native;
@@ -25,26 +26,24 @@ public class PlayerObjectSystem : MonoBehaviour
     private GetNearbyClientsJob getNearbyClientsJob;
     private JobHandle getNearbyClientsHandle;
 
-
-
-
-
-
-
-
-    private bool StartSystem()
+    public bool StartSystem()
     {
         systemEnabled = true;
 
         return systemEnabled;
     }
-    private bool StopSystem()
+    public bool StopSystem()
     {
         systemEnabled = false;
-
+        players.Clear();
+        if (!getNearbyClientsHandle.IsCompleted) 
+        {
+            getNearbyClientsHandle.Complete();
+        }
+        positions_native.Dispose();
+        nearby_native.Dispose();
         return !systemEnabled;
     }
-
 
 
     //---------------Register / UnRegister---------------
@@ -62,7 +61,6 @@ public class PlayerObjectSystem : MonoBehaviour
             }
         }
     }
-
     public void UnRegisterControlObject(ulong clientId)
     {
         if (players.ContainsKey(clientId))
@@ -72,16 +70,12 @@ public class PlayerObjectSystem : MonoBehaviour
     }
 
 
-
     //---------------Control Object Data-----------------
 
-
-    //Get If Exists
     public bool ControlObjectExists(ulong clientId)
     {
         return players.ContainsKey(clientId);
     }
-    //Get Object from ClientId
     public PlayerControlObject GetControlObjectByClientId(ulong clientId)
     {
         if (players.ContainsKey(clientId))
@@ -90,12 +84,10 @@ public class PlayerObjectSystem : MonoBehaviour
         }
         return null;
     }
-    //Get All ControlObjects
     public PlayerControlObject[] GetAllPlayerControlObjects()
     {
         return players.Values.ToArray();
     }
-    //Get Snapshot of Players
     public Snapshot_Player[] GetControlObjectSnapshot()
     {
         PlayerControlObject[] instances = players.Values.ToArray();
@@ -107,58 +99,7 @@ public class PlayerObjectSystem : MonoBehaviour
         }
         return instance;
     }
-   
-    //-------------Modify Control Object-----------------
 
-    public void ModifyHoldable(ulong clientId, int holdableId, int holdableState) 
-    {
-        if (players.ContainsKey(clientId)) 
-        {
-            PlayerControlObject controlObject = players[clientId];
-            controlObject.holdableId = holdableId;
-            controlObject.holdableState = holdableState;
-        }
-    }
-
-    public void ToggleRagdoll(ulong clientId, bool enable) 
-    {
-        if (players.ContainsKey(clientId)) 
-        {
-            players[clientId].ToggleRagdoll(enable);
-        }
-    }
-
-
-
-    //Teleport To Player
-    public void Teleport_ToPlayer(ulong clientId, ulong target_clientId)
-    {
-        if (players.ContainsKey(clientId) && players.ContainsKey(target_clientId))
-        {
-            PlayerControlObject player = players[clientId];
-            player.characterController.enabled = false;
-            player.transform.position = players[target_clientId].transform.position;
-            player.characterController.enabled = true;
-        }
-    }
-
-    //Teleport To Vector3
-    public void Teleport_ToVector(ulong clientId, Vector3 target_position)
-    {
-        if (players.ContainsKey(clientId))
-        {
-            players[clientId].ApplyCorrection(target_position);
-        }
-    }
-    public void Teleport_ToVector(ulong clientId, Vector3 target_position, Quaternion target_rotation)
-    {
-        if (players.ContainsKey(clientId))
-        {
-            players[clientId].Teleport(target_position, target_rotation);
-        }
-    }
-
-    //Get Positions Array
     public Vector3[] GetPlayerPositionsArray()
     {
         PlayerControlObject[] instances = players.Values.ToArray();
@@ -192,35 +133,29 @@ public class PlayerObjectSystem : MonoBehaviour
         }
         return instance;
     }
-
-    //Get Player Current Position
-    public Vector3 GetCurrentPosition(ulong clientId) 
+    public Vector3 GetCurrentPosition(ulong clientId)
     {
-        if (players.ContainsKey(clientId)) 
+        if (players.ContainsKey(clientId))
         {
             return players[clientId].transform.position;
         }
         return Vector3.zero;
     }
 
-
-
-    
-    //Get List of Nearby Clients
     public List<ulong> GetNearbyClients(Vector3 position, int distance, ulong clientToIgnore = 0)
     {
-        if (useJobs) 
+        if (useJobs)
         {
-            return GetNearbyClients_Job(position, distance, clientToIgnore);   
+            return GetNearbyClients_Job(position, distance, clientToIgnore);
         }
-        else 
+        else
         {
             return GetNearbyClients_Task(position, distance, clientToIgnore);
         }
     }
     public List<ulong> GetNearbyClients(ulong clientId, int distance, ulong clientToIgnore = 0)
     {
-        if (players.ContainsKey(clientId)) 
+        if (players.ContainsKey(clientId))
         {
             Vector3 position = players[clientId].transform.position;
             if (useJobs)
@@ -285,6 +220,48 @@ public class PlayerObjectSystem : MonoBehaviour
     }
 
 
+    //-------------Modify Control Object-----------------
+
+    public void ModifyHoldable(ulong clientId, int holdableId, int holdableState) 
+    {
+        if (players.ContainsKey(clientId)) 
+        {
+            PlayerControlObject controlObject = players[clientId];
+            controlObject.holdableId = holdableId;
+            controlObject.holdableState = holdableState;
+        }
+    }
+    public void ToggleRagdoll(ulong clientId, bool enable) 
+    {
+        if (players.ContainsKey(clientId)) 
+        {
+            players[clientId].ToggleRagdoll(enable);
+        }
+    }
+    public void Teleport_ToPlayer(ulong clientId, ulong target_clientId)
+    {
+        if (players.ContainsKey(clientId) && players.ContainsKey(target_clientId))
+        {
+            PlayerControlObject player = players[clientId];
+            player.characterController.enabled = false;
+            player.transform.position = players[target_clientId].transform.position;
+            player.characterController.enabled = true;
+        }
+    }
+    public void Teleport_ToVector(ulong clientId, Vector3 target_position)
+    {
+        if (players.ContainsKey(clientId))
+        {
+            players[clientId].ApplyCorrection(target_position);
+        }
+    }
+    public void Teleport_ToVector(ulong clientId, Vector3 target_position, Quaternion target_rotation)
+    {
+        if (players.ContainsKey(clientId))
+        {
+            players[clientId].Teleport(target_position, target_rotation);
+        }
+    }
 
 #endif
 }

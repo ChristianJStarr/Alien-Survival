@@ -76,16 +76,6 @@ public class WorldSnapshotManager : NetworkedBehaviour
         UpdateTask_LerpAllObjects(); //Lerp All Objects to their Move & Look Targets
     }
 
-    //Get Local Player Object (Client Called)
-    public PlayerControlObject GetLocalPlayerObject() 
-    {
-        PlayerControlObject instance = null;
-        if (players.ContainsKey(selfNetworkId)) 
-        {
-            instance = players[selfNetworkId];
-        }
-        return instance;
-    }
 
     public static void RegisterObject(PlayerControlObject controlObject)
     {
@@ -109,6 +99,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
         }
     }
 
+
     //Register Player Control Object
     private void RegisterObjectTask_Player(PlayerControlObject controlObject) 
     {
@@ -126,7 +117,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
         if (controlObject.OwnerClientId == NetworkingManager.Singleton.LocalClientId)
         {
             selfNetworkId = networkId;
-            playerCommandManager.Register(controlObject);
+            LocalPlayerControlObject.SetLocalPlayer(controlObject);
         }
     }
     //Register AI Control Object
@@ -161,15 +152,15 @@ public class WorldSnapshotManager : NetworkedBehaviour
     }
  
     //Process Icomming Snapshot
-    public void ProcessSnapshot(Snapshot snapshot)
+    public void ProcessSnapshot(PackedSnapshot snapshot)
     {
         if (oldSnapshot == null)
         {
             oldSnapshot = new QuickAccess_Snapshot() { snapshotId = 0, networkTime = 0 };
         }
 
-        int aiLength = snapshot.ai.Length; //Length of AI
-        int playerLength = snapshot.players.Length; // Length of Players
+        int aiLength = snapshot.ai.Count; //Length of AI
+        int playerLength = snapshot.players.Count; // Length of Players
         int fullLength = aiLength + playerLength; //Full Length of both Arrays
         
         //Apply Snapshot to AI & Players
@@ -243,7 +234,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
             write = 0; //Reset write counter
 
             //Apply Prediction to Player Control Objects
-            for (int i = 0; i < snapshot.players.Length; i++)
+            for (int i = 0; i < playerLength; i++)
             {
                 ulong networkId = snapshot.players[i].networkId;
                 if (players.ContainsKey(networkId))
@@ -284,7 +275,7 @@ public class WorldSnapshotManager : NetworkedBehaviour
             }
 
             //Apply Prediction to AI Control Objects
-            for (int i = 0; i < snapshot.ai.Length; i++)
+            for (int i = 0; i < aiLength; i++)
             {
                 ulong networkId = snapshot.ai[i].networkId;
                 if (ai.ContainsKey(networkId))
@@ -317,13 +308,13 @@ public class WorldSnapshotManager : NetworkedBehaviour
         }
 
         //Update World Objects
-        if (players.ContainsKey(selfNetworkId) && snapshot.worldObjects.Length > 0)
+        if (players.ContainsKey(selfNetworkId) && snapshot.worldObjects.Count > 0)
         {
-            worldObjectManager.UpdateWorldObjects(snapshot.worldObjects);
+            worldObjectManager.UpdateWorldObjects(snapshot.worldObjects.ToArray());
         }
 
         //Convert & Save this Snapshot
-        oldSnapshot = Snapshot.ConvertQuick(snapshot);
+        oldSnapshot.ConvertFromReg(snapshot);
     }
 
 
@@ -520,4 +511,38 @@ public struct Predict : IJobFor
         }
     }
 
+}
+
+
+public class QuickAccess_Snapshot
+{
+    public int snapshotId;
+    public float networkTime;
+    public Dictionary<ulong, Snapshot_Player> players = new Dictionary<ulong, Snapshot_Player>();
+    public Dictionary<ulong, Snapshot_AI> ai = new Dictionary<ulong, Snapshot_AI>();
+
+    public void ConvertFromReg(PackedSnapshot snapshot)
+    {
+        snapshotId = snapshot.snapshotId;
+        networkTime = snapshot.networkTime;
+        
+        if (snapshot.players != null)
+        {
+            for (int i = 0; i < snapshot.players.Count; i++)
+            {
+                players.Add(snapshot.players[i].networkId, snapshot.players[i]);
+            }
+        }
+
+        if (snapshot.ai != null)
+        {
+            for (int i = 0; i < snapshot.ai.Count; i++)
+            {
+                if (!ai.ContainsKey(snapshot.ai[i].networkId))
+                {
+                    ai.Add(snapshot.ai[i].networkId, snapshot.ai[i]);
+                }
+            }
+        }
+    }
 }

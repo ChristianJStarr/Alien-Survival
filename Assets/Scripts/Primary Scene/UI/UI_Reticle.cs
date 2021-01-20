@@ -54,24 +54,27 @@ public class UI_Reticle : MonoBehaviour
     //Raycast: Shoot Regular
     private void ShootRegularRaycast() 
     {
-        Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0F));
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 15, regularLayerMask))
+        if (cam) 
         {
-            if (hit.collider != null)
+            Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0F));
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 15, regularLayerMask))
             {
-                currentObj = hit.collider.gameObject;
-                reticle.localScale = large_scale;
-                ShowReticleTip(GetTooltip(), false);
+                if (hit.collider != null)
+                {
+                    currentObj = hit.collider.gameObject;
+                    reticle.localScale = large_scale;
+                    ShowReticleTip(GetTooltip(), false);
+                }
             }
-        }
-        else if (reticle.localScale != normal_scale || reticleTip.activeSelf)
-        {
-            if (!showingError)
+            else if (reticle.localScale != normal_scale || reticleTip.activeSelf)
             {
-                reticle.localScale = normal_scale;
-                reticleTip.SetActive(false);
-                currentObj = null;
+                if (!showingError)
+                {
+                    reticle.localScale = normal_scale;
+                    reticleTip.SetActive(false);
+                    currentObj = null;
+                }
             }
         }
     }

@@ -10,9 +10,9 @@ public class UI_Compass : MonoBehaviour
     
     private void Start()
     {
-        if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient && WorldSnapshotManager.Singleton != null)
+        if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient)
         {
-            playerRot = WorldSnapshotManager.Singleton.GetLocalPlayerObject().transform;
+            playerRot = LocalPlayerControlObject.GetLocalPlayerTransform();
         }
         else 
         {
@@ -22,7 +22,7 @@ public class UI_Compass : MonoBehaviour
 
     private void Update()
     {
-        if (playerRot.localEulerAngles.y != currentEulerY) 
+        if (playerRot && playerRot.localEulerAngles.y != currentEulerY) 
         {
             currentEulerY = playerRot.localEulerAngles.y;
             compass.uvRect = new Rect(currentEulerY / 360f, 0, 1, 1);

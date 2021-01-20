@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SignInWithApple;
+//using UnityEngine.SignInWithApple;
 
 public class LoadSceneScript : MonoBehaviour
 {
@@ -15,7 +15,7 @@ public class LoadSceneScript : MonoBehaviour
     public PlayerStats playerStats; //Player Statistics data object.
     public WebServer webServer; //Web Server Handler.
 
-    private SignInWithApple signInWithApple;
+    //private SignInWithApple signInWithApple;
     private string privacyPolicyUrl = "https://aliensurvival.com/privacy-app.php";
     private string termsConditionsUrl = "https://aliensurvival.com/terms-app.php";
     private string userGuidlinesUrl = "https://aliensurvival.com/user-guidlines.php";
@@ -75,11 +75,13 @@ public class LoadSceneScript : MonoBehaviour
     //Button Click: Login With Apple
     public void LoginWithApple() 
     {
-        if(signInWithApple == null) 
-        {
-            signInWithApple = GetComponent<SignInWithApple>();
-            signInWithApple.Login();
-        }
+        //    if(signInWithApple == null) 
+        //    {
+        //        signInWithApple = GetComponent<SignInWithApple>();
+        //        signInWithApple.Login();
+        //    }
+
+        LoginAsGuest();
     }
 
     //Open Terms of Use
@@ -145,23 +147,27 @@ public class LoadSceneScript : MonoBehaviour
             }
         });
     }
-    private void OnCredentialState(SignInWithApple.CallbackArgs args)
-    {
-        Debug.Log(string.Format("User credential state is: {0}", args.credentialState));
-        if (args.error != null)
-            Debug.Log(string.Format("Errors occurred: {0}", args.error));
-    }
-    private void OnLogin(SignInWithApple.CallbackArgs args)
-    {
-        if (args.error != null)
-        {
-            Debug.Log("Errors occurred: " + args.error);
-            return;
-        }
-        userLoginToken = args.userInfo.userId;
-        userAuthKey = GenerateAuthenticationKey(args.userInfo.email);
-        LoginRequest(userLoginToken, userAuthKey);
-    }
+    
+    //Sign in with Apple
+
+    //private void OnCredentialState(SignInWithApple.CallbackArgs args)
+    //{
+    //    Debug.Log(string.Format("User credential state is: {0}", args.credentialState));
+    //    if (args.error != null)
+    //        Debug.Log(string.Format("Errors occurred: {0}", args.error));
+    //}
+    //private void OnLogin(SignInWithApple.CallbackArgs args)
+    //{
+    //    if (args.error != null)
+    //    {
+    //        Debug.Log("Errors occurred: " + args.error);
+    //        return;
+    //    }
+    //    userLoginToken = args.userInfo.userId;
+    //    userAuthKey = GenerateAuthenticationKey(args.userInfo.email);
+    //    LoginRequest(userLoginToken, userAuthKey);
+    //}
+    
     private string GenerateRandomHash(int length)
     {
         var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

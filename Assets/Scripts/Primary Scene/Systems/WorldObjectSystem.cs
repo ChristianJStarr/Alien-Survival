@@ -101,6 +101,7 @@ public class WorldObjectSystem : MonoBehaviour
         {
             temp.Add(new Snapshot_WorldObject()
             {
+                chunkId = ChunkHelper.GetChunkIdFromPosition(spawnpoints[i].transform.position),
                 objectId = spawnpoints[i].spawn_objectId,
                 spawnId = spawnpoints[i].spawn_id
             });

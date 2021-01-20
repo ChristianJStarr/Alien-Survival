@@ -94,43 +94,46 @@ public class WorldObjectManager : MonoBehaviour
     //Spawnpoint Logic
     private void SpawnpointLogic()
     {
-        if (local_Player == null) local_Player = WorldSnapshotManager.Singleton.GetLocalPlayerObject().transform;
-        //Calculate Nearby Spawnpoints
-        positionsNative = new NativeArray<Vector3>(spawnpoint_positions, Allocator.TempJob);
-        farAwayNative = new NativeArray<bool>(spawnpoints_count, Allocator.TempJob);
-        calculateNearbyJob = new CalculateNearbyJob()
+        if (local_Player == null) local_Player = LocalPlayerControlObject.GetLocalPlayerTransform();
+        if (local_Player) 
         {
-            positions = positionsNative,
-            farAway = farAwayNative,
-            distanceSqr = c_ObjectLoadDistance * c_ObjectLoadDistance,
-            current = local_Player.position
-        };
-        calculateNearbyHandle = calculateNearbyJob.Schedule(spawnpoints_count, calculateNearbyHandle);
-        calculateNearbyHandle.Complete();
-        //Destroy Far Away Objects
-        for (int i = 0; i < spawnpoints_count; i++)
-        {
-            if (farAwayNative[i])
+            //Calculate Nearby Spawnpoints
+            positionsNative = new NativeArray<Vector3>(spawnpoint_positions, Allocator.TempJob);
+            farAwayNative = new NativeArray<bool>(spawnpoints_count, Allocator.TempJob);
+            calculateNearbyJob = new CalculateNearbyJob()
             {
-                //Object is far away
-                if (spawnpoints[i].spawn_objectId != 0 && spawnpoints[i].worldGameObject != null) //Has world object
+                positions = positionsNative,
+                farAway = farAwayNative,
+                distanceSqr = c_ObjectLoadDistance * c_ObjectLoadDistance,
+                current = local_Player.position
+            };
+            calculateNearbyHandle = calculateNearbyJob.Schedule(spawnpoints_count, calculateNearbyHandle);
+            calculateNearbyHandle.Complete();
+            //Destroy Far Away Objects
+            for (int i = 0; i < spawnpoints_count; i++)
+            {
+                if (farAwayNative[i])
                 {
-                    DestroyObject(spawnpoints[i].spawn_objectId, spawnpoints[i].worldGameObject); //Pool
-                    spawnpoints[i].worldGameObject = null;
+                    //Object is far away
+                    if (spawnpoints[i].spawn_objectId != 0 && spawnpoints[i].worldGameObject != null) //Has world object
+                    {
+                        DestroyObject(spawnpoints[i].spawn_objectId, spawnpoints[i].worldGameObject); //Pool
+                        spawnpoints[i].worldGameObject = null;
+                    }
+                }
+                else
+                {
+                    //Object is Nearby
+                    if (spawnpoints[i].spawn_objectId != 0 && spawnpoints[i].worldGameObject == null) //Has world object
+                    {
+                        spawnpoints[i].worldGameObject = SpawnObject(spawnpoints[i].spawn_objectId, spawnpoints[i].transform.position); //Pool
+                    }
                 }
             }
-            else  
-            {
-                //Object is Nearby
-                if (spawnpoints[i].spawn_objectId != 0 && spawnpoints[i].worldGameObject == null) //Has world object
-                {
-                    spawnpoints[i].worldGameObject = SpawnObject(spawnpoints[i].spawn_objectId, spawnpoints[i].transform.position); //Pool
-                }
-            }
+            //Dispose of Job NativeArrays
+            positionsNative.Dispose();
+            farAwayNative.Dispose();
         }
-        //Dispose of Job NativeArrays
-        positionsNative.Dispose();
-        farAwayNative.Dispose();
     }
 
     //Spawn Object

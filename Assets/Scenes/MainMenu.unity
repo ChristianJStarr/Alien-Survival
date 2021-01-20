@@ -13273,7 +13273,7 @@ MonoBehaviour:
   - Name: UnSpeed
     Type: 7
   - Name: PlayerCommand
-    Type: 3
+    Type: 4
   - Name: Snapshot_Full
     Type: 5
   - Name: Snapshot_Mini
@@ -13330,7 +13330,7 @@ MonoBehaviour:
   ReliabilityMinPacketResendDelay: 100
   ReliabilityMinAckResendDelay: 100
   UseSimulator: 0
-  DropPercentage: 0.1
+  DropPercentage: 0.75
   MaxLatency: 180
   MinLatency: 30
   EnableHeartbeats: 1
@@ -13427,9 +13427,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   webServer: {fileID: 1011803583}
-  autoConnect: 1
-  autoConnectIp: 10.0.0.211
-  autoConnectPort: 5055
 --- !u!1 &1033284987
 GameObject:
   m_ObjectHideFlags: 0

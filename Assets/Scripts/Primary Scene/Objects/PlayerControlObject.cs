@@ -53,6 +53,7 @@ public class PlayerControlObject : NetworkedBehaviour
     public float useDelayTime = 0;
 
     //------------RAGDOLL COLLIDERS-----------
+    public bool isRagdoll;
     public CapsuleCollider[] ragdoll_capsules;
     public SphereCollider ragdoll_sphere;
     public BoxCollider[] ragdoll_boxes;
@@ -62,6 +63,24 @@ public class PlayerControlObject : NetworkedBehaviour
     {
         gravity = Physics.gravity.y;
         SetRagdollColliders(false);
+#if (UNITY_EDITOR && !UNITY_CLOUD_BUILD) //EDITOR SERVER OR CLIENT
+        if (IsClient)
+        {
+            if (IsOwner) 
+            {
+                LocalPlayerControlObject.SetLocalPlayer(this);
+            }
+            WorldSnapshotManager.RegisterObject(this);
+        }
+#elif UNITY_SERVER // SERVER
+
+#else // CLIENT
+        if (IsOwner) 
+            {
+                LocalPlayerControlObject.SetLocalPlayer(this);
+            }
+        WorldSnapshotManager.RegisterObject(this);
+#endif
     }
     //Convert this ControlObject to Snapshot_Player Format
     public Snapshot_Player ConvertToSnapshot()
@@ -69,6 +88,7 @@ public class PlayerControlObject : NetworkedBehaviour
         return new Snapshot_Player()
         {
             networkId = NetworkId,
+            chunkId = ChunkHelper.GetChunkIdFromPosition(transform.position),
             location = transform.position,
             holdId = holdableId,
             holdState = holdableState,
@@ -76,35 +96,17 @@ public class PlayerControlObject : NetworkedBehaviour
         };
     }
 
-
-
-
-    //Start Called on Spawn
-    public override void NetworkStart()
-    {
-#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
-
-#elif UNITY_EDITOR
-        if (IsClient)
-        {
-            WorldSnapshotManager.RegisterObject(this);
-        }
-#else
-        WorldSnapshotManager.RegisterObject(this);
-#endif
-    }
-
     //Destroy
     public void OnDestroy()
     {
-#if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
-
-#elif UNITY_EDITOR
+#if (UNITY_EDITOR && !UNITY_CLOUD_BUILD) //EDITOR SERVER OR CLIENT
         if (IsClient)
         {
             WorldSnapshotManager.RemoveObject(NetworkId);
         }
-#else
+#elif UNITY_SERVER // SERVER
+
+#else // CLIENT
         WorldSnapshotManager.RemoveObject(NetworkId);
 #endif
     }
@@ -117,6 +119,9 @@ public class PlayerControlObject : NetworkedBehaviour
         }
     }
 
+
+    //---------------Positioning--------------
+
     //Teleport
     public void Teleport(Vector3 position, Quaternion rotation)
     {
@@ -125,17 +130,18 @@ public class PlayerControlObject : NetworkedBehaviour
     }
 
     //Rotate this Object from Axis
-    public void Rotate(Vector2 lookAxis)
+    public void Rotate(Vector2 look_axis)
     {
-        Quaternion m_CharacterTargetRot = Quaternion.Euler(0f, lookAxis.y, 0f);
+        Quaternion m_CharacterTargetRot = transform.rotation * Quaternion.Euler(0f, look_axis.y, 0f);
         if (transform.rotation != m_CharacterTargetRot)
         {
-            transform.rotation = m_CharacterTargetRot;
+            transform.rotation = Quaternion.Slerp(transform.rotation, m_CharacterTargetRot, 3 * Time.fixedDeltaTime);
         }
-        Quaternion m_CameraTargetRot = Quaternion.Euler(lookAxis.x, 0f, 0f);
+
+        Quaternion m_CameraTargetRot = ClampRotationAroundXAxis(cameraObject.localRotation * Quaternion.Euler(-look_axis.x, 0f, 0f)); //Clamp This
         if (cameraObject.localRotation != m_CameraTargetRot)
         {
-            cameraObject.localRotation = m_CameraTargetRot;
+            cameraObject.localRotation = Quaternion.Lerp(cameraObject.localRotation, m_CameraTargetRot, 3 * Time.fixedDeltaTime);
         }
     }
 
@@ -229,9 +235,6 @@ public class PlayerControlObject : NetworkedBehaviour
 
     
 
-
-
-
     //-------------Player Ragdoll---------------
 
     public void ToggleRagdoll(bool enable) 
@@ -315,4 +318,21 @@ public class PlayerControlObject : NetworkedBehaviour
         }
     }
 
+
+
+    //------------Clamp X Rotation--------------
+
+    private Quaternion ClampRotationAroundXAxis(Quaternion q)
+    {
+        q.x /= q.w;
+        q.z /= q.w;
+        q.y /= q.w;
+        q.w = 1.0F;
+
+        float angleX = 2.0f * Mathf.Rad2Deg * Mathf.Atan(q.x);
+        angleX = Mathf.Clamp(angleX, -70, 70);
+        q.x = Mathf.Tan(0.5f * Mathf.Deg2Rad * angleX);
+
+        return q.normalized;
+    }
 }

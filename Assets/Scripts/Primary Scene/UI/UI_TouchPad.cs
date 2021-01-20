@@ -65,9 +65,27 @@ public class UI_TouchPad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     void CreateVirtualAxes()
     {
         m_HorizontalVirtualAxis = new CrossPlatformInputManager.VirtualAxis(horizontalAxisName);
-        CrossPlatformInputManager.RegisterVirtualAxis(m_HorizontalVirtualAxis);
         m_VerticalVirtualAxis = new CrossPlatformInputManager.VirtualAxis(verticalAxisName);
-        CrossPlatformInputManager.RegisterVirtualAxis(m_VerticalVirtualAxis);
+        
+        if (CrossPlatformInputManager.AxisExists(horizontalAxisName)) 
+        {
+            CrossPlatformInputManager.UnRegisterVirtualAxis(horizontalAxisName);
+            CrossPlatformInputManager.RegisterVirtualAxis(m_HorizontalVirtualAxis);
+        }
+        else 
+        {
+            CrossPlatformInputManager.RegisterVirtualAxis(m_HorizontalVirtualAxis);
+        }
+        if (CrossPlatformInputManager.AxisExists(verticalAxisName)) 
+        {
+            CrossPlatformInputManager.UnRegisterVirtualAxis(verticalAxisName);
+            CrossPlatformInputManager.RegisterVirtualAxis(m_VerticalVirtualAxis);
+        }
+        else 
+        {
+            CrossPlatformInputManager.RegisterVirtualAxis(m_VerticalVirtualAxis);
+        }
+
     }
 
     //Update the Virtual Axes

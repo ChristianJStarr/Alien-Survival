@@ -46,6 +46,7 @@ public class AIControlObject : NetworkedBehaviour
         return new Snapshot_AI()
         {
             networkId = NetworkId,
+            chunkId = ChunkHelper.GetChunkIdFromPosition(transform.position),
             location = transform.position,
             holdId = holdableId,
             holdState = holdableState, 

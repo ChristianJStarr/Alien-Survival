@@ -33,6 +33,7 @@ public class PlayerCameraManager : MonoBehaviour
 
     private void Start()
     {
+#if UNITY_EDITOR
         if (NetworkingManager.Singleton != null && NetworkingManager.Singleton.IsClient)
         {
             if (!SpawnCameras()) 
@@ -40,6 +41,12 @@ public class PlayerCameraManager : MonoBehaviour
                 StartCoroutine(WaitForPlayer());
             }
         }
+#else
+            if (!SpawnCameras()) 
+            {
+                StartCoroutine(WaitForPlayer());
+            }
+#endif
     }
     private IEnumerator WaitForPlayer() 
     {
@@ -52,7 +59,7 @@ public class PlayerCameraManager : MonoBehaviour
     }
     private bool SpawnCameras() 
     {
-        PlayerControlObject playerObject = WorldSnapshotManager.Singleton.GetLocalPlayerObject();
+        PlayerControlObject playerObject = LocalPlayerControlObject.GetLocalPlayer();
         if (playerObject == null) return false;
         PlayerCameraObject playerMount = playerObject.GetComponent<PlayerCameraObject>();
         if (playerMount == null) return false;
@@ -109,4 +116,4 @@ public class PlayerCameraManager : MonoBehaviour
         cameraMovementAnchor.localPosition = targetPosition;
     }
 #endif
-}
+    }

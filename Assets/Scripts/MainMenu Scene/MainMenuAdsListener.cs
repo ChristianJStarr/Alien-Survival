@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuAdsListener : MonoBehaviour, IUnityAdsListener
 {
+#if !UNITY_SERVER
     private string gameId = "3507995";
     private string myPlacementId = "rewardedVideo";
     private bool testMode = true;
@@ -15,12 +16,24 @@ public class MainMenuAdsListener : MonoBehaviour, IUnityAdsListener
         Advertisement.AddListener(this);
         Advertisement.Initialize(gameId, testMode);
     }
+    
     public void ShowAd(string serverIp, ushort serverPort)
     {
+#if !UNITY_EDITOR
         storedIp = serverIp;
         storedPort = serverPort;
         Advertisement.Show(myPlacementId);
+#else
+        ServerConnect serverConnect = FindObjectOfType<ServerConnect>();
+        if (serverConnect != null)
+        {
+            serverConnect.ConnectToServer(serverIp, serverPort);
+        }
+#endif
     }
+    
+    
+    
     public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
     {
         if (SceneManager.GetActiveScene().name == "MainMenu")
@@ -70,4 +83,5 @@ public class MainMenuAdsListener : MonoBehaviour, IUnityAdsListener
     {
         // Optional actions to take when the end-users triggers an ad.
     }
+#endif
 }

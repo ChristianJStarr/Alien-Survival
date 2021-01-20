@@ -4,34 +4,40 @@ using UnityEditor;
 #endif
 public class ItemDataManager : MonoBehaviour
 {
+    #region Singleton
     public static ItemDataManager Singleton;
-    [SerializeField]
-    public ItemData[] ItemData = new ItemData[0];
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        //string[] guids = AssetDatabase.FindAssets("t:ItemData", new[] { "Assets/Content/ItemData" });
-        //int count = guids.Length;
-        //if (ItemData.Length == count) return;
-        //ItemData = new ItemData[count];
-        //for (int n = 0; n < count; n++)
-        //{
-        //    var path = AssetDatabase.GUIDToAssetPath(guids[n]);
-        //    ItemData[n] = AssetDatabase.LoadAssetAtPath<ItemData>(path);
-        //    //ItemData[n].description = "This is a " + ItemData[n].itemName + ".";
-        //}
-    }
-#endif
-
-
-    private void Awake() 
+    private void Awake()
     {
         Singleton = this;
     }
+    #endregion
 
+    [SerializeField]
+    public ItemData[] ItemData = new ItemData[0];
+    private bool validateItemData = false;
 
-    // Get ItemData From Item ID
+    #region Item Data Validation
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (validateItemData) 
+        {
+            string[] guids = AssetDatabase.FindAssets("t:ItemData", new[] { "Assets/Content/ItemData" });
+            int count = guids.Length;
+            if (ItemData.Length == count) return;
+            ItemData = new ItemData[count];
+            for (int n = 0; n < count; n++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[n]);
+                ItemData[n] = AssetDatabase.LoadAssetAtPath<ItemData>(path);
+                string description = string.Format("This is a {0}.", ItemData[n].itemName);
+                //ItemData[n].description = description;
+            }
+        }
+    }
+#endif
+    #endregion
+
     public ItemData GetItemData(int itemId) 
     {
         
@@ -40,7 +46,6 @@ public class ItemDataManager : MonoBehaviour
             if (itemId == ItemData[i].itemId) 
             {
                 ItemData data = ItemData[i];
-                Debug.Log("Item Data Requested. " + data.itemId + " " + data.icon.texture.width);
                 return data;
             }
         }
@@ -74,5 +79,4 @@ public class ItemDataManager : MonoBehaviour
     {
         return GetItemData(itemId).icon;
     }
-
 }

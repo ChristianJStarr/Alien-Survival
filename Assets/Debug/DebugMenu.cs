@@ -58,25 +58,6 @@ public class DebugMenu : MonoBehaviour
         connect_line.text = string.Format(connect_format, clientId, username, time);
     }
 
-
-    //Update Player Command Stats
-    public static void UpdateCommand(PlayerCommand command) 
-    {
-        if(Singleton != null) 
-        {
-            Singleton.Update_Command(command);
-        }
-    }
-    private void Update_Command(PlayerCommand command)
-    {
-        int jump = 0; if (command.jump) jump = 1;
-        int crouch = 0; if (command.crouch) crouch = 1;
-        int reload = 0; if (command.reload) reload = 1;
-        int aim = 0;if (command.aim) aim = 1;
-        command_line.text = string.Format(command_format, command.move.ToString("F2"), command.look.ToString("F2"), jump, crouch, reload, aim);
-    }
-
-
     //Update Player Movement Stats
     public static void UpdateMovement(Vector3 position, Vector3 rotation, Vector3 velocity, Vector3 forward, Vector3 right, Vector3 movement) 
     {

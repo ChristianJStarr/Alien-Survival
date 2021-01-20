@@ -1,5 +1,6 @@
 ﻿using MLAPI;
 using MLAPI.SceneManagement;
+using MLAPI.Serialization.Pooled;
 using MLAPI.Spawning;
 using System;
 using System.Collections;
@@ -30,6 +31,10 @@ public class ServerConnect : MonoBehaviour
     private string last_ipAddress;
     private ushort last_port;
 
+    private Vector3[] spawnpointPositions;
+    private ulong playerPrefabHash;
+
+
     private void Start()
     {
         if(NetworkingManager.Singleton != null) 
@@ -53,11 +58,12 @@ public class ServerConnect : MonoBehaviour
 
     #region Client-Side
 
-    //------Connecting
-
     //Client: Connect to Server
     public void ConnectToServer(string ip, ushort port)
     {
+        DebugMsg.Notify("Connecting to Server.", 1);
+        last_ipAddress = ip;
+        last_port = port;
         if (mainMenu == null)
         {
             mainMenu = FindObjectOfType<MainMenuScript>();
@@ -65,18 +71,23 @@ public class ServerConnect : MonoBehaviour
         if (mainMenu != null)
         {
             mainMenu.LoadGame();
-            DebugMsg.Notify("Connecting to Server.", 1);
-            last_ipAddress = ip;
-            last_port = port;
-            networkManager.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(PlayerPrefs.GetInt("userId") + "," + PlayerPrefs.GetString("authKey") + "," + PlayerPrefs.GetString("username"));
-            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = ip;
-            ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = (ushort)port;
-            networkManager.OnClientConnectedCallback += PlayerConnected_Player;
-            networkManager.OnClientDisconnectCallback += PlayerDisconnected_Player;
+            using (PooledBitStream writeStream = PooledBitStream.Get())
+            {
+                using (PooledBitWriter writer = PooledBitWriter.Get(writeStream))
+                {
+                    writer.WriteStringPacked(PlayerPrefs.GetString("username"));
+                    writer.WriteStringPacked(PlayerPrefs.GetString("authKey"));
+                    writer.WriteInt32Packed(PlayerPrefs.GetInt("userId"));
+                    NetworkingManager.Singleton.NetworkConfig.ConnectionData = writeStream.ToArray();
+                    ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).ConnectAddress = ip;
+                    ((RufflesTransport.RufflesTransport)NetworkingManager.Singleton.NetworkConfig.NetworkTransport).Port = port;
+                    NetworkingManager.Singleton.OnClientConnectedCallback += PlayerConnected_Player;
+                    NetworkingManager.Singleton.OnClientDisconnectCallback += PlayerDisconnected_Player;
+                    NetworkingManager.Singleton.StartClient();
+                }
+            }
         }
     }
-    
-    //-----Callbacks
     
     //Callback: Connected
     private void PlayerConnected_Player(ulong clientId)
@@ -112,7 +123,6 @@ public class ServerConnect : MonoBehaviour
     #region Sever-Side
 
 #if ((UNITY_EDITOR && !UNITY_CLOUD_BUILD) || UNITY_SERVER)
-//------Start/Stop
 
     //Server: Start Server
     public void StartServer()
@@ -122,6 +132,14 @@ public class ServerConnect : MonoBehaviour
         storedProperties = new ServerProperties();
         if (GetServerSettings()) 
         {
+            GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
+            int spawnLength = availableSpawns.Length;
+            spawnpointPositions = new Vector3[spawnLength];
+            for (int i = 0; i < spawnLength; i++)
+            {
+                spawnpointPositions[i] = availableSpawns[i].transform.position;
+            }
+            playerPrefabHash = SpawnManager.GetPrefabHashFromGenerator("Alien");
             networkManager.ConnectionApprovalCallback += ApprovalCheck;
             networkManager.OnServerStarted += ServerStarted;
             networkManager.OnClientConnectedCallback += PlayerConnected_Server;
@@ -151,14 +169,14 @@ public class ServerConnect : MonoBehaviour
     }
 
 
-    //-----Callbacks
-
+    
     //Callback: Player Conencted
     private void PlayerConnected_Server(ulong clientId)
     {
         gameServer.PlayerConnected(clientId);
         UpdatePlayerCount();
     }
+    
     //Callback: Player Disconnected
     private void PlayerDisconnected_Server(ulong clientId)
     {
@@ -170,57 +188,72 @@ public class ServerConnect : MonoBehaviour
         UpdatePlayerCount();
         gameServer.PlayerDisconnected(clientId);
     }
+    
     //Approval Check
     private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkingManager.ConnectionApprovedDelegate callback)
     {
-        if(gameServer == null) { gameServer = GameServer.singleton; }
-        bool approve = false;
-        string connectData = System.Text.Encoding.ASCII.GetString(connectionData);
-        string[] connectDataSplit = connectData.Split(',');
-        int userId = Convert.ToInt32(connectDataSplit[0]);
-        string authKey = connectDataSplit[1].ToString();
-        string username = connectDataSplit[2].ToString();
-        GameObject[] availableSpawns = GameObject.FindGameObjectsWithTag("spawnpoint");
-        Vector3 spawnPoint = availableSpawns[UnityEngine.Random.Range(0, availableSpawns.Length - 1)].transform.position;
-        //Check if player has stored PlayerInfo
-
-        if (gameServer.MovePlayerToActive(clientId, userId, authKey))
+        using (PooledBitReader reader = PooledBitReader.Get(new MemoryStream(connectionData)))
         {
-            spawnPoint = gameServer.GetPlayerLocation(clientId);
-            approve = true;
-        }
-        else
-        {
-            PlayerInfo newPlayer = new PlayerInfo
+            bool approveConnection = false;
+            Vector3 spawnPoint = GetRandomSpawnpoint();
+            string username = reader.ReadStringPacked().ToString();
+            string authKey = reader.ReadStringPacked().ToString();
+            int userId = reader.ReadInt32Packed();
+            if (username.Length > 0 && authKey.Length > 0 && userId != 0)
             {
-                username = username,
-                authKey = authKey,
-                id = userId,
-                health = 100,
-                food = 100,
-                water = 100,
-                location = spawnPoint,
-                clientId = clientId,
-                coinsAdd = 0,
-                expAdd = 0,
-                hoursAdd = 0,
-                time = DateTime.Now,
-                isNew = true,
-                inventory = new Inventory()
+                if (gameServer == null) gameServer = GameServer.singleton;
+                if (gameServer.MovePlayerToActive(clientId, userId, authKey))
                 {
-                    blueprints = new int[5] {1,2,3,4,5}
+                    spawnPoint = gameServer.GetPlayerLocation(clientId);
+                    approveConnection = true;
                 }
-            };
-            if (gameServer.CreatePlayer(newPlayer)) 
-            {
-                approve = true;       
+                else
+                {
+                    PlayerInfo player = GeneratePlayerInfo();
+                    player.username = username;
+                    player.authKey = authKey;
+                    player.id = userId;
+                    player.location = spawnPoint;
+                    player.clientId = clientId;
+                    approveConnection = gameServer.CreatePlayer(player);
+                }
             }
-        } 
-        callback(true, SpawnManager.GetPrefabHashFromGenerator("Alien"), approve, spawnPoint, Quaternion.identity);
+            callback(true, playerPrefabHash, approveConnection, spawnPoint, Quaternion.identity);
+        }
     }
-    
-    
-    //-----Server List
+
+    //Get Random Spawnpoint
+    private Vector3 GetRandomSpawnpoint() 
+    {
+        if(spawnpointPositions != null && spawnpointPositions.Length > 0) 
+        {
+            return spawnpointPositions[UnityEngine.Random.Range(0, spawnpointPositions.Length - 1)];
+        }
+        else 
+        {
+            return new Vector3(0,5,0);
+        }
+    }
+
+    //Generate Fresh PlayerInfo
+    private PlayerInfo GeneratePlayerInfo() 
+    {
+        return new PlayerInfo
+        {
+            health = 100,
+            food = 100,
+            water = 100,
+            coinsAdd = 0,
+            expAdd = 0,
+            hoursAdd = 0,
+            time = DateTime.Now,
+            isNew = true,
+            inventory = new Inventory()
+            {
+                blueprints = new int[5] { 1, 2, 3, 4, 5 }
+            }
+        };
+    }
 
     //Update Server List
     private void UpdateServerList(bool value)
@@ -252,6 +285,7 @@ public class ServerConnect : MonoBehaviour
         }
         StartCoroutine(ServerListLoop());
     }
+
     //Server List Loop
     private IEnumerator ServerListLoop() 
     {
@@ -268,6 +302,7 @@ public class ServerConnect : MonoBehaviour
         }
         StartCoroutine(ServerListLoop());
     }
+    
     //Update the Player Count on the Server List
     private void UpdatePlayerCount()
     {
@@ -290,7 +325,6 @@ public class ServerConnect : MonoBehaviour
     }
 
 
-    //-----Settings Data
 
     //Save Player Statistics
     private void SavePlayerStats(WebStatsData stats) 
