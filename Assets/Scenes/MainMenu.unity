@@ -3952,7 +3952,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 222.02061, y: 0}
   m_SizeDelta: {x: 0, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &311978472
@@ -11072,6 +11072,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe2f748c102b78042a6ea3be24db1b2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameId: 3507995
+  myPlacementId: rewardedVideo
+  testMode: 1
+  storedIp: 
 --- !u!114 &804832994
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21840,7 +21844,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 23.2, y: 0}
   m_SizeDelta: {x: 0, y: 60.000027}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1596397761

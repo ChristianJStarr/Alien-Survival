@@ -3,7 +3,6 @@ using TMPro;
 public class MainMenuServerSlide : MonoBehaviour
 {
     public TextMeshProUGUI slideName, slidePing, slideType, slideMode, slidePlayers;
-    private MainMenuAdsListener adListener;
     public Server storedServer;
 
     //Update Values of this Slide
@@ -13,7 +12,7 @@ public class MainMenuServerSlide : MonoBehaviour
         slidePing.text = server.server_ping + "ms";
         slideType.text = server.server_description;
         slideMode.text = server.server_mode;
-        slidePlayers.text = "(" + server.server_players + "/" + server.server_maxPlayers + ")";
+        slidePlayers.text = string.Format("({0}/{1})", server.server_players, server.server_maxPlayers);
         storedServer = server;
     }
 
@@ -21,10 +20,9 @@ public class MainMenuServerSlide : MonoBehaviour
     public void JoinThisRoom() 
     {
         MusicManager.PlayUISound(0);
-        if(adListener == null) 
+        if(ServerConnect.singleton != null) 
         {
-            adListener = FindObjectOfType<MainMenuAdsListener>();
+            ServerConnect.singleton.ConnectToServer(storedServer.server_Ip, storedServer.server_Port);
         }
-        adListener.ShowAd(storedServer.server_Ip, storedServer.server_Port);
     }
 }
