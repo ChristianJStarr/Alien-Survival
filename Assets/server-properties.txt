@@ -3,7 +3,7 @@
 	"serverDescription":"Default Server",
 	"serverMode":"Default Mode",
 	"serverMap":"Default Map",
-	"publicIP":"10.0.0.211",
+	"publicIP":"98.209.253.68",
 	"serverPort":5055,
 	"serverMaxPlayer":30,
 	"maxEnemies":100,

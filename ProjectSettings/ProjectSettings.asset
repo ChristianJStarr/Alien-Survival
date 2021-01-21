@@ -941,11 +941,15 @@ PlayerSettings:
       daydreamIconForeground: {fileID: 0}
       daydreamIconBackground: {fileID: 0}
   cloudServicesEnabled:
-    Build: 1
-    Collab: 0
+    Analytics: 1
+    Build: 0
+    Collab: 1
     ErrorHub: 0
+    Game Performance: 0
     Hub: 0
+    Purchasing: 0
     UNet: 1
+    Unity Ads: 0
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -958,9 +962,9 @@ PlayerSettings:
     m_VersionCode: 1
     m_VersionName: 
   apiCompatibilityLevel: 6
-  cloudProjectId: 9a3d4aa8-a5ce-4165-a332-0201a2fd394f
+  cloudProjectId: 7f494b8b-5fae-43e8-afbd-27c04484ff28
   framebufferDepthMemorylessMode: 0
-  projectName: Alien Survival
+  projectName: Alien Survival (2)
   organizationId: chrisstarr22
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0

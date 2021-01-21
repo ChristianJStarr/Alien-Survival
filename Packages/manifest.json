@@ -13,6 +13,7 @@
     "com.unity.ads": "3.5.2",
     "com.unity.animation.rigging": "0.3.4-preview",
     "com.unity.burst": "1.3.9",
+    "com.unity.collab-proxy": "1.3.9",
     "com.unity.device-simulator": "2.2.3-preview",
     "com.unity.entities": "0.16.0-preview.21",
     "com.unity.ide.rider": "1.2.1",
